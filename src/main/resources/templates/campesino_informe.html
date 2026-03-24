@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Super Informe Python - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Fondo animado */
+        .hero-bg {
+            background: linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 70%, #16a34a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+            animation: pulse-bg 6s ease-in-out infinite;
+        }
+        @keyframes pulse-bg {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Tarjetas de estadísticas */
+        .stat-card {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid #f0fdf4;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(22,163,74,0.15);
+        }
+
+        /* Tarjetas de gráficas */
+        .chart-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            border: 1px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+        .chart-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        /* Badge Python */
+        .python-badge {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Animación de entrada */
+        .fade-up {
+            animation: fadeUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        .fade-up:nth-child(1) { animation-delay: 0.1s; }
+        .fade-up:nth-child(2) { animation-delay: 0.2s; }
+        .fade-up:nth-child(3) { animation-delay: 0.3s; }
+        .fade-up:nth-child(4) { animation-delay: 0.4s; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Separador decorativo */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, #e5e7eb, transparent);
+        }
+
+        /* Imagen de gráfica */
+        .chart-img {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 1px solid #f3f4f6;
+        }
+
+        /* Sin datos */
+        .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #9ca3af;
+            background: #f9fafb;
+            border-radius: 0.75rem;
+            border: 2px dashed #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- ===== HERO HEADER ===== -->
+    <div class="hero-bg text-white py-12 px-4">
+        <div class="max-w-6xl mx-auto relative z-10">
+
+            <!-- Navegación -->
+            <div class="flex items-center justify-between mb-8">
+                <a th:href="@{/campesino/productos}"
+                   class="flex items-center gap-2 text-green-200 hover:text-white transition font-semibold text-sm">
+                    <i class="fas fa-arrow-left"></i> Volver a Mis Productos
+                </a>
+                <span class="python-badge">
+                    <i class="fab fa-python mr-1"></i> Generado con Python + Matplotlib
+                </span>
+            </div>
+
+            <!-- Título principal -->
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6 border border-white/20">
+                    <i class="fas fa-chart-line text-4xl text-green-300"></i>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">
+                    ⚡ Super Informe Python
+                </h1>
+                <p class="text-green-200 text-lg font-medium mb-2">
+                    Análisis inteligente de tus ventas generado en tiempo real
+                </p>
+                <p class="text-green-300 text-sm" th:text="'Campesino: ' + ${resumen?.nombre_campesino}">
+                    Campesino: —
+                </p>
+            </div>
+
+            <!-- KPIs principales -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
+                    <div class="text-3xl font-black text-white"
+                         th:text="${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
+                        $0
+                    </div>
+                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
+                        <i class="fas fa-dollar-sign mr-1"></i> Total Ingresos
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
+                    <div class="text-3xl font-black text-white" th:text="${resumen?.total_unidades}">0</div>
+                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
+                        <i class="fas fa-boxes mr-1"></i> Unidades Vendidas
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
+                    <div class="text-xl font-black text-white truncate" th:text="${resumen?.producto_estrella}">—</div>
+                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
+                        <i class="fas fa-trophy mr-1"></i> Producto Estrella
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
+                    <div class="text-3xl font-black text-white" th:text="${resumen?.mejor_mes}">—</div>
+                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
+                        <i class="fas fa-calendar-star mr-1"></i> Mejor Mes
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <main class="max-w-6xl mx-auto px-4 py-10 space-y-10">
+
+        <!-- Aviso si Python está apagado -->
+        <div th:if="${graficoTopProductos == null and graficoIngresosMes == null}"
+             class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
+            <div class="bg-amber-100 rounded-xl p-3 flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-amber-500 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-amber-800 text-lg">Servidor Python apagado</h3>
+                <p class="text-amber-700 text-sm mt-1">
+                    Las gráficas no se pudieron generar porque el servidor Python no está activo.
+                    Inicia el servidor con: <code class="bg-amber-100 px-2 py-0.5 rounded font-mono text-xs">python servidor.py</code>
+                    y recarga esta página.
+                </p>
+                <p class="text-amber-600 text-xs mt-2">
+                    Los datos estadísticos del resumen sí están disponibles (vienen de la base de datos Java).
+                </p>
+            </div>
+        </div>
+
+        <!-- ===== FILA 1: Top Productos + Distribución ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Gráfica 1: Top Productos -->
+            <div class="chart-card">
+                <div class="section-title">
+                    <span class="text-2xl">🏆</span>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">Top Productos Más Vendidos</h2>
+                        <p class="text-xs text-gray-400">Por cantidad de unidades</p>
+                    </div>
+                    <span class="python-badge ml-auto">Python</span>
+                </div>
+                <div th:if="${graficoTopProductos != null}">
+                    <img th:src="'data:image/png;base64,' + ${graficoTopProductos}"
+                         class="chart-img" alt="Top Productos" />
+                </div>
+                <div th:if="${graficoTopProductos == null}" class="no-data">
+                    <i class="fas fa-chart-bar text-4xl mb-3"></i>
+                    <p class="font-semibold">Gráfica no disponible</p>
+                    <p class="text-sm">Inicia el servidor Python</p>
+                </div>
+            </div>
+
+            <!-- Gráfica 3: Distribución de Ingresos -->
+            <div class="chart-card">
+                <div class="section-title">
+                    <span class="text-2xl">💰</span>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">Distribución de Ingresos</h2>
+                        <p class="text-xs text-gray-400">Por producto (% del total)</p>
+                    </div>
+                    <span class="python-badge ml-auto">Python</span>
+                </div>
+                <div th:if="${graficoDistribucion != null}">
+                    <img th:src="'data:image/png;base64,' + ${graficoDistribucion}"
+                         class="chart-img" alt="Distribución de Ingresos" />
+                </div>
+                <div th:if="${graficoDistribucion == null}" class="no-data">
+                    <i class="fas fa-chart-pie text-4xl mb-3"></i>
+                    <p class="font-semibold">Gráfica no disponible</p>
+                    <p class="text-sm">Inicia el servidor Python</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== FILA 2: Ingresos por Mes (ancho completo) ===== -->
+        <div class="chart-card">
+            <div class="section-title">
+                <span class="text-2xl">📅</span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Ingresos por Mes</h2>
+                    <p class="text-xs text-gray-400">Evolución temporal de tus ventas en COP</p>
+                </div>
+                <span class="python-badge ml-auto">Python</span>
+            </div>
+            <div th:if="${graficoIngresosMes != null}">
+                <img th:src="'data:image/png;base64,' + ${graficoIngresosMes}"
+                     class="chart-img" alt="Ingresos por Mes" />
+            </div>
+            <div th:if="${graficoIngresosMes == null}" class="no-data">
+                <i class="fas fa-chart-line text-4xl mb-3"></i>
+                <p class="font-semibold">Gráfica no disponible</p>
+                <p class="text-sm">Inicia el servidor Python</p>
+            </div>
+        </div>
+
+        <!-- ===== FILA 3: Tu Precio vs Mercado SIPSA (ancho completo) ===== -->
+        <div class="chart-card">
+            <div class="section-title">
+                <span class="text-2xl">📊</span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Tu Precio vs Precio de Mercado</h2>
+                    <p class="text-xs text-gray-400">Comparación con datos reales del SIPSA - DANE Colombia</p>
+                </div>
+                <span class="python-badge ml-auto">SIPSA + Python</span>
+            </div>
+            <div th:if="${graficoVsMercado != null}">
+                <img th:src="'data:image/png;base64,' + ${graficoVsMercado}"
+                     class="chart-img" alt="Tu Precio vs Mercado" />
+            </div>
+            <div th:if="${graficoVsMercado == null}" class="no-data">
+                <i class="fas fa-balance-scale text-4xl mb-3"></i>
+                <p class="font-semibold">Comparación no disponible</p>
+                <p class="text-sm">Requiere servidor Python activo y productos con precio registrado</p>
+            </div>
+        </div>
+
+        <!-- ===== RESUMEN ESTADÍSTICO DETALLADO ===== -->
+        <div class="chart-card">
+            <div class="section-title">
+                <span class="text-2xl">📋</span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Resumen Estadístico</h2>
+                    <p class="text-xs text-gray-400">Calculado desde la base de datos en tiempo real</p>
+                </div>
+                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ml-auto">
+                    Java + DB
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-green-100 p-2.5 rounded-xl">
+                            <i class="fas fa-dollar-sign text-green-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Ingresos</span>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900"
+                       th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
+                        $0
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Pesos colombianos (COP)</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-blue-100 p-2.5 rounded-xl">
+                            <i class="fas fa-boxes text-blue-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Unidades Vendidas</span>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.total_unidades}">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Total de unidades despachadas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-purple-100 p-2.5 rounded-xl">
+                            <i class="fas fa-receipt text-purple-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Pedidos</span>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900" th:text="${totalVentas}">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Líneas de venta registradas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-yellow-100 p-2.5 rounded-xl">
+                            <i class="fas fa-trophy text-yellow-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Producto Estrella</span>
+                    </div>
+                    <p class="text-xl font-black text-gray-900 truncate" th:text="${resumen?.producto_estrella}">—</p>
+                    <p class="text-xs text-gray-400 mt-1">El más vendido por cantidad</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-orange-100 p-2.5 rounded-xl">
+                            <i class="fas fa-calendar-check text-orange-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Mejor Mes</span>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.mejor_mes}">—</p>
+                    <p class="text-xs text-gray-400 mt-1">Mayor ingreso mensual</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-teal-100 p-2.5 rounded-xl">
+                            <i class="fas fa-seedling text-teal-600"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Productos Activos</span>
+                    </div>
+                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.total_productos}">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Tipos de producto vendidos</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== FOOTER DEL INFORME ===== -->
+        <div class="text-center py-6 border-t border-gray-100">
+            <div class="inline-flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-sm border border-gray-100">
+                <i class="fab fa-python text-blue-500 text-xl"></i>
+                <span class="text-sm text-gray-500">
+                    Gráficas generadas con <strong class="text-gray-700">Python 3 + Matplotlib</strong>
+                    · Precios de mercado: <strong class="text-gray-700">SIPSA - DANE Colombia</strong>
+                </span>
+                <i class="fas fa-leaf text-green-500 text-xl"></i>
+            </div>
+            <p class="text-xs text-gray-400 mt-3">&copy; 2025 AgroConecta · Panel de Campesino</p>
+        </div>
+
+    </main>
+
+</body>
+</html>

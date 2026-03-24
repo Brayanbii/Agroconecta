@@ -13,6 +13,7 @@ public class PythonService {
     private static final String BASE_URL       = "http://localhost:5000";
     private static final String PRECIOS_URL    = BASE_URL + "/api/v1/precios";
     private static final String GRAFICOS_URL   = BASE_URL + "/api/v1/graficos";
+    private static final String INFORME_URL    = BASE_URL + "/api/v1/informe-campesino";
 
     // -------------------------------------------------------
     // GET precios de referencia (para el formulario campesino)
@@ -42,6 +43,25 @@ public class PythonService {
             return restTemplate.postForObject(GRAFICOS_URL, request, Map.class);
         } catch (Exception e) {
             System.out.println("Error: Python esta apagado o no responde (graficos).");
+            return null;
+        }
+    }
+
+    // -------------------------------------------------------
+    // POST datos del campesino → recibe super informe en base64
+    // -------------------------------------------------------
+    public Map<String, Object> generarInformeCampesino(Map<String, Object> datos) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(datos, headers);
+
+            return restTemplate.postForObject(INFORME_URL, request, Map.class);
+        } catch (Exception e) {
+            System.out.println("Error: Python esta apagado o no responde (informe-campesino).");
             return null;
         }
     }

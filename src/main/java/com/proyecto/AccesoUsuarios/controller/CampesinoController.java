@@ -14,7 +14,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.IOException;
@@ -108,7 +112,8 @@ public class CampesinoController {
         return "campesino_producto_form";
     }
 
-    @GetMapping("/eliminar/{id}")
+    @Transactional
+    @PostMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id) {
         Producto p = productoRepo.findById(id).get();
 
@@ -138,5 +143,90 @@ public class CampesinoController {
         Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
         model.addAttribute("ventas", detalleRepo.findVentasByCampesino(campesino));
         return "campesino_ventas";
+    }
+
+    // -------------------------------------------------------
+    // SUPER INFORME PYTHON — Reporte detallado con graficas
+    // -------------------------------------------------------
+    @GetMapping("/informe")
+    public String superInforme(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+
+        // 1. Obtener todas las ventas del campesino
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+
+        // 2. Agrupar por producto (nombre, cantidad total, ingresos totales, precio promedio)
+        Map<String, Map<String, Object>> porProducto = new LinkedHashMap<>();
+        for (DetalleOrden d : ventas) {
+            String nombre = d.getNombre() != null ? d.getNombre() : "Sin nombre";
+            porProducto.computeIfAbsent(nombre, k -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("nombre", k);
+                m.put("cantidad", 0);
+                m.put("total", 0.0);
+                m.put("precio_promedio", d.getPrecio() != null ? d.getPrecio() : 0.0);
+                return m;
+            });
+            Map<String, Object> entry = porProducto.get(nombre);
+            entry.put("cantidad", (int) entry.get("cantidad") + (d.getCantidad() != null ? d.getCantidad() : 0));
+            entry.put("total", (double) entry.get("total") + (d.getTotal() != null ? d.getTotal() : 0.0));
+        }
+        List<Map<String, Object>> productos = new ArrayList<>(porProducto.values());
+
+        // 3. Agrupar por mes (nombre del mes, ingresos totales)
+        String[] MESES = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
+        Map<Integer, Double> porMes = new LinkedHashMap<>();
+        for (DetalleOrden d : ventas) {
+            if (d.getOrden() != null && d.getOrden().getFechaCreacion() != null) {
+                int mes = d.getOrden().getFechaCreacion().getMonthValue();
+                porMes.merge(mes, d.getTotal() != null ? d.getTotal() : 0.0, Double::sum);
+            }
+        }
+        List<Map<String, Object>> ventasMes = new ArrayList<>();
+        for (Map.Entry<Integer, Double> entry : porMes.entrySet()) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("mes", MESES[entry.getKey() - 1]);
+            m.put("total", entry.getValue());
+            ventasMes.add(m);
+        }
+
+        // 4. Calcular resumen estadístico
+        double totalIngresos = ventas.stream().mapToDouble(d -> d.getTotal() != null ? d.getTotal() : 0.0).sum();
+        int totalUnidades    = ventas.stream().mapToInt(d -> d.getCantidad() != null ? d.getCantidad() : 0).sum();
+        String productoEstrella = productos.stream()
+                .max((a, b) -> Integer.compare((int) a.get("cantidad"), (int) b.get("cantidad")))
+                .map(p -> (String) p.get("nombre")).orElse("N/A");
+        String mejorMes = ventasMes.stream()
+                .max((a, b) -> Double.compare((double) a.get("total"), (double) b.get("total")))
+                .map(m -> (String) m.get("mes")).orElse("N/A");
+
+        Map<String, Object> resumen = new HashMap<>();
+        resumen.put("total_ingresos", totalIngresos);
+        resumen.put("total_unidades", totalUnidades);
+        resumen.put("total_productos", porProducto.size());
+        resumen.put("producto_estrella", productoEstrella);
+        resumen.put("mejor_mes", mejorMes);
+        resumen.put("nombre_campesino", campesino.getNombreCompleto() != null ? campesino.getNombreCompleto() : email);
+
+        // 5. Enviar a Python y recibir gráficas
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("productos", productos);
+        payload.put("ventas_mes", ventasMes);
+        payload.put("resumen", resumen);
+
+        Map<String, Object> informe = pythonService.generarInformeCampesino(payload);
+
+        // 6. Pasar todo al modelo
+        model.addAttribute("resumen", resumen);
+        model.addAttribute("totalVentas", ventas.size());
+        if (informe != null) {
+            model.addAttribute("graficoTopProductos", informe.get("grafico_top_productos"));
+            model.addAttribute("graficoIngresosMes",  informe.get("grafico_ingresos_mes"));
+            model.addAttribute("graficoDistribucion", informe.get("grafico_distribucion"));
+            model.addAttribute("graficoVsMercado",    informe.get("grafico_vs_mercado"));
+        }
+
+        return "campesino_informe";
     }
 }

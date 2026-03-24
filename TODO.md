@@ -18,11 +18,29 @@
 
 ## Tareas — Fase 3: Graficos Estadisticos para el Admin
 
-- [ ] Paso 8:  Agregar matplotlib a `requirements.txt` e instalar
-- [ ] Paso 9:  Agregar endpoint `POST /api/v1/graficos` en `servidor.py`
-- [ ] Paso 10: Agregar queries en `DetalleOrdenRepository.java`
-- [ ] Paso 11: Agregar queries en `OrdenRepository.java`
-- [ ] Paso 12: Agregar metodo `generarGraficos()` en `PythonService.java`
-- [ ] Paso 13: Actualizar `DashboardController.java` para enviar datos a Python
-- [ ] Paso 14: Actualizar `dashboard_admin.html` con los 3 graficos
-- [ ] Paso 15: Actualizar `EXPLICACION_PROFESOR.txt` con la nueva funcionalidad
+- [x] Paso 8:  Agregar matplotlib a `requirements.txt` e instalar
+- [x] Paso 9:  Agregar endpoint `POST /api/v1/graficos` en `servidor.py`
+- [x] Paso 10: Agregar queries en `DetalleOrdenRepository.java`
+- [x] Paso 11: Agregar queries en `OrdenRepository.java`
+- [x] Paso 12: Agregar metodo `generarGraficos()` en `PythonService.java`
+- [x] Paso 13: Actualizar `DashboardController.java` para enviar datos a Python
+- [x] Paso 14: Actualizar `dashboard_admin.html` con los 3 graficos
+- [x] Paso 15: Actualizar `EXPLICACION_PROFESOR.txt` con la nueva funcionalidad
+
+## Tareas — Fase 4: Fix Borrar Producto + Super Informe Campesino
+
+- [x] Paso 16: Fix `eliminarProducto()` → `@PostMapping` + `@Transactional` + desvincula FK
+- [x] Paso 17: Agregar endpoint `POST /api/v1/informe-campesino` en `servidor.py` (4 gráficas)
+- [x] Paso 18: Agregar método `generarInformeCampesino()` en `PythonService.java`
+- [x] Paso 19: Agregar endpoint `GET /informe` en `CampesinoController.java`
+  - [x] Agrupa ventas por producto y por mes
+  - [x] Calcula resumen estadístico (ingresos, unidades, producto estrella, mejor mes)
+  - [x] Envía datos a Python y recibe 4 gráficas base64
+- [x] Paso 20: Crear `campesino_informe.html` con diseño premium
+  - [x] Hero con KPIs en tiempo real
+  - [x] 4 gráficas Matplotlib embebidas como base64
+  - [x] Resumen estadístico detallado
+  - [x] Aviso elegante si Python está apagado
+- [x] Paso 21: Agregar "⚡ Super Botón Python" en navbar de `mis_productos.html`
+
+## ✅ TODAS LAS FASES COMPLETADAS
