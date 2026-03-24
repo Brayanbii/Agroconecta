@@ -32,8 +32,8 @@ public class CarritoController {
         return "redirect:/tienda"; // Vuelve a la tienda para seguir comprando
     }
 
-    // 3. Eliminar item
-    @GetMapping("/eliminar/{id}")
+    // 3. Eliminar item (POST para seguridad CSRF)
+    @PostMapping("/eliminar/{id}")
     public String eliminarDelCarrito(@PathVariable Long id) {
         carritoService.eliminarProducto(id);
         return "redirect:/carrito";

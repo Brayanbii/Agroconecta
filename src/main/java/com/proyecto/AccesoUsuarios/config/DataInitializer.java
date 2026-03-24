@@ -7,15 +7,14 @@ import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initDatabase(UsuarioRepository userRepo, ProductoRepository prodRepo) {
+    public CommandLineRunner initDatabase(UsuarioRepository userRepo, ProductoRepository prodRepo, PasswordEncoder encoder) {
         return args -> {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
             // 1. Crear ADMIN
             if (userRepo.findByEmail("admin@agroconecta.com").isEmpty()) {

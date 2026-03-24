@@ -50,14 +50,22 @@
                     <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
                 </div>
 
-                <!-- Buscador Central (Desktop) -->
-                <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                <!-- Buscador Central (Desktop) - FUNCIONAL -->
+                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 max-w-lg mx-8">
                     <div class="relative w-full">
-                        <input type="text" placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
-                               class="w-full pl-12 pr-4 py-3 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
-                        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                        <input type="text" name="buscar" th:value="${busqueda}" 
+                               placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
+                               class="w-full pl-12 pr-12 py-3 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
+                        <button type="submit" class="absolute left-3 top-2.5 text-gray-400 hover:text-green-600 transition p-1">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <!-- Botón limpiar búsqueda -->
+                        <a th:if="${busqueda != null && !busqueda.isEmpty()}" th:href="@{/tienda}" 
+                           class="absolute right-3 top-2.5 text-gray-400 hover:text-red-500 transition p-1" title="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </a>
                     </div>
-                </div>
+                </form>
 
                 <!-- Menú Derecha -->
                 <div class="flex items-center gap-6">

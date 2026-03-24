@@ -18,14 +18,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Necesario para que funcione el botón "Cerrar Sesión"
+            // CSRF habilitado por defecto (ya no se deshabilita)
+            // Thymeleaf con th:action inyecta el token automáticamente en los formularios
             .authorizeHttpRequests(auth -> auth
                 // AGREGAMOS "/" AQUÍ AL PRINCIPIO
                 .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
                 // Rutas protegidas por ROL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/campesino/**").hasRole("CAMPESINO")
-                .requestMatchers("/tienda/**").hasRole("CLIENTE")
+                .requestMatchers("/tienda/**", "/carrito/**", "/orden/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title th:text="'Error ' + ${codigo != null ? codigo : ''} + ' - AgroConecta'">Error - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow flex items-center justify-center px-4 py-16">
+        <div class="text-center max-w-lg">
+            
+            <!-- Icono animado -->
+            <div class="w-32 h-32 mx-auto mb-8 bg-green-50 rounded-full flex items-center justify-center">
+                <i th:class="${icono != null ? icono : 'fas fa-exclamation-triangle'}" class="text-6xl text-green-400"></i>
+            </div>
+
+            <!-- Código de error -->
+            <h1 class="text-8xl font-extrabold text-green-600 mb-2" th:text="${codigo != null ? codigo : '¡Ups!'}">500</h1>
+            
+            <!-- Título -->
+            <h2 class="text-2xl font-bold text-gray-900 mb-4" th:text="${titulo != null ? titulo : 'Algo salió mal'}">Error</h2>
+            
+            <!-- Mensaje descriptivo -->
+            <p class="text-gray-500 mb-8 leading-relaxed" th:text="${mensaje != null ? mensaje : 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'}">
+                Descripción del error.
+            </p>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a th:href="@{/}" 
+                   class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-green-600/20 transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-home"></i>
+                    Ir al Inicio
+                </a>
+                <button onclick="history.back()" 
+                        class="bg-white hover:bg-gray-50 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-sm border border-gray-200 transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver Atrás
+                </button>
+            </div>
+
+            <!-- Decoración -->
+            <div class="mt-12 flex items-center justify-center gap-2 text-xs text-gray-400">
+                <i class="fas fa-leaf text-green-300"></i>
+                <span>AgroConecta - Del campo a tu mesa</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white pt-8 pb-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex justify-center items-center gap-2 mb-4">
+                <div class="bg-green-600 text-white p-1.5 rounded-lg">
+                    <i class="fas fa-leaf text-lg"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">AgroConecta</span>
+            </div>
+            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
+                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

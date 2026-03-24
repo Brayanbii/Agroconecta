@@ -151,11 +151,13 @@
                             <i class="fas fa-pen text-xs group-hover/btn:rotate-12 transition-transform"></i> Editar
                         </a>
                         
-                        <a th:href="@{'/campesino/productos/eliminar/' + ${p.id}}" 
-                           class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition group/btn"
-                           onclick="return confirm('¿Seguro que quieres eliminar este producto?')">
-                            <i class="fas fa-trash text-xs group-hover/btn:bounce transition"></i> Borrar
-                        </a>
+                        <form th:action="@{'/campesino/productos/eliminar/' + ${p.id}}" method="post" class="m-0 p-0"
+                              onsubmit="return confirm('¿Seguro que quieres eliminar este producto?')">
+                            <button type="submit" 
+                                    class="flex items-center justify-center gap-2 py-2.5 w-full rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition group/btn cursor-pointer border-none">
+                                <i class="fas fa-trash text-xs group-hover/btn:bounce transition"></i> Borrar
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

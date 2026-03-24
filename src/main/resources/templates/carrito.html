@@ -67,6 +67,29 @@
             </span>
         </h1>
 
+        <!-- ALERTA DE ERROR DE STOCK -->
+        <div th:if="${param.error != null && param.error[0] == 'stock_insuficiente'}" 
+             class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-red-100 text-red-600 p-2 rounded-lg">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <p class="font-bold text-red-700">Stock insuficiente</p>
+                <p class="text-sm text-red-600">El producto <strong th:text="${param.producto != null ? param.producto[0] : ''}"></strong> no tiene suficiente stock para la cantidad solicitada. Por favor, reduce la cantidad.</p>
+            </div>
+        </div>
+
+        <div th:if="${param.error != null && param.error[0] == 'producto_no_existe'}" 
+             class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-yellow-100 text-yellow-600 p-2 rounded-lg">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div>
+                <p class="font-bold text-yellow-700">Producto no disponible</p>
+                <p class="text-sm text-yellow-600">Uno de los productos en tu carrito ya no está disponible. Por favor, elimínalo e intenta de nuevo.</p>
+            </div>
+        </div>
+
         <!-- ESTADO 1: CARRITO CON PRODUCTOS -->
         <div th:if="${!#lists.isEmpty(items)}" class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
             
@@ -124,11 +147,12 @@
                                     <p class="text-xs text-gray-400">Subtotal</p>
                                     <p class="text-xl font-extrabold text-green-600" th:text="'$' + ${item.getTotal()}">$0</p>
                                 </div>
-                                <a th:href="@{'/carrito/eliminar/' + ${item.producto.id}}" 
-                                   class="text-gray-300 hover:text-red-500 transition p-2" 
-                                   title="Eliminar producto">
-                                    <i class="fas fa-trash-alt text-lg"></i>
-                                </a>
+                                <form th:action="@{'/carrito/eliminar/' + ${item.producto.id}}" method="post" class="inline m-0 p-0">
+                                    <button type="submit" class="text-gray-300 hover:text-red-500 transition p-2 bg-transparent border-none cursor-pointer" 
+                                            title="Eliminar producto">
+                                        <i class="fas fa-trash-alt text-lg"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

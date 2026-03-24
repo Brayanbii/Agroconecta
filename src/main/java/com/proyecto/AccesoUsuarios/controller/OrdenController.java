@@ -46,8 +46,22 @@ public class OrdenController {
             return "redirect:/tienda";
         }
 
+        // VALIDACIÓN DE STOCK: Verificar que hay suficiente stock para cada producto
+        for (ItemCarrito item : carritoService.obtenerItems()) {
+            // Recargamos el producto desde BD para tener el stock actualizado
+            Producto productoActual = productoRepo.findById(item.getProducto().getId()).orElse(null);
+            
+            if (productoActual == null) {
+                return "redirect:/carrito?error=producto_no_existe";
+            }
+            if (productoActual.getStock() == null || productoActual.getStock() < item.getCantidad()) {
+                // Stock insuficiente → redirigir al carrito con error
+                return "redirect:/carrito?error=stock_insuficiente&producto=" + productoActual.getNombre();
+            }
+        }
+
         String email = auth.getName(); 
-        Usuario usuario = usuarioRepo.findByEmail(email).orElseThrow(); // CORREGIDO
+        Usuario usuario = usuarioRepo.findByEmail(email).orElseThrow();
 
         Orden orden = new Orden();
         orden.setFechaCreacion(LocalDateTime.now());
@@ -67,7 +81,8 @@ public class OrdenController {
             detalle.setProducto(item.getProducto());
             detalles.add(detalle);
             
-            Producto p = item.getProducto();
+            // Descontar stock (ya validado arriba)
+            Producto p = productoRepo.findById(item.getProducto().getId()).orElseThrow();
             p.setStock(p.getStock() - item.getCantidad());
             productoRepo.save(p);
         }

@@ -11,10 +11,16 @@ import java.nio.file.Paths;
 @Service
 public class UploadFileService {
 
-    private String folder = "images//";
+    private final String folder = "images/";
 
     public String saveImage(MultipartFile file) throws IOException {
         if (!file.isEmpty()) {
+            // Crear el directorio si no existe
+            Path directorio = Paths.get(folder);
+            if (!Files.exists(directorio)) {
+                Files.createDirectories(directorio);
+            }
+
             byte[] bytes = file.getBytes();
             Path path = Paths.get(folder + file.getOriginalFilename());
             Files.write(path, bytes);
@@ -24,10 +30,12 @@ public class UploadFileService {
     }
 
     public void deleteImage(String nombre) {
-        String ruta = "images//";
-        java.io.File file = new java.io.File(ruta + nombre);
-        if (file.exists()) {
-            file.delete();
+        Path path = Paths.get(folder + nombre);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            // Log del error pero no interrumpimos el flujo
+            e.printStackTrace();
         }
     }
 }

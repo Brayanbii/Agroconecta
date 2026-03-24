@@ -2,11 +2,13 @@ package com.proyecto.AccesoUsuarios.controller;
 
 import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -14,6 +16,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository repo;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
     public String login() {
@@ -40,7 +45,7 @@ public class UsuarioController {
 
     @PostMapping("/usuarios/guardar")
     public String guardar(@ModelAttribute Usuario usuario) {
-        usuario.setPassword(new BCryptPasswordEncoder().encode(usuario.getPassword()));
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         repo.save(usuario);
         return "redirect:/usuarios";
     }
@@ -51,7 +56,8 @@ public class UsuarioController {
         return "form";
     }
 
-    @GetMapping("/usuarios/eliminar/{id}")
+    // Eliminar usuario (POST para seguridad CSRF)
+    @PostMapping("/usuarios/eliminar/{id}")
     public String eliminar(@PathVariable Long id) {
         repo.deleteById(id);
         return "redirect:/usuarios";
@@ -79,7 +85,7 @@ public class UsuarioController {
 
         // Contraseña opcional
         if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            actual.setPassword(new BCryptPasswordEncoder().encode(usuario.getPassword()));
+            actual.setPassword(passwordEncoder.encode(usuario.getPassword()));
         }
 
         repo.save(actual); 
@@ -95,7 +101,12 @@ public class UsuarioController {
     }
 
     @PostMapping("/registro/guardar")
-    public String guardarRegistro(@ModelAttribute Usuario usuario) {
+    public String guardarRegistro(@Valid @ModelAttribute Usuario usuario, BindingResult result, Model model) {
+        // Si hay errores de validación (@NotEmpty, @Email, @Size), volvemos al formulario
+        if (result.hasErrors()) {
+            return "registro";
+        }
+
         // Validar email duplicado
         if (repo.findByEmail(usuario.getEmail()).isPresent()) {
             return "redirect:/registro?error_email"; 
@@ -105,7 +116,7 @@ public class UsuarioController {
             usuario.setRol("CLIENTE");
         }
         
-        usuario.setPassword(new BCryptPasswordEncoder().encode(usuario.getPassword()));
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         
         try {
             repo.save(usuario);

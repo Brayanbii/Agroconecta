@@ -74,6 +74,16 @@
 
                 <form th:action="@{/registro/guardar}" th:object="${usuario}" method="post" class="space-y-3">
                     
+                    <!-- Errores de Validación del Servidor -->
+                    <div th:if="${#fields.hasErrors('*')}" class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+                        <div class="flex items-center gap-2 font-bold mb-1">
+                            <i class="fas fa-exclamation-triangle"></i> Por favor corrige los siguientes errores:
+                        </div>
+                        <ul class="list-disc list-inside space-y-0.5">
+                            <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+                    
                     <!-- ROLES (Diseño Horizontal Compacto) -->
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer relative">

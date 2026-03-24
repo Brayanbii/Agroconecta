@@ -2,10 +2,12 @@ package com.proyecto.AccesoUsuarios.controller;
 
 import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -14,6 +16,9 @@ public class AdminUserController {
 
     @Autowired
     private UsuarioRepository usuarioRepo;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // Listar todos los usuarios
     @GetMapping
@@ -31,8 +36,23 @@ public class AdminUserController {
 
     // Guardar usuario (Crear o Editar)
     @PostMapping("/guardar")
-    public String guardarUsuario(@ModelAttribute Usuario usuario) {
+    public String guardarUsuario(@Valid @ModelAttribute Usuario usuario, BindingResult result, Model model) {
         
+        // Si es edición, ignoramos errores de password (puede venir vacío para mantener la actual)
+        if (usuario.getId() != null) {
+            long erroresSinPassword = result.getFieldErrors().stream()
+                    .filter(e -> !"password".equals(e.getField()))
+                    .count();
+            if (erroresSinPassword > 0) {
+                return "admin_usuario_form";
+            }
+        } else {
+            // Si es creación, todos los errores importan
+            if (result.hasErrors()) {
+                return "admin_usuario_form";
+            }
+        }
+
         // Verificar si es edición (tiene ID) o creación (no tiene ID)
         if (usuario.getId() != null) {
             // EDICIÓN: Buscamos al usuario original en la BD
@@ -41,7 +61,7 @@ public class AdminUserController {
             if (usuarioExistente != null) {
                 // Si el campo contraseña NO está vacío, la actualizamos
                 if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-                    usuario.setPassword(new BCryptPasswordEncoder().encode(usuario.getPassword()));
+                    usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
                 } else {
                     // Si está vacío, mantenemos la contraseña vieja
                     usuario.setPassword(usuarioExistente.getPassword());
@@ -50,7 +70,7 @@ public class AdminUserController {
         } else {
             // CREACIÓN: La contraseña es obligatoria y se encripta
             if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-                usuario.setPassword(new BCryptPasswordEncoder().encode(usuario.getPassword()));
+                usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
             }
         }
         
@@ -73,8 +93,8 @@ public class AdminUserController {
         return "admin_usuario_form";
     }
 
-    // Eliminar usuario
-    @GetMapping("/eliminar/{id}")
+    // Eliminar usuario (POST para seguridad CSRF)
+    @PostMapping("/eliminar/{id}")
     public String eliminarUsuario(@PathVariable Long id) {
         usuarioRepo.deleteById(id);
         return "redirect:/admin/usuarios";
