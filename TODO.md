@@ -44,3 +44,10 @@
 - [x] Paso 21: Agregar "⚡ Botón Python" en navbar de `mis_productos.html`
 
 ## ✅ TODAS LAS FASES COMPLETADAS
+
+## Tareas — Fase 5: Mejora Landing Main (Index)
+
+- [x] Paso 22: Mejorar `index.html` manteniendo estética AgroConecta
+- [x] Paso 23: Cambiar imagen de verduras/brócoli por imagen de papa
+- [x] Paso 24: Subir nivel visual (hero, cards, CTA, microinteracciones)
+- [x] Paso 25: Actualizar footer a: `© 2025 AgroConecta. Hecho con ❤️ en Bogotá, 🇨🇴.`

@@ -4,163 +4,224 @@
     <title>Iniciar Sesión - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+
+        .login-shell{
+            background:
+                radial-gradient(circle at 12% 15%, rgba(16,185,129,.16), transparent 30%),
+                radial-gradient(circle at 90% 10%, rgba(132,204,22,.12), transparent 30%),
+                #f8fafc;
+        }
+
+        .hero-panel{
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #111827 55%, #0b1220 100%);
+        }
+        .hero-panel::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background-image:url("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1600&auto=format&fit=crop");
+            background-size:cover;
+            background-position:center;
+            opacity:.35;
+            mix-blend-mode:screen;
+            transform: scale(1.04);
+        }
+        .hero-panel::after{
+            content:"";
+            position:absolute;
+            width:460px;
+            height:460px;
+            border-radius:9999px;
+            right:-130px;
+            top:-120px;
+            background: radial-gradient(circle, rgba(34,197,94,.30), rgba(34,197,94,0));
+            filter: blur(8px);
+        }
+
+        .glass-card{
+            background: rgba(255,255,255,.84);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,.6);
+            box-shadow: 0 22px 50px rgba(15,23,42,.12);
+        }
+
+        .field-shell{
+            transition: all .25s ease;
+        }
+        .field-shell:focus-within{
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34,197,94,.12);
+        }
+
+        .btn-premium{
+            background: linear-gradient(90deg, #16a34a 0%, #10b981 100%);
+            box-shadow: 0 12px 24px rgba(22,163,74,.25);
+        }
+        .btn-premium:hover{
+            filter: brightness(1.02);
+            transform: translateY(-1px);
+        }
+
+        .float-soft{
+            animation: floatSoft 4.8s ease-in-out infinite;
+        }
+        @keyframes floatSoft{
+            0%,100%{ transform: translateY(0);}
+            50%{ transform: translateY(-8px);}
         }
     </style>
 </head>
-<body class="bg-white">
+<body class="login-shell min-h-screen">
 
-    <div class="flex min-h-screen w-full">
+    <div class="min-h-screen grid lg:grid-cols-2">
 
-        <!-- SECCIÓN IZQUIERDA: IMAGEN Y BRANDING (Visible en desktop) -->
-        <div class="hidden lg:flex w-1/2 relative bg-green-900 items-center justify-center overflow-hidden">
-            <!-- Imagen de fondo -->
-            <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1470&auto=format&fit=crop" 
-                 class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" alt="Campo Colombiano">
-            
-            <!-- Decoración abstracta -->
-            <div class="absolute -top-24 -left-24 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-
-            <!-- Contenido sobre la imagen -->
-            <div class="relative z-10 text-center px-12">
-                <div class="mb-8 inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-effect text-white mb-6 shadow-lg">
-                    <i class="fas fa-leaf text-4xl"></i>
+        <!-- PANEL IZQUIERDO PREMIUM -->
+        <section class="hero-panel hidden lg:flex items-center justify-center px-12 xl:px-20 relative">
+            <div class="relative z-10 max-w-xl text-white">
+                <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-md rounded-full px-4 py-2 text-xs uppercase tracking-[0.18em] font-bold text-green-100 mb-8">
+                    <span class="w-2 h-2 rounded-full bg-lime-300 animate-pulse"></span>
+                    Plataforma Premium AgroConecta
                 </div>
-                <h2 class="text-4xl font-bold text-white mb-6 leading-tight">Cultivamos el futuro,<br>conectamos historias.</h2>
-                <p class="text-lg text-green-100 max-w-md mx-auto leading-relaxed">
-                    Únete a la plataforma líder que elimina intermediarios y lleva la frescura del campo directamente a la ciudad.
+
+                <h2 class="text-5xl xl:text-6xl font-extrabold leading-tight mb-6">
+                    Inicia sesión y
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">conecta con el campo colombiano</span>
+                </h2>
+
+                <p class="text-green-100/90 text-lg leading-relaxed mb-10">
+                    Gestiona compras, ventas y trazabilidad agrícola en una experiencia moderna,
+                    elegante y segura.
                 </p>
-                
-                <!-- Testimonio Flotante -->
-                <div class="mt-12 text-left glass-effect p-4 rounded-xl max-w-sm mx-auto transform hover:scale-105 transition duration-300 cursor-default">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="text-yellow-400 text-xs">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
+
+                <div class="glass-card rounded-2xl p-5 max-w-md bg-white/10 border-white/20 text-white float-soft">
+                    <div class="flex items-center gap-1 text-amber-300 text-xs mb-3">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
-                    <p class="text-white text-sm italic">"Gracias a AgroConecta mis ventas aumentaron un 40% sin salir de la finca."</p>
-                    <p class="text-green-200 text-xs mt-2 font-bold">— Don Pedro, Campesino Aliado</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN DERECHA: FORMULARIO -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 bg-white">
-            <div class="w-full max-w-md">
-                
-                <!-- Header Móvil (Solo se ve en celular) -->
-                <div class="lg:hidden text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-100 text-green-600 mb-4">
-                        <i class="fas fa-leaf text-xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-900">AgroConecta</h2>
-                </div>
-
-                <!-- Título del Formulario -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Bienvenido de nuevo 👋</h1>
-                    <p class="text-gray-500">Ingresa tus credenciales para acceder a tu cuenta.</p>
-                </div>
-
-                <!-- Mensajes de Alerta -->
-                <div th:if="${param.error}" class="mb-6 p-4 rounded-lg bg-red-50 border-l-4 border-red-500 flex items-center gap-3 text-red-700 animate-pulse">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="text-sm font-medium">Credenciales incorrectas. Inténtalo de nuevo.</span>
-                </div>
-                <div id="msg-logout" th:if="${param.logout}" class="mb-6 p-4 rounded-lg bg-blue-50 border-l-4 border-blue-500 flex items-center gap-3 text-blue-700">
-                    <i class="fas fa-info-circle"></i>
-                    <span class="text-sm font-medium">Has cerrado sesión correctamente.</span>
-                </div>
-                <div th:if="${param.registrado}" class="mb-6 p-4 rounded-lg bg-green-50 border-l-4 border-green-500 flex items-center gap-3 text-green-700">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="text-sm font-medium">¡Cuenta creada! Ahora puedes ingresar.</span>
-                </div>
-
-                <!-- Formulario -->
-                <form th:action="@{/login}" method="post" class="space-y-6">
-                    
-                    <!-- Email -->
-                    <div class="space-y-2">
-                        <label for="username" class="text-sm font-semibold text-gray-700">Correo Electrónico</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="far fa-envelope text-gray-400 group-focus-within:text-green-600 transition"></i>
-                            </div>
-                            <!-- 'username' es requerido por Spring Security -->
-                            <input type="email" name="username" id="username" required 
-                                   class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition shadow-sm"
-                                   placeholder="nombre@ejemplo.com">
-                        </div>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label for="password" class="text-sm font-semibold text-gray-700">Contraseña</label>
-                            <a href="#" class="text-sm text-green-600 hover:text-green-800 hover:underline font-medium">¿Olvidaste tu contraseña?</a>
-                        </div>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-lock text-gray-400 group-focus-within:text-green-600 transition"></i>
-                            </div>
-                            <input type="password" name="password" id="password" required 
-                                   class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition shadow-sm"
-                                   placeholder="••••••••">
-                        </div>
-                    </div>
-
-                    <!-- Botón Submit -->
-                    <button type="submit" 
-                            class="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-green-600/20 text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all transform hover:-translate-y-0.5 active:scale-95">
-                        Ingresar al Sistema <i class="fas fa-arrow-right"></i>
-                    </button>
-                </form>
-
-                <!-- Divider -->
-                <div class="relative my-8">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-4 bg-white text-gray-500">O únete a nosotros</span>
-                    </div>
-                </div>
-
-                <!-- Botón Registro -->
-                <div class="text-center">
-                    <p class="text-sm text-gray-600">
-                        ¿No tienes una cuenta? 
-                        <a th:href="@{/registro}" class="font-bold text-green-600 hover:text-green-800 hover:underline transition">
-                            Regístrate gratis aquí
-                        </a>
+                    <p class="text-sm italic text-white/95">
+                        “Con AgroConecta ahora vendo más rápido y con mejor margen. Todo en una sola plataforma.”
                     </p>
+                    <p class="text-xs mt-3 text-green-200 font-semibold">— Don Pedro, productor aliado</p>
                 </div>
-                
-                <div class="mt-8 text-center">
-                    <a th:href="@{/}" class="text-xs text-gray-400 hover:text-gray-600 transition flex items-center justify-center gap-1">
-                        <i class="fas fa-home"></i> Volver al inicio
-                    </a>
-                </div>
-
             </div>
-        </div>
+        </section>
+
+        <!-- PANEL DERECHO LOGIN -->
+        <section class="flex items-center justify-center p-6 md:p-10 xl:p-14">
+            <div class="w-full max-w-xl">
+                <div class="glass-card rounded-3xl p-6 md:p-8 lg:p-10">
+
+                    <!-- BRAND MÓVIL -->
+                    <div class="lg:hidden text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-green-100 text-green-600 mb-4">
+                            <i class="fas fa-leaf text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-gray-900">AgroConecta</h2>
+                    </div>
+
+                    <!-- TITULAR -->
+                    <div class="mb-8">
+                        <p class="text-xs uppercase tracking-[0.2em] text-green-600 font-bold mb-2">Acceso seguro</p>
+                        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">Bienvenido de nuevo</h1>
+                        <p class="text-gray-500 mt-2">Ingresa tus credenciales para continuar en tu panel.</p>
+                    </div>
+
+                    <!-- ALERTAS -->
+                    <div th:if="${param.error}" class="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3">
+                        <i class="fas fa-circle-exclamation mt-0.5"></i>
+                        <span class="text-sm font-medium">Credenciales incorrectas. Inténtalo de nuevo.</span>
+                    </div>
+                    <div id="msg-logout" th:if="${param.logout}" class="mb-5 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-start gap-3 transition-opacity duration-500">
+                        <i class="fas fa-circle-info mt-0.5"></i>
+                        <span class="text-sm font-medium">Has cerrado sesión correctamente.</span>
+                    </div>
+                    <div th:if="${param.registrado}" class="mb-5 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 flex items-start gap-3">
+                        <i class="fas fa-circle-check mt-0.5"></i>
+                        <span class="text-sm font-medium">¡Cuenta creada! Ahora puedes ingresar.</span>
+                    </div>
+
+                    <!-- FORM -->
+                    <form th:action="@{/login}" method="post" class="space-y-5">
+
+                        <div>
+                            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
+                            <div class="field-shell rounded-xl border border-gray-200 bg-white px-4 py-3 flex items-center gap-3">
+                                <i class="far fa-envelope text-gray-400"></i>
+                                <input
+                                    type="email"
+                                    name="username"
+                                    id="username"
+                                    required
+                                    class="w-full bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
+                                    placeholder="nombre@ejemplo.com">
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="password" class="block text-sm font-semibold text-gray-700">Contraseña</label>
+                                <a href="#" class="text-xs sm:text-sm text-green-600 hover:text-green-800 font-semibold hover:underline">¿Olvidaste tu contraseña?</a>
+                            </div>
+                            <div class="field-shell rounded-xl border border-gray-200 bg-white px-4 py-3 flex items-center gap-3">
+                                <i class="fas fa-lock text-gray-400"></i>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="password"
+                                    required
+                                    class="w-full bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
+                                    placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn-premium w-full text-white font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-[.99]">
+                            Ingresar al sistema <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <!-- DIVIDER -->
+                    <div class="relative my-7">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div class="relative flex justify-center">
+                            <span class="px-4 bg-white text-gray-400 text-sm">¿Aún no tienes cuenta?</span>
+                        </div>
+                    </div>
+
+                    <!-- CTA REGISTRO -->
+                    <div class="text-center">
+                        <a
+                            th:href="@{/registro}"
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-green-200 text-green-700 font-bold hover:bg-green-50 transition">
+                            Crear cuenta gratis <i class="fas fa-user-plus text-sm"></i>
+                        </a>
+                    </div>
+
+                    <div class="mt-7 text-center">
+                        <a th:href="@{/}" class="text-xs text-gray-400 hover:text-gray-600 transition inline-flex items-center gap-1.5">
+                            <i class="fas fa-house"></i> Volver al inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Script para ocultar mensajes -->
     <script>
         setTimeout(() => {
             const msg = document.getElementById('msg-logout');
