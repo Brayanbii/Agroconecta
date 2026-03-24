@@ -593,7 +593,7 @@ def super_informe_campesino():
         resultado["grafico_vs_mercado"] = None
 
     resultado["resumen"] = resumen
-    print(f"[OK] Super Informe Campesino generado correctamente.")
+    print(f"[OK] Informe Campesino generado correctamente.")
     return jsonify(resultado)
 
 

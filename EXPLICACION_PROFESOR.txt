@@ -498,5 +498,304 @@ TECNOLOGIAS USADAS (VERSION COMPLETA)
 
 
 =======================================================
+  PARTE 6: BOTON PYTHON - INFORME CAMPESINO
+  (Panel del Campesino)
+=======================================================
+
+Esta es la funcionalidad mas completa del proyecto.
+El campesino tiene un boton especial en su panel llamado
+"Informe Python" que genera un reporte personalizado
+de sus ventas con 4 graficas hechas en Python/Matplotlib.
+
+La idea es que el campesino pueda ver de un vistazo:
+  - Cuales son sus productos mas vendidos (por cantidad)
+  - Cuanto ha ganado cada mes del ano
+  - Como se distribuyen sus ingresos por producto (%)
+  - Si sus precios estan por encima o por debajo del mercado SIPSA
+
+
+-------------------------------------------------------
+DONDE ESTA EL BOTON?
+-------------------------------------------------------
+
+En la pagina "Mis Productos" del campesino, en el navbar
+(barra de navegacion superior), hay un boton con degradado
+verde esmeralda que dice:
+
+  Boton: "Informe Python"
+
+Al hacer clic, el campesino va a la ruta:
+  /campesino/productos/informe
+
+Codigo del boton en mis_productos.html:
+
+  <a th:href="@{/campesino/productos/informe}"
+     style="background: linear-gradient(135deg,
+            #064e3b 0%, #065f46 25%, #059669 60%, #34d399 100%);">
+      <i class="fab fa-python"></i>
+      Informe Python
+      <i class="fas fa-chart-line"></i>
+  </a>
+
+El degradado va de verde oscuro (#064e3b) a verde esmeralda
+(#059669) a verde menta claro (#34d399), dando un efecto
+de luz difuminada que representa la naturaleza del campo.
+
+
+-------------------------------------------------------
+PASO 1: EL CONTROLADOR JAVA (CampesinoController.java)
+-------------------------------------------------------
+
+Se agrego un nuevo metodo al controlador del campesino:
+
+  @GetMapping("/informe")
+  public String superInforme(Model model, Authentication auth)
+
+Este metodo hace 4 cosas antes de mostrar la pagina:
+
+  1. OBTIENE las ventas del campesino desde la base de datos:
+     List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+     (Solo trae las ventas del campesino que esta logueado)
+
+  2. AGRUPA los datos por producto (usando LinkedHashMap):
+     - nombre del producto
+     - cantidad total vendida
+     - ingresos totales
+     - precio promedio
+
+  3. AGRUPA los datos por mes (usando fechaCreacion de Orden):
+     - nombre del mes (Ene, Feb, Mar...)
+     - total de ingresos ese mes
+
+  4. CALCULA el resumen estadistico en Java (sin Python):
+     - Total ingresos: suma de todos los totales con Stream
+     - Total unidades: suma de todas las cantidades con Stream
+     - Producto estrella: el de mayor cantidad con Stream.max()
+     - Mejor mes: el de mayor ingreso con Stream.max()
+     - Nombre del campesino: campesino.getNombreCompleto()
+
+Luego empaqueta todo y lo envia a Python:
+
+  Map<String, Object> payload = new HashMap<>();
+  payload.put("productos",  productos);   // Lista por producto
+  payload.put("ventas_mes", ventasMes);   // Lista por mes
+  payload.put("resumen",    resumen);     // KPIs de Java
+
+  Map<String, Object> informe = pythonService.generarInformeCampesino(payload);
+
+Finalmente pasa las graficas al modelo de Thymeleaf:
+
+  model.addAttribute("resumen",             resumen);
+  model.addAttribute("graficoTopProductos", informe.get("grafico_top_productos"));
+  model.addAttribute("graficoIngresosMes",  informe.get("grafico_ingresos_mes"));
+  model.addAttribute("graficoDistribucion", informe.get("grafico_distribucion"));
+  model.addAttribute("graficoVsMercado",    informe.get("grafico_vs_mercado"));
+
+
+-------------------------------------------------------
+PASO 2: EL SERVICIO JAVA (PythonService.java)
+-------------------------------------------------------
+
+Se agrego un segundo metodo al PythonService para el informe:
+
+  private final String INFORME_URL =
+      "http://localhost:5000/api/v1/informe-campesino";
+
+  public Map<String, Object> generarInformeCampesino(Map<String, Object> datos) {
+      try {
+          RestTemplate restTemplate = new RestTemplate();
+          HttpHeaders headers = new HttpHeaders();
+          headers.setContentType(MediaType.APPLICATION_JSON);
+          HttpEntity<Map<String, Object>> request =
+              new HttpEntity<>(datos, headers);
+          return restTemplate.postForObject(INFORME_URL, request, Map.class);
+      } catch (Exception e) {
+          System.out.println("Error: Python apagado (informe campesino).");
+          return null;
+      }
+  }
+
+Igual que con los graficos del admin, usa POST porque necesita
+enviar datos (las ventas del campesino) a Python.
+La diferencia con el GET de precios es:
+  - GET: solo pide datos, no envia nada
+  - POST: envia los datos de ventas y recibe las graficas
+
+
+-------------------------------------------------------
+PASO 3: EL SERVIDOR PYTHON (servidor.py)
+-------------------------------------------------------
+
+Se agrego el endpoint POST /api/v1/informe-campesino que
+recibe los datos del campesino y genera 4 graficas:
+
+  @app.route('/api/v1/informe-campesino', methods=['POST'])
+  def informe_campesino():
+      datos = request.get_json()
+      productos  = datos.get('productos',  [])
+      ventas_mes = datos.get('ventas_mes', [])
+      resumen    = datos.get('resumen',    {})
+
+GRAFICA 1 - Top Productos (barras horizontales):
+  Muestra los productos del campesino de mayor a menor
+  por cantidad vendida. El producto estrella se pinta
+  verde oscuro, los demas verde claro.
+
+  colores = ['#16a34a' if i == 0 else '#86efac'
+             for i in range(len(nombres))]
+  ax1.barh(nombres, cantidades, color=colores)
+
+GRAFICA 2 - Ingresos por Mes (barras verticales):
+  Muestra cuanto gano el campesino cada mes.
+  El mejor mes se pinta naranja para destacarlo.
+
+  colores = ['#f97316' if t == max(totales) else '#16a34a'
+             for t in totales]
+  ax2.bar(meses, totales, color=colores)
+
+GRAFICA 3 - Distribucion de Ingresos (torta/pie):
+  Muestra que porcentaje del total aporta cada producto.
+  Usa colores distintos y muestra el % en cada tajada.
+
+  ax3.pie(totales, labels=nombres, autopct='%1.1f%%',
+          colors=colores_torta, startangle=90)
+
+GRAFICA 4 - Tu Precio vs Mercado SIPSA (barras agrupadas):
+  Compara el precio promedio del campesino contra el precio
+  de referencia del mercado SIPSA del DANE.
+  Barras verdes = precio del campesino
+  Barras naranjas = precio del mercado
+
+  ax4.bar([i - 0.2 for i in x], precios_campesino,
+          width=0.4, label='Tu precio', color='#16a34a')
+  ax4.bar([i + 0.2 for i in x], precios_mercado,
+          width=0.4, label='Mercado SIPSA', color='#f97316')
+
+Las 4 graficas se convierten a Base64 y se devuelven en JSON:
+
+  return jsonify({
+      'status': 'success',
+      'grafico_top_productos': _fig_a_base64(fig1),
+      'grafico_ingresos_mes':  _fig_a_base64(fig2),
+      'grafico_distribucion':  _fig_a_base64(fig3),
+      'grafico_vs_mercado':    _fig_a_base64(fig4)
+  })
+
+
+-------------------------------------------------------
+PASO 4: LA PAGINA HTML (campesino_informe.html)
+-------------------------------------------------------
+
+Se creo una pagina nueva con diseno premium que tiene:
+
+  HERO (cabecera verde animada):
+  - Fondo con gradiente verde oscuro animado con CSS
+  - 4 tarjetas semitransparentes con los KPIs:
+      * Total Ingresos (en pesos COP)
+      * Unidades Vendidas
+      * Producto Estrella
+      * Mejor Mes
+  - Badge "Generado con Python + Matplotlib"
+
+  GRAFICAS (cuerpo de la pagina):
+  - Fila 1: Top Productos + Distribucion (lado a lado)
+  - Fila 2: Ingresos por Mes (ancho completo)
+  - Fila 3: Tu Precio vs Mercado SIPSA (ancho completo)
+
+  RESUMEN ESTADISTICO:
+  - 6 tarjetas con todos los KPIs detallados
+
+  AVISO SI PYTHON ESTA APAGADO:
+  - Si Python no responde, las graficas no aparecen
+    pero la pagina SI carga con los KPIs numericos
+    (porque esos los calcula Java, no Python)
+  - Se muestra un aviso amarillo con instrucciones
+
+Codigo de las graficas en Thymeleaf:
+
+  <!-- Solo aparece si Python devolvio la grafica -->
+  <div th:if="${graficoTopProductos != null}">
+      <img th:src="'data:image/png;base64,' + ${graficoTopProductos}" />
+  </div>
+
+  <!-- Si Python esta apagado, muestra placeholder -->
+  <div th:if="${graficoTopProductos == null}">
+      Grafica no disponible. Inicia el servidor Python.
+  </div>
+
+
+-------------------------------------------------------
+DETALLE TECNICO: LOS KPIs CARGAN SIN PYTHON
+-------------------------------------------------------
+
+Los 4 KPIs del hero se calculan en Java ANTES de llamar
+a Python, usando la API de Streams de Java 8+:
+
+  double totalIngresos = ventas.stream()
+      .mapToDouble(d -> d.getTotal() != null ? d.getTotal() : 0.0)
+      .sum();
+
+  String productoEstrella = productos.stream()
+      .max((a, b) -> Integer.compare(
+          (int) a.get("cantidad"), (int) b.get("cantidad")))
+      .map(p -> (String) p.get("nombre"))
+      .orElse("N/A");
+
+Esto significa que aunque Python este apagado, el campesino
+igual puede ver sus estadisticas numericas. Solo las graficas
+visuales requieren Python activo.
+
+Esto se llama "degradacion elegante" (graceful degradation):
+el sistema funciona parcialmente aunque un componente falle.
+
+
+-------------------------------------------------------
+FLUJO COMPLETO DEL SUPER INFORME RESUMIDO
+-------------------------------------------------------
+
+  Campesino hace clic en "Informe Python"
+          |
+          v
+  GET /campesino/productos/informe (Java)
+          |
+          v
+  Java consulta DetalleOrden en la BD
+  filtrando por el campesino autenticado
+          |
+          v
+  Java agrupa datos:
+    - Por producto (nombre, cantidad, total, precio_promedio)
+    - Por mes (mes, total)
+  Java calcula KPIs con Streams:
+    - total_ingresos, total_unidades
+    - producto_estrella, mejor_mes
+          |
+          v
+  PythonService.generarInformeCampesino()
+  hace POST a localhost:5000/api/v1/informe-campesino
+          |
+     Python responde?
+     /              \
+   SI                NO
+    |                 |
+    v                 v
+  Python genera     informe = null
+  4 graficas        Java lo maneja
+  con Matplotlib    sin crash
+  las convierte
+  a Base64
+    |
+    v
+  Java recibe JSON con 4 graficas
+          |
+          v
+  Thymeleaf renderiza campesino_informe.html
+  con KPIs + 4 graficas (o aviso si Python apagado)
+          |
+          v
+  Campesino ve su reporte personalizado
+
+
+=======================================================
   Eso es todo, profe. Gracias por leer.
 =======================================================

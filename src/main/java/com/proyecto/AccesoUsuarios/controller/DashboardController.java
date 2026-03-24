@@ -14,9 +14,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -43,6 +46,11 @@ public class DashboardController {
     // 1. PANEL ADMIN
     @GetMapping("/admin/dashboard")
     public String dashboardAdmin(Model model) {
+        // --- Fecha actual dinámica ---
+        String fechaHoy = LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("d MMM, yyyy", new Locale("es", "CO")));
+        model.addAttribute("fechaHoy", fechaHoy);
+
         // --- KPI Cards ---
         model.addAttribute("totalUsuarios",  usuarioRepo.count());
         model.addAttribute("totalProductos", productoRepo.count());

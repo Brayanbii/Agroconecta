@@ -27,7 +27,7 @@
 - [x] Paso 14: Actualizar `dashboard_admin.html` con los 3 graficos
 - [x] Paso 15: Actualizar `EXPLICACION_PROFESOR.txt` con la nueva funcionalidad
 
-## Tareas — Fase 4: Fix Borrar Producto + Super Informe Campesino
+## Tareas — Fase 4: Fix Borrar Producto + Informe Campesino
 
 - [x] Paso 16: Fix `eliminarProducto()` → `@PostMapping` + `@Transactional` + desvincula FK
 - [x] Paso 17: Agregar endpoint `POST /api/v1/informe-campesino` en `servidor.py` (4 gráficas)
@@ -41,6 +41,6 @@
   - [x] 4 gráficas Matplotlib embebidas como base64
   - [x] Resumen estadístico detallado
   - [x] Aviso elegante si Python está apagado
-- [x] Paso 21: Agregar "⚡ Super Botón Python" en navbar de `mis_productos.html`
+- [x] Paso 21: Agregar "⚡ Botón Python" en navbar de `mis_productos.html`
 
 ## ✅ TODAS LAS FASES COMPLETADAS
