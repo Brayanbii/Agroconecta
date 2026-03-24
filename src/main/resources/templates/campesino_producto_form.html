@@ -72,6 +72,22 @@
                 </div>
             </div>
 
+            <!-- BLOQUE DE PRECIOS DE REFERENCIA (viene de Python) -->
+            <div th:if="${preciosReferencia}" class="mx-8 mt-6 mb-0 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 class="text-blue-700 font-bold mb-3">
+                    <i class="fas fa-info-circle"></i> Precios de Referencia (Hoy)
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div th:each="p : ${preciosReferencia}" class="bg-white p-2 rounded shadow-sm text-center border border-blue-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase" th:text="${p.nombre}"></p>
+                        <p class="text-lg font-black text-blue-600" th:text="'$' + ${p.precio}"></p>
+                        <span th:if="${p.tendencia == 'alta'}" class="text-[9px] text-red-500 font-bold">▲ SUBIENDO</span>
+                        <span th:if="${p.tendencia == 'baja'}" class="text-[9px] text-green-500 font-bold">▼ BAJANDO</span>
+                    </div>
+                </div>
+                <p class="text-[9px] mt-2 text-gray-400 italic text-right" th:text="'Fuente: ' + ${fuentePrecios}"></p>
+            </div>
+
             <!-- Formulario -->
             <form th:action="@{/campesino/productos/guardar}" th:object="${producto}" method="post" enctype="multipart/form-data" class="p-8 space-y-8">
                 
