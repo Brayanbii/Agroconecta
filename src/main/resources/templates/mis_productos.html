@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mis Productos - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Efecto de Vidrio para el Navbar */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Tarjeta Pro */
+        .pro-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pro-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pro-card:hover .actions-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- NAVBAR (Estilo Unificado) -->
+    <nav class="glass-nav sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Marca -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20">
+                        <i class="fas fa-tractor text-xl"></i>
+                    </div>
+                    <span class="text-xl font-extrabold text-gray-900 tracking-tight">Portal Campesino</span>
+                </div>
+
+                <!-- Menú Central -->
+                <div class="hidden md:flex items-center gap-1 p-1 bg-gray-100/80 rounded-xl border border-gray-200">
+                    <a href="#" class="px-5 py-2 rounded-lg bg-white text-green-700 font-bold shadow-sm text-sm transition">
+                        <i class="fas fa-box-open mr-2"></i> Mis Productos
+                    </a>
+                    <a th:href="@{/campesino/productos/ventas}" class="px-5 py-2 rounded-lg text-gray-500 hover:text-green-600 font-medium text-sm transition hover:bg-white/50">
+                        <i class="fas fa-chart-line mr-2"></i> Mis Ventas
+                    </a>
+                </div>
+
+                <!-- Perfil -->
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Hola,</p>
+                        <p class="text-sm font-bold text-gray-800" th:text="${#authentication.name}">Pepe</p>
+                    </div>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 p-2.5 rounded-xl transition shadow-sm group" title="Cerrar Sesión">
+                            <i class="fas fa-sign-out-alt group-hover:scale-110 transition-transform"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <!-- Encabezado de Sección -->
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+            <div>
+                <span class="text-green-600 font-bold tracking-wider uppercase text-xs">Inventario</span>
+                <h1 class="text-4xl font-extrabold text-gray-900 mt-1">Mis Productos</h1>
+                <p class="text-gray-500 mt-2 text-lg">Gestiona tu catálogo, precios y disponibilidad.</p>
+            </div>
+            
+            <a th:href="@{/campesino/productos/nuevo}" 
+               class="group flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold shadow-xl shadow-green-600/20 transition transform hover:-translate-y-1">
+                <div class="bg-white/20 rounded-lg p-1">
+                    <i class="fas fa-plus text-sm"></i>
+                </div>
+                <span>Nuevo Producto</span>
+            </a>
+        </div>
+
+        <!-- GRID DE PRODUCTOS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            
+            <!-- TARJETA DE PRODUCTO (Loop) -->
+            <div th:each="p : ${productos}" class="pro-card bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full relative group">
+                
+                <!-- Imagen con Badge -->
+                <div class="relative h-56 overflow-hidden bg-gray-100">
+                    <!-- Lógica de Imagen Híbrida (Link o Archivo) -->
+                    <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
+                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110" 
+                         alt="Producto"
+                         onerror="this.src='https://via.placeholder.com/300x200?text=Sin+Imagen'">
+                    
+                    <!-- Overlay Gradiente -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+
+                    <!-- Categoría Badge -->
+                    <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide text-gray-800 shadow-sm flex items-center gap-1">
+                        <i class="fas fa-tag text-green-500"></i> <span th:text="${p.categoria}">CAT</span>
+                    </span>
+
+                    <!-- ID Flotante (Opcional para debug) -->
+                    <span class="absolute top-4 right-4 text-white/80 text-xs font-mono" th:text="'#' + ${p.id}">#1</span>
+                </div>
+
+                <!-- Cuerpo de la Tarjeta -->
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-bold text-gray-900 leading-tight line-clamp-2" th:text="${p.nombre}">Nombre Producto</h3>
+                    </div>
+
+                    <p class="text-sm text-gray-500 line-clamp-2 mb-6 flex-1" th:text="${p.descripcion}">Descripción corta del producto...</p>
+                    
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-4 mb-6 py-4 border-t border-b border-gray-50">
+                        <div>
+                            <p class="text-xs text-gray-400 font-bold uppercase">Precio</p>
+                            <p class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-400 font-bold uppercase">Stock</p>
+                            <div class="flex items-center justify-end gap-1">
+                                <i class="fas fa-cubes text-gray-300 text-xs"></i>
+                                <span class="font-bold text-gray-700" th:text="${p.stock} + ' ' + ${p.unidad}">0 Kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <a th:href="@{'/campesino/productos/editar/' + ${p.id}}" 
+                           class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100 transition group/btn">
+                            <i class="fas fa-pen text-xs group-hover/btn:rotate-12 transition-transform"></i> Editar
+                        </a>
+                        
+                        <a th:href="@{'/campesino/productos/eliminar/' + ${p.id}}" 
+                           class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition group/btn"
+                           onclick="return confirm('¿Seguro que quieres eliminar este producto?')">
+                            <i class="fas fa-trash text-xs group-hover/btn:bounce transition"></i> Borrar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARJETA "AGREGAR" (Siempre al final o si está vacío) -->
+            <a th:href="@{/campesino/productos/nuevo}" 
+               class="border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center text-gray-400 hover:border-green-400 hover:text-green-600 hover:bg-green-50/30 transition duration-300 min-h-[400px] cursor-pointer group">
+                <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-green-100 group-hover:scale-110 transition">
+                    <i class="fas fa-plus text-2xl"></i>
+                </div>
+                <span class="font-bold text-lg">Agregar Producto</span>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- FOOTER SIMPLE -->
+    <footer class="bg-white border-t border-gray-100 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-400 text-sm font-medium">
+                &copy; 2025 AgroConecta - Panel de Gestión
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

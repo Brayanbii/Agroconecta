@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mi Carrito - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Estilo Glass para el Navbar */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        /* Input de cantidad personalizado */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- NAVBAR PRO -->
+    <nav class="glass-nav sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+
+                <!-- Botón Volver -->
+                <a th:href="@{/tienda}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center gap-2 group">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                    Seguir Comprando
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <span class="bg-green-100 text-green-600 p-2 rounded-lg">
+                <i class="fas fa-shopping-cart"></i>
+            </span>
+            Tu Carrito
+            <span class="text-sm font-medium text-gray-400 ml-2 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100" 
+                  th:if="${!#lists.isEmpty(items)}">
+                  <span th:text="${#lists.size(items)}">0</span> productos
+            </span>
+        </h1>
+
+        <!-- ESTADO 1: CARRITO CON PRODUCTOS -->
+        <div th:if="${!#lists.isEmpty(items)}" class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
+            
+            <!-- COLUMNA IZQUIERDA: LISTA DE ITEMS -->
+            <div class="lg:col-span-2 space-y-4">
+                
+                <!-- Item Card (Loop) -->
+                <div th:each="item : ${items}" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 transition hover:shadow-md group">
+                    
+                    <!-- Imagen -->
+                    <div class="w-full sm:w-32 h-32 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 relative">
+                        <img th:src="${item.producto.imagenUrl.startsWith('http') ? item.producto.imagenUrl : '/images/' + item.producto.imagenUrl}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+                             alt="Producto" onerror="this.src='https://via.placeholder.com/150?text=Producto'">
+                    </div>
+
+                    <!-- Detalles -->
+                    <div class="flex-1 text-center sm:text-left w-full">
+                        <div class="flex flex-col sm:flex-row justify-between items-start">
+                            <div>
+                                <p class="text-xs text-green-600 font-bold uppercase tracking-wide" th:text="${item.producto.categoria}">Categoría</p>
+                                <h3 class="text-lg font-bold text-gray-800 mb-1" th:text="${item.producto.nombre}">Nombre Producto</h3>
+                                <p class="text-sm text-gray-500">Vendido por: <span class="font-medium text-gray-700" th:text="${item.producto.usuario.userName}">Pepe</span></p>
+                            </div>
+                            <!-- Precio Unitario -->
+                            <div class="text-right mt-2 sm:mt-0">
+                                <p class="text-sm text-gray-400">Precio unidad</p>
+                                <p class="text-lg font-bold text-gray-900" th:text="'$' + ${item.producto.precio}">$0</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-50 gap-4">
+                            
+                            <!-- Control de Cantidad -->
+                            <form th:action="@{/carrito/actualizar}" method="post" class="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200">
+                                <input type="hidden" name="id" th:value="${item.producto.id}" />
+                                <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown(); this.parentNode.submit();" 
+                                        class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                
+                                <input type="number" name="cantidad" th:value="${item.cantidad}" min="1" 
+                                       class="w-12 text-center bg-transparent font-bold text-gray-800 text-sm outline-none" 
+                                       onchange="this.form.submit()" />
+                                
+                                <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp(); this.parentNode.submit();" 
+                                        class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </form>
+
+                            <!-- Subtotal y Eliminar -->
+                            <div class="flex items-center gap-6">
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-400">Subtotal</p>
+                                    <p class="text-xl font-extrabold text-green-600" th:text="'$' + ${item.getTotal()}">$0</p>
+                                </div>
+                                <a th:href="@{'/carrito/eliminar/' + ${item.producto.id}}" 
+                                   class="text-gray-300 hover:text-red-500 transition p-2" 
+                                   title="Eliminar producto">
+                                    <i class="fas fa-trash-alt text-lg"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: RESUMEN (Sticky) -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Resumen del Pedido</h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal</span>
+                            <span class="font-medium text-gray-900" th:text="'$' + ${total}">$0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Envío</span>
+                            <span class="text-green-600 font-bold">Gratis</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Impuestos estimados</span>
+                            <span class="font-medium text-gray-900">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-200 my-6"></div>
+
+                    <div class="flex justify-between items-end mb-6">
+                        <span class="text-gray-900 font-bold text-lg">Total a Pagar</span>
+                        <span class="text-3xl font-extrabold text-green-600" th:text="'$' + ${total}">$0</span>
+                    </div>
+
+                    <a th:href="@{/orden/pagar}" 
+                       class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-xl shadow-green-600/20 transition transform hover:-translate-y-1 flex justify-center items-center gap-2">
+                        <span>Confirmar Compra</span>
+                        <i class="fas fa-check-circle"></i>
+                    </a>
+                    
+                    <div class="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                        <i class="fas fa-lock"></i> Pago 100% Seguro y Encriptado
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ESTADO 2: CARRITO VACÍO -->
+        <div th:if="${#lists.isEmpty(items)}" class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 text-center">
+            <div class="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                <i class="fas fa-shopping-basket text-6xl text-green-300"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h2>
+            <p class="text-gray-500 max-w-md mb-8">Parece que aún no has agregado productos frescos a tu canasta. ¡El campo te espera!</p>
+            
+            <a th:href="@{/tienda}" class="bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-green-700 transition hover:shadow-green-600/30">
+                Ir a la Tienda
+            </a>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex justify-center items-center gap-2 mb-6">
+                <div class="bg-green-600 text-white p-1.5 rounded-lg">
+                    <i class="fas fa-leaf text-lg"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">AgroConecta</span>
+            </div>
+            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
+                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

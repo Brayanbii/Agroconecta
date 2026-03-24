@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mis Pedidos - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Animación para las tarjetas */
+        .order-card {
+            transition: all 0.3s ease;
+        }
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-color: #86efac; /* green-300 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- NAVBAR PRO -->
+    <nav class="glass-nav sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+
+                <!-- Botón Volver -->
+                <a th:href="@{/tienda}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center gap-2 group">
+                    <i class="fas fa-store group-hover:-translate-x-1 transition-transform"></i>
+                    Ir a la Tienda
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <span class="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                        <i class="fas fa-history"></i>
+                    </span>
+                    Historial de Compras
+                </h1>
+                <p class="text-gray-500 mt-2 ml-14">Revisa el estado y descarga los recibos de tus pedidos.</p>
+            </div>
+        </div>
+
+        <!-- LISTA DE PEDIDOS -->
+        <div class="space-y-6" th:if="${!#lists.isEmpty(ordenes)}">
+            
+            <!-- Order Card (Loop) -->
+            <div th:each="o : ${ordenes}" class="order-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
+                
+                <!-- Banda lateral de color según estado -->
+                <div class="absolute left-0 top-0 bottom-0 w-1.5"
+                     th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-400' : 
+                                      (o.estado == 'En Camino' ? 'bg-blue-500' : 
+                                      (o.estado == 'Entregado' ? 'bg-green-500' : 'bg-gray-300'))}">
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-6 pl-4">
+                    
+                    <!-- Info Principal -->
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Orden</span>
+                            <span class="text-lg font-mono font-bold text-gray-900" th:text="${'#' + o.numeroOrden}">#12345</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="far fa-calendar-alt text-gray-400"></i>
+                            <span th:text="${#temporals.format(o.fechaCreacion, 'dd ' + 'MMMM' + ' yyyy, h:mm a')}">Fecha</span>
+                        </div>
+                    </div>
+
+                    <!-- Estado Badge -->
+                    <div class="flex flex-col items-start md:items-center min-w-[120px]">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 md:text-center w-full">Estado</span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm"
+                              th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' : 
+                                               (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 
+                                               (o.estado == 'Entregado' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600'))}">
+                            <span class="w-1.5 h-1.5 rounded-full" 
+                                  th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-500' : 
+                                                   (o.estado == 'En Camino' ? 'bg-blue-500' : 
+                                                   (o.estado == 'Entregado' ? 'bg-green-500' : 'bg-gray-400'))}"></span>
+                            <span th:text="${o.estado}">Pendiente</span>
+                        </span>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="flex flex-col items-start md:items-end min-w-[120px]">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Pagado</span>
+                        <span class="text-2xl font-extrabold text-gray-900" th:text="'$' + ${o.total}">$0</span>
+                    </div>
+
+                    <!-- Botón Acción -->
+                    <div class="flex items-center">
+                        <a th:href="@{'/orden/recibo/' + ${o.id}}" 
+                           class="group flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 px-5 py-2.5 rounded-xl font-semibold text-sm transition shadow-sm w-full md:w-auto">
+                            <div class="bg-gray-100 group-hover:bg-blue-50 p-1.5 rounded-md transition">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <span>Descargar Recibo</span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ESTADO VACÍO (Si no hay compras) -->
+        <div th:if="${#lists.isEmpty(ordenes)}" class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100 text-center">
+            <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-receipt text-4xl text-gray-300"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Aún no tienes pedidos</h2>
+            <p class="text-gray-500 max-w-sm mb-8 mx-auto">Cuando realices tu primera compra, aquí podrás ver el seguimiento y tus recibos.</p>
+            
+            <a th:href="@{/tienda}" class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1">
+                <i class="fas fa-shopping-basket"></i>
+                Ir a la Tienda
+            </a>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white pt-12 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
+                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

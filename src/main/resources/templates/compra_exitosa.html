@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>¡Compra Exitosa! - AgroConecta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg p-8 rounded-2xl shadow-xl text-center relative overflow-hidden">
+        <!-- Confeti decorativo -->
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-blue-500"></div>
+
+        <div class="mb-6 inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600 animate-bounce">
+            <i class="fas fa-check text-4xl"></i>
+        </div>
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">¡Gracias por tu compra!</h1>
+        <p class="text-gray-600 mb-8">Tu pedido ha sido procesado exitosamente y estás apoyando a nuestros campesinos.</p>
+
+        <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left border border-gray-100">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+                <span class="text-sm text-gray-500">Número de Orden</span>
+                <span class="font-mono font-bold text-gray-800" th:text="${'#' + orden.numeroOrden}">#12345</span>
+            </div>
+            
+            <div class="space-y-3">
+                <div th:each="d : ${orden.detalles}" class="flex justify-between text-sm">
+                    <span class="text-gray-600">
+                        <span th:text="${d.cantidad}">1</span> x <span th:text="${d.nombre}">Producto</span>
+                    </span>
+                    <span class="font-medium text-gray-800" th:text="'$' + ${d.total}">$0</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                <span class="font-bold text-gray-800">Total Pagado</span>
+                <span class="text-xl font-bold text-green-600" th:text="'$' + ${orden.total}">$0</span>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <a th:href="@{/tienda}" class="block w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg">
+                Seguir Comprando
+            </a>
+
+            <a th:href="@{/orden/mis-compras}" class="block w-full bg-white text-green-600 border border-green-600 py-3 rounded-lg font-bold hover:bg-green-50 transition">
+                Ver Historial
+            </a>
+
+            <a th:href="@{'/orden/recibo/' + ${orden.id}}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">
+                Descargar Recibo (PDF)
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

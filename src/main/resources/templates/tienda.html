@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Tienda - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Animación suave para las tarjetas */
+        .product-card {
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Botón de añadir al carrito */
+        .add-btn {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        .product-card:hover .add-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- NAVBAR (Sticky y Limpio) -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </div>
+
+                <!-- Buscador Central (Desktop) -->
+                <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                    <div class="relative w-full">
+                        <input type="text" placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
+                               class="w-full pl-12 pr-4 py-3 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
+                        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Menú Derecha -->
+                <div class="flex items-center gap-6">
+                    <!-- Enlace a Pedidos -->
+                    <a th:href="@{/orden/mis-compras}" class="hidden md:flex flex-col items-center text-gray-400 hover:text-green-600 transition group" title="Mis Pedidos">
+                        <i class="fas fa-receipt text-xl mb-1 group-hover:-translate-y-1 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wide">Pedidos</span>
+                    </a>
+
+                    <!-- Carrito -->
+                    <a th:href="@{/carrito}" class="relative group">
+                        <div class="p-3 bg-gray-100 rounded-full group-hover:bg-green-50 transition">
+                            <i class="fas fa-shopping-basket text-xl text-gray-600 group-hover:text-green-600"></i>
+                        </div>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm"
+                              th:text="${cantidadCarrito != null ? cantidadCarrito : 0}">0</span>
+                    </a>
+
+                    <!-- Perfil -->
+                    <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
+                        <div class="text-right hidden lg:block">
+                            <p class="text-xs text-gray-400 font-bold uppercase">Hola,</p>
+                            <p class="text-sm font-bold text-gray-800 truncate max-w-[150px]" th:text="${nombreCliente}">Juan Pérez</p>
+                        </div>
+                        
+                        <!-- Dropdown simple para salir -->
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="bg-white border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION (Portada) -->
+    <div class="relative bg-green-900 overflow-hidden">
+        <!-- Imagen de fondo -->
+        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1374&auto=format&fit=crop" 
+             class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" alt="Campo">
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-green-500/20 text-green-100 border border-green-400/30 text-xs font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">
+                🌱 Frescura Garantizada
+            </span>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight">
+                Del campo colombiano<br/>directo a tu mesa.
+            </h1>
+            <p class="text-lg text-green-100 max-w-2xl mx-auto mb-10 font-light">
+                Apoya a los campesinos locales comprando sin intermediarios. Calidad premium, precios justos y sabor real.
+            </p>
+            
+            <!-- Categorías Rápidas (Pills) -->
+            <div class="flex flex-wrap justify-center gap-3">
+                <button class="bg-white text-green-800 px-6 py-2 rounded-full font-bold text-sm hover:bg-green-50 transition shadow-lg">
+                    🍅 Verduras
+                </button>
+                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-sm">
+                    🍎 Frutas
+                </button>
+                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-sm">
+                    🥔 Tubérculos
+                </button>
+                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-sm">
+                    🧀 Lácteos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRID DE PRODUCTOS -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Productos Destacados</h2>
+                <p class="text-gray-500 mt-1">Selección fresca de la semana.</p>
+            </div>
+            <!-- Filtro simple -->
+            <select class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5 shadow-sm outline-none">
+                <option>Ordenar por: Recientes</option>
+                <option>Precio: Menor a Mayor</option>
+                <option>Precio: Mayor a Menor</option>
+            </select>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            <!-- Tarjeta Producto (Bucle) -->
+            <div th:each="p : ${productos}" class="product-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full group relative">
+                
+                <!-- Badge Flotante -->
+                <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-green-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide z-10 shadow-sm"
+                      th:text="${p.categoria}">CAT</span>
+
+                <!-- Imagen -->
+                <div class="relative h-64 overflow-hidden bg-gray-100">
+                    <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
+                         class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition duration-700 ease-out" 
+                         alt="Producto"
+                         onerror="this.src='https://via.placeholder.com/300x300?text=Producto'">
+                    
+                    <!-- Overlay Oscuro al Hover -->
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
+                </div>
+
+                <!-- Cuerpo de la Tarjeta -->
+                <div class="p-5 flex-1 flex flex-col relative">
+                    
+                    <!-- Vendedor (Avatar pequeño) -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <span class="text-xs text-gray-500 font-medium truncate" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors" th:text="${p.nombre}">Nombre</h3>
+                    <p class="text-xs text-gray-400 mb-4 line-clamp-2" th:text="${p.descripcion}">Desc...</p>
+                    
+                    <div class="mt-auto flex items-end justify-between">
+                        <div>
+                            <p class="text-xs text-gray-400 font-semibold uppercase">Precio</p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-extrabold text-gray-900" th:text="'$' + ${p.precio}">$0</span>
+                                <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón Añadir (Con efecto visual) -->
+                        <a th:href="@{'/carrito/agregar/' + ${p.id}}" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Mensaje vacío -->
+        <div th:if="${#lists.isEmpty(productos)}" class="text-center py-20">
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6">
+                <i class="fas fa-seedling text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">Aún no hay cosecha</h3>
+            <p class="text-gray-500 mt-2">Los campesinos están preparando productos frescos. Vuelve pronto.</p>
+        </div>
+
+    </div>
+
+    <!-- Footer Pro -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="fas fa-leaf text-2xl text-green-500"></i>
+                        <span class="text-2xl font-extrabold">AgroConecta</span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
+                        La plataforma líder en comercio justo agrícola. Conectamos corazones, cultivamos futuro y llevamos lo mejor del campo a tu hogar.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Enlaces Rápidos</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-green-400 transition">Inicio</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Mis Pedidos</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Soporte</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Síguenos</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-pink-600 transition text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-500 transition text-gray-400 hover:text-white"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+                <p>&copy; 2025 AgroConecta Inc. Todos los derechos reservados.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-gray-300">Privacidad</a>
+                    <a href="#" class="hover:text-gray-300">Términos</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

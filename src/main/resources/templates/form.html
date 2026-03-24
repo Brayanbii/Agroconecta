@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mi Perfil - AgroConecta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+        
+        <!-- Encabezado con Avatar -->
+        <div class="bg-green-700 p-8 text-center relative">
+            <a th:href="@{/home}" class="absolute top-4 left-4 text-green-200 hover:text-white transition">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            
+            <div class="w-24 h-24 bg-white rounded-full mx-auto flex items-center justify-center text-green-600 text-4xl border-4 border-green-500 shadow-lg">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mt-4" th:text="${usuario.userName}">Usuario</h2>
+            <span class="bg-green-800 text-green-100 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+                  th:text="${usuario.rol}">ROL</span>
+        </div>
+
+        <form th:action="@{/perfil/guardar}" th:object="${usuario}" method="post" class="p-8 space-y-5">
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{userName}" /> <!-- Mantenemos el username oculto -->
+
+            <!-- Nombre Completo -->
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre Completo</label>
+                <div class="flex items-center border-b border-gray-300 py-2">
+                    <i class="fas fa-id-card text-gray-400 mr-3"></i>
+                    <input type="text" th:field="*{nombreCompleto}" required 
+                           class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" placeholder="Tu nombre" />
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Correo Electrónico</label>
+                <div class="flex items-center border-b border-gray-300 py-2">
+                    <i class="fas fa-envelope text-gray-400 mr-3"></i>
+                    <input type="email" th:field="*{email}" required 
+                           class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" placeholder="tucorreo@ejemplo.com" />
+                </div>
+            </div>
+
+            <!-- Teléfono -->
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Teléfono</label>
+                <div class="flex items-center border-b border-gray-300 py-2">
+                    <i class="fas fa-phone text-gray-400 mr-3"></i>
+                    <input type="text" th:field="*{telefono}" 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                           inputmode="numeric" maxlength="10"
+                           class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" placeholder="300..." />
+                </div>
+            </div>
+
+            <!-- Nueva Contraseña -->
+            <div class="pt-4 border-t border-gray-100">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nueva Contraseña</label>
+                <div class="flex items-center border-b border-gray-300 py-2">
+                    <i class="fas fa-lock text-gray-400 mr-3"></i>
+                    <input type="password" th:field="*{password}" 
+                           class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none" placeholder="Dejar en blanco para no cambiar" />
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Solo llena esto si quieres cambiar tu clave.</p>
+            </div>
+
+            <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg transition transform active:scale-95 mt-6 flex justify-center items-center gap-2">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+        </form>
+    </div>
+
+</body>
+</html>

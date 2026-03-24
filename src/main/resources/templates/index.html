@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>AgroConecta - El Futuro del Campo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Fondo del Hero con Overlay oscuro integrado */
+        .hero-bg {
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4)), 
+                        url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1470&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Efecto Parallax sutil */
+        }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Animación suave de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 antialiased">
+
+    <!-- NAVBAR (Fijo y Glass) -->
+    <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20 group-hover:bg-green-700 transition">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+
+                <!-- Menú Desktop -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#como-funciona" class="text-sm font-semibold text-gray-600 hover:text-green-600 transition">Cómo funciona</a>
+                    <a href="#nosotros" class="text-sm font-semibold text-gray-600 hover:text-green-600 transition">Nosotros</a>
+                    
+                    <div class="h-6 w-px bg-gray-200"></div>
+
+                    <a th:href="@{/login}" class="text-sm font-bold text-gray-700 hover:text-green-700 transition">
+                        Iniciar Sesión
+                    </a>
+                    <a th:href="@{/registro}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-full font-bold text-sm transition shadow-lg shadow-green-600/30 hover:scale-105 transform duration-200">
+                        Registrarse
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION (Ajustado: h-screen y padding-top para compensar navbar) -->
+    <header class="relative h-screen flex items-center hero-bg">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-20">
+            <div class="max-w-3xl animate-fade-in">
+                <!-- Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-400/30 backdrop-blur-md mb-8">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span class="text-green-100 text-xs font-bold uppercase tracking-widest">Revolución Agrícola 2.0</span>
+                </div>
+                
+                <!-- Título Principal -->
+                <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6 tracking-tight">
+                    El campo colombiano,<br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">a un clic de distancia.</span>
+                </h1>
+                
+                <!-- Subtítulo -->
+                <p class="text-lg md:text-xl text-gray-200 mb-10 font-light leading-relaxed max-w-2xl">
+                    Eliminamos los intermediarios para que nuestros campesinos ganen lo justo y tú recibas la frescura que mereces. Comercio justo, real y directo.
+                </p>
+
+                <!-- Botones de Acción -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a th:href="@{/registro}" class="group bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-500/20 flex items-center justify-center gap-2">
+                        Empezar a Comprar
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a th:href="@{/registro}" class="bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-sm px-8 py-4 rounded-full font-bold text-lg transition flex items-center justify-center gap-2">
+                        <i class="fas fa-tractor"></i> Soy Campesino
+                    </a>
+                </div>
+
+                <!-- Social Proof (Testimonio visual) -->
+                <div class="mt-12 flex items-center gap-4 border-t border-white/10 pt-8">
+                    <div class="flex -space-x-4">
+                        <img class="w-10 h-10 rounded-full border-2 border-green-900" src="https://ui-avatars.com/api/?name=Juan&background=random" alt="">
+                        <img class="w-10 h-10 rounded-full border-2 border-green-900" src="https://ui-avatars.com/api/?name=Maria&background=random" alt="">
+                        <img class="w-10 h-10 rounded-full border-2 border-green-900" src="https://ui-avatars.com/api/?name=Pedro&background=random" alt="">
+                        <div class="w-10 h-10 rounded-full border-2 border-green-900 bg-gray-800 flex items-center justify-center text-white text-xs font-bold">+2k</div>
+                    </div>
+                    <div class="text-gray-300 text-sm">
+                        <span class="text-white font-bold">2,500+</span> usuarios confían en nosotros.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- VALORES / CÓMO FUNCIONA -->
+    <section id="como-funciona" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-green-600 font-bold tracking-wider uppercase text-sm">Nuestros Pilares</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2 mb-4">¿Por qué AgroConecta?</h2>
+                <p class="text-gray-500 text-lg">Rediseñamos la cadena de suministro para que todos ganen.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="feature-card bg-white p-8 rounded-3xl border border-gray-100 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-green-50 w-32 h-32 rounded-bl-full -mr-8 -mt-8 transition group-hover:scale-110"></div>
+                    <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 text-2xl mb-6 relative z-10">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Trato Justo</h3>
+                    <p class="text-gray-500 leading-relaxed">El campesino pone el precio. Sin regateos ni intermediarios que se queden con la ganancia.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card bg-white p-8 rounded-3xl border border-gray-100 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-blue-50 w-32 h-32 rounded-bl-full -mr-8 -mt-8 transition group-hover:scale-110"></div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 text-2xl mb-6 relative z-10">
+                        <i class="fas fa-stopwatch"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Frescura Récord</h3>
+                    <p class="text-gray-500 leading-relaxed">De la tierra a tu cocina en menos de 24 horas. Olvida los productos congelados.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card bg-white p-8 rounded-3xl border border-gray-100 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-yellow-50 w-32 h-32 rounded-bl-full -mr-8 -mt-8 transition group-hover:scale-110"></div>
+                    <div class="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center text-yellow-600 text-2xl mb-6 relative z-10">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Tecnología Fácil</h3>
+                    <p class="text-gray-500 leading-relaxed">Una plataforma intuitiva pensada para que cualquiera pueda vender o comprar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREVIEW PRODUCTOS -->
+    <section class="py-20 bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-16">
+            <div class="md:w-1/2">
+                <span class="text-green-600 font-bold tracking-wider uppercase text-sm">Mercado Digital</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mt-2 mb-6">Lo mejor de nuestra tierra.</h2>
+                <p class="text-gray-500 text-lg mb-8">
+                    Descubre frutas exóticas, verduras orgánicas y productos artesanales que no encontrarás en el supermercado.
+                </p>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center gap-3 text-gray-700">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs"><i class="fas fa-check"></i></div>
+                        Calidad garantizada
+                    </li>
+                    <li class="flex items-center gap-3 text-gray-700">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs"><i class="fas fa-lock"></i></div>
+                        Pagos seguros
+                    </li>
+                    <li class="flex items-center gap-3 text-gray-700">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs"><i class="fas fa-headset"></i></div>
+                        Soporte 24/7
+                    </li>
+                </ul>
+
+                <a th:href="@{/registro}" class="inline-flex items-center text-green-600 font-bold text-lg hover:text-green-800 transition group">
+                    Explorar el Mercado <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+            
+            <div class="md:w-1/2 relative">
+                <div class="absolute inset-0 bg-green-100 rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
+                <img src="https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=1480&auto=format&fit=crop" 
+                     class="relative rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500 border-4 border-white" alt="Cesta de frutas">
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white pt-20 pb-10 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="bg-green-600 text-white p-1.5 rounded-lg">
+                            <i class="fas fa-leaf text-lg"></i>
+                        </div>
+                        <span class="text-2xl font-extrabold tracking-tight">AgroConecta</span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed max-w-sm">
+                        Plataforma tecnológica dedicada a transformar la vida de los agricultores colombianos mediante el comercio justo y la innovación digital.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Empresa</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-green-400 transition">Sobre Nosotros</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Impacto Social</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Prensa</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Legal</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-green-400 transition">Términos</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Privacidad</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- COPYRIGHT -->
+                <p class="text-gray-500 text-sm font-medium flex items-center gap-1">
+                    &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
+                </p>
+                
+                <div class="flex gap-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

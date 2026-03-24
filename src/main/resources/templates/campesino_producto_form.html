@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Gestionar Producto - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Efecto Focus en Inputs */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #16a34a; /* green-600 */
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
+        }
+
+        /* Animación suave */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- NAVBAR (Consistente con el resto) -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-green-100 p-2 rounded-lg">
+                        <i class="fas fa-tractor text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800 tracking-tight">Portal Campesino</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a th:href="@{/campesino/productos}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Cancelar y Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <div class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-xl border border-gray-100 overflow-hidden fade-in">
+            
+            <!-- Header del Formulario -->
+            <div class="bg-green-600 px-8 py-6 flex justify-between items-center relative overflow-hidden">
+                <!-- Decoración de fondo -->
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-500 rounded-full opacity-50 blur-xl"></div>
+                
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-3">
+                        <i class="fas fa-carrot text-green-200"></i>
+                        <span th:text="${producto.id} ? 'Editar Producto' : 'Nuevo Producto'">Producto</span>
+                    </h2>
+                    <p class="text-green-100 text-sm mt-1">Completa la información para publicar tu cosecha.</p>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <form th:action="@{/campesino/productos/guardar}" th:object="${producto}" method="post" enctype="multipart/form-data" class="p-8 space-y-8">
+                
+                <input type="hidden" th:field="*{id}" />
+                
+                <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-b pb-2">Información General</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nombre -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre del Producto</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <input type="text" th:field="*{nombre}" required placeholder="Ej: Papa Pastusa Premium"
+                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 transition bg-gray-50 focus:bg-white" />
+                            </div>
+                        </div>
+
+                        <!-- Categoría -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Categoría</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <select th:field="*{categoria}" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl text-gray-900 bg-white transition cursor-pointer appearance-none">
+                                    <option value="Verduras">Verduras</option>
+                                    <option value="Frutas">Frutas</option>
+                                    <option value="Tubérculos">Tubérculos</option>
+                                    <option value="Granos">Granos</option>
+                                    <option value="Lácteos">Lácteos</option>
+                                    <option value="Procesados">Procesados</option>
+                                </select>
+                                <!-- Flecha custom -->
+                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unidad -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Se vende por</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <select th:field="*{unidad}" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl text-gray-900 bg-white transition cursor-pointer appearance-none">
+                                    <option value="Kg">Kilogramo (Kg)</option>
+                                    <option value="Libra">Libra (Lb)</option>
+                                    <option value="Bulto">Bulto</option>
+                                    <option value="Unidad">Unidad</option>
+                                    <option value="Manojo">Manojo</option>
+                                    <option value="Canasta">Canasta</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Precio -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Precio ($)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-green-600 font-bold">
+                                    $
+                                </div>
+                                <input type="number" step="50" th:field="*{precio}" required placeholder="2500"
+                                       class="block w-full pl-8 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 transition font-semibold" />
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Cantidad Disponible</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fas fa-cubes"></i>
+                                </div>
+                                <input type="number" th:field="*{stock}" required placeholder="50"
+                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 transition" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: IMAGEN -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-b pb-2">Imagen del Producto</h3>
+                    
+                    <div class="bg-green-50 border-2 border-dashed border-green-200 rounded-2xl p-6 text-center group hover:border-green-400 hover:bg-green-100/50 transition-all duration-300">
+                        
+                        <!-- Opción A: Subir Archivo -->
+                        <div class="mb-4">
+                            <label for="img" class="cursor-pointer block">
+                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-cloud-upload-alt text-2xl text-green-600"></i>
+                                </div>
+                                <span class="block text-sm font-bold text-gray-700 mb-1">Sube una foto de tu equipo</span>
+                                <span class="block text-xs text-gray-400">JPG, PNG (Máx 5MB)</span>
+                                <input id="img" name="img" type="file" class="hidden" accept="image/*" onchange="previewImage(event)" />
+                            </label>
+                            <!-- Preview pequeña si selecciona archivo -->
+                            <p id="fileName" class="text-xs text-green-600 font-bold mt-2 hidden"></p>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-2 my-4">
+                            <div class="h-px bg-gray-300 w-12"></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase">O pega un enlace</span>
+                            <div class="h-px bg-gray-300 w-12"></div>
+                        </div>
+
+                        <!-- Opción B: Link -->
+                        <div class="relative max-w-sm mx-auto">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <input type="url" th:field="*{imagenUrl}" placeholder="https://..."
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 transition" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: DESCRIPCIÓN -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-b pb-2">Detalles</h3>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                    <textarea th:field="*{descripcion}" rows="3" placeholder="Describe la calidad, origen y frescura de tu producto..."
+                              class="block w-full p-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 transition resize-none"></textarea>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
+                    <a th:href="@{/campesino/productos}" class="px-6 py-3 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-600/30 transition transform hover:-translate-y-1 flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        <span>Guardar Producto</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Footer Simple -->
+    <footer class="text-center py-6 text-gray-400 text-xs">
+        <p>&copy; 2025 AgroConecta. Panel de Campesino.</p>
+    </footer>
+
+    <script>
+        // Script simple para mostrar el nombre del archivo seleccionado
+        function previewImage(event) {
+            const input = event.target;
+            const fileNameDisplay = document.getElementById('fileName');
+            if (input.files && input.files[0]) {
+                fileNameDisplay.textContent = 'Archivo seleccionado: ' + input.files[0].name;
+                fileNameDisplay.classList.remove('hidden');
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mis Ventas - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    
+    <style>
+        /* Tipografía y variables */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        :root{
+            --muted:#6b7280;
+            --accent:#16a34a;
+            --bg:#f3f4f6;
+            --card:#ffffff;
+            --th-bg:#ecfdf5;
+        }
+        html,body{height:100%;}
+        body {
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: var(--bg);
+            color: #111827;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            line-height:1.5;
+            font-size:15px;
+        }
+
+        /* Navbar */
+        nav {
+            letter-spacing: 0.2px;
+        }
+        nav a, nav button { font-weight:600; }
+
+        .container {
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+            color: #0f172a;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+            padding: 1.25rem;
+        }
+
+        /* DataTable tweaks: spacing, typography */
+        table.dataTable, table.dataTable th, table.dataTable td {
+            border-collapse: separate !important;
+            border-spacing: 0 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Header cells */
+        #ventasTable thead th {
+            background: var(--th-bg);
+            color: #065f46;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            padding: 0.9rem 0.9rem;
+            border-bottom: none;
+        }
+
+        /* Body cells */
+        #ventasTable tbody td {
+            background: transparent;
+            padding: 0.9rem;
+            vertical-align: middle;
+            color: #0f172a;
+        }
+
+        /* Row card effect */
+        #ventasTable tbody tr {
+            background: var(--card);
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(2,6,23,0.04);
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        #ventasTable tbody tr:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(2,6,23,0.08);
+            background: #ffffff;
+        }
+
+        /* Remove default DataTables borders and make rows spaced */
+        #ventasTable_wrapper .dataTables_scrollBody, 
+        #ventasTable {
+            border: none;
+        }
+        #ventasTable tbody tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+        #ventasTable tbody tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+        /* Small text styles */
+        .muted { color: var(--muted); font-weight: 500; font-size: 0.92rem; }
+        .amount { color: var(--accent); font-weight: 700; letter-spacing: 0.2px; }
+
+        /* DataTables controls spacing */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 0.75rem;
+        }
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #e6e9ee;
+            background: #fff;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            h2 { font-size: 1.5rem; }
+            #ventasTable thead th { font-size: 0.72rem; }
+            .container { padding: 0 1rem; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navbar Simple -->
+    <nav class="bg-green-700 text-white p-4 flex justify-between items-center">
+        <div class="container flex items-center justify-between">
+            <span class="font-bold text-xl tracking-tight">Portal Campesino</span>
+            <div class="flex gap-4 items-center">
+                <a th:href="@{/campesino/productos}" class="hover:underline">Mis Productos</a>
+                <form th:action="@{/logout}" method="post" class="m-0"><button type="submit" class="text-sm font-medium">Salir</button></form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Reporte de Ventas</h2>
+
+        <div class="card">
+            <div class="overflow-x-auto">
+                <table id="ventasTable" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="p-3">Fecha</th>
+                            <th class="p-3">Producto</th>
+                            <th class="p-3">Cant.</th>
+                            <th class="p-3">Total</th>
+                            <th class="p-3">Cliente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="v : ${ventas}">
+                            <td class="p-3 muted">
+                                <span th:if="${v.orden != null}" th:text="${v.orden.fechaCreacion}"></span>
+                                <span th:unless="${v.orden != null}">-</span>
+                            </td>
+
+                            <td class="p-3" th:text="${v.nombre}">Producto</td>
+                            <td class="p-3 muted" th:text="${v.cantidad}">0</td>
+                            <td class="p-3 amount" th:text="${v.total}">0</td>
+
+                            <td class="p-3 muted">
+                                <span th:if="${v.orden != null and v.orden.usuario != null}" th:text="${v.orden.usuario.userName}"></span>
+                                <span th:unless="${v.orden != null and v.orden.usuario != null}">Anónimo</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#ventasTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [ 'excel', 'pdf', 'print' ],
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
+                pageLength: 10,
+                lengthMenu: [5,10,25,50],
+                stripeClasses: [], // remove default striping to keep custom card rows
+                ordering: true
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Usuarios - AgroConecta Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Sidebar Activo */
+        .nav-link.active {
+            background-color: #f0fdf4;
+            color: #166534;
+            border-right: 3px solid #16a34a;
+        }
+
+        /* --- DATATABLES STYLING --- */
+        .dataTables_wrapper .dataTables_length select {
+            padding-right: 2rem;
+            border-radius: 0.5rem;
+            border-color: #e5e7eb;
+            font-size: 0.875rem;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+        
+        table.dataTable thead th {
+            background-color: #f9fafb;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 1rem !important;
+        }
+        
+        table.dataTable tbody td {
+            padding: 1rem !important;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        
+        table.dataTable.no-footer { border-bottom: none !important; }
+
+        /* Paginación */
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #16a34a !important;
+            color: white !important;
+            border: none;
+            border-radius: 0.375rem;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #dcfce7 !important;
+            color: #166534 !important;
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR (Mismo del Dashboard) -->
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col z-20">
+        <div class="h-20 flex items-center px-8 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <div class="bg-green-600 text-white p-1.5 rounded-lg shadow-lg shadow-green-600/20">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <span class="text-xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-6 space-y-1">
+            <p class="px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Principal</p>
+            
+            <a th:href="@{/admin/dashboard}" class="nav-link flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-700 transition">
+                <i class="fas fa-home w-5 text-center"></i> Dashboard
+            </a>
+            
+            <a href="#" class="nav-link active flex items-center gap-3 px-6 py-3 text-sm font-medium transition">
+                <i class="fas fa-users w-5 text-center"></i> Usuarios
+            </a>
+            
+            <a th:href="@{/admin/pedidos}" class="nav-link flex items-center gap-3 px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-green-700 transition">
+                <i class="fas fa-shipping-fast w-5 text-center"></i> Pedidos
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900 truncate">Admin</p>
+                    <a href="/logout" class="text-xs text-red-500 hover:underline">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-50">
+        
+        <!-- Header Móvil -->
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 md:hidden sticky top-0 z-10">
+            <span class="font-bold text-lg text-green-700">AgroConecta</span>
+            <a th:href="@{/admin/dashboard}" class="text-gray-500"><i class="fas fa-arrow-left"></i></a>
+        </header>
+
+        <main class="p-6 md:p-10 w-full max-w-7xl mx-auto">
+            
+            <!-- Encabezado de Página -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900">Gestión de Usuarios</h1>
+                    <p class="text-gray-500 mt-1">Administra los accesos, roles y datos de la plataforma.</p>
+                </div>
+                
+                <a th:href="@{/admin/usuarios/nuevo}" 
+                   class="group flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition transform hover:-translate-y-0.5">
+                    <i class="fas fa-user-plus"></i> Nuevo Usuario
+                </a>
+            </div>
+
+            <!-- Tarjeta de la Tabla -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6">
+                    <table id="usersTable" class="w-full display responsive nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Contacto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${usuarios}">
+                                
+                                <!-- USUARIO (Avatar + Nombre) -->
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm">
+                                            <span th:text="${#strings.substring(u.userName,0,2).toUpperCase()}">US</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900" th:text="${u.nombreCompleto}">Nombre</p>
+                                            <p class="text-xs text-gray-500 font-mono" th:text="'@' + ${u.userName}">@user</p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- ROL (Badges de Colores) -->
+                                <td>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border"
+                                          th:classappend="${u.rol == 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
+                                                           (u.rol == 'CAMPESINO' ? 'bg-green-50 text-green-700 border-green-200' : 
+                                                           'bg-blue-50 text-blue-700 border-blue-200')}">
+                                        <span class="w-1.5 h-1.5 rounded-full"
+                                              th:classappend="${u.rol == 'ADMIN' ? 'bg-purple-500' : 
+                                                               (u.rol == 'CAMPESINO' ? 'bg-green-500' : 'bg-blue-500')}"></span>
+                                        <span th:text="${u.rol}">ROL</span>
+                                    </span>
+                                </td>
+
+                                <!-- CONTACTO -->
+                                <td>
+                                    <div class="text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600 mb-1">
+                                            <i class="far fa-envelope text-gray-400 w-4"></i>
+                                            <span th:text="${u.email}">email@test.com</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-500" th:if="${u.telefono}">
+                                            <i class="fas fa-phone text-gray-400 w-4"></i>
+                                            <span th:text="${u.telefono}">300...</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- ESTADO (Simulado) -->
+                                <td>
+                                    <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">Activo</span>
+                                </td>
+
+                                <!-- ACCIONES -->
+                                <td>
+                                    <div class="flex gap-2">
+                                        <a th:href="@{'/admin/usuarios/editar/' + ${u.id}}" 
+                                           class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Editar">
+                                            <i class="fas fa-pen text-xs"></i>
+                                        </a>
+                                        <a th:href="@{'/admin/usuarios/eliminar/' + ${u.id}}" 
+                                           class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition" 
+                                           title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar a este usuario? Se borrarán sus productos y pedidos.')">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#usersTable').DataTable({
+                responsive: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
+                    search: "_INPUT_",
+                    searchPlaceholder: "Buscar usuario..."
+                },
+                dom: '<"flex flex-col sm:flex-row justify-between items-center mb-4 gap-4" f>rt<"flex justify-between items-center mt-4" i p>',
+                pageLength: 10
+            });
+        });
+    </script>
+
+</body>
+</html>
