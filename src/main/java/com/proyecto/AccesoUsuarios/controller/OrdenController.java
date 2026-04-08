@@ -14,6 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -40,8 +42,24 @@ public class OrdenController {
     @Autowired
     private PdfService pdfService;
 
-    @GetMapping("/pagar")
-    public String pagarOrden(Authentication auth, Model model) {
+    @GetMapping("/checkout")
+    public String checkoutMapa(Authentication auth, Model model) {
+        if (carritoService.obtenerItems().isEmpty()) {
+            return "redirect:/tienda";
+        }
+        
+        // Default coordinates (e.g. Bogotá) just in case
+        model.addAttribute("lat_default", 4.7110);
+        model.addAttribute("lng_default", -74.0721);
+        model.addAttribute("total", carritoService.obtenerTotal());
+        return "checkout_mapa";
+    }
+
+    @PostMapping("/pagar")
+    public String pagarOrden(Authentication auth, Model model,
+                             @RequestParam(required = false) String direccionEnvio,
+                             @RequestParam(required = false) Double latitudEnvio,
+                             @RequestParam(required = false) Double longitudEnvio) {
         if (carritoService.obtenerItems().isEmpty()) {
             return "redirect:/tienda";
         }
@@ -69,6 +87,9 @@ public class OrdenController {
         orden.setUsuario(usuario);
         orden.setTotal(carritoService.obtenerTotal());
         orden.setEstado("Pendiente");
+        orden.setDireccionEnvio(direccionEnvio != null && !direccionEnvio.isEmpty() ? direccionEnvio : "Dirección no especificada");
+        orden.setLatitudEnvio(latitudEnvio);
+        orden.setLongitudEnvio(longitudEnvio);
 
         List<DetalleOrden> detalles = new ArrayList<>();
         for (ItemCarrito item : carritoService.obtenerItems()) {

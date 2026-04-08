@@ -3,10 +3,12 @@ package com.proyecto.AccesoUsuarios.controller;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
+import com.proyecto.AccesoUsuarios.repository.ResenaRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.service.CarritoService;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.model.Usuario;
+import com.proyecto.AccesoUsuarios.model.Producto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,10 +19,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 public class DashboardController {
@@ -36,6 +43,9 @@ public class DashboardController {
 
     @Autowired
     private DetalleOrdenRepository detalleRepo;
+
+    @Autowired
+    private ResenaRepository resenaRepo;
 
     @Autowired
     private CarritoService carritoService;
@@ -55,6 +65,10 @@ public class DashboardController {
         model.addAttribute("totalUsuarios",  usuarioRepo.count());
         model.addAttribute("totalProductos", productoRepo.count());
         model.addAttribute("totalVentas",    ordenRepo.count());
+        model.addAttribute("totalResenas",   resenaRepo.count());
+
+        // --- Últimas Reseñas para la tabla del admin ---
+        model.addAttribute("ultimasResenas", resenaRepo.findAllByOrderByFechaDesc());
 
         // --- Datos para graficos: Top productos ---
         List<Map<String, Object>> productos = new ArrayList<>();
@@ -94,9 +108,14 @@ public class DashboardController {
 
         Map<String, Object> graficos = pythonService.generarGraficos(datosPython);
         if (graficos != null) {
-            model.addAttribute("graficoProductos", graficos.get("grafico_productos"));
-            model.addAttribute("graficoMeses",     graficos.get("grafico_meses"));
-            model.addAttribute("graficoEstados",   graficos.get("grafico_estados"));
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                model.addAttribute("graficoProductos", mapper.writeValueAsString(graficos.get("grafico_productos")));
+                model.addAttribute("graficoMeses",     mapper.writeValueAsString(graficos.get("grafico_meses")));
+                model.addAttribute("graficoEstados",   mapper.writeValueAsString(graficos.get("grafico_estados")));
+            } catch (Exception e) {
+                System.out.println("Error serializando JSON para graficos: " + e.getMessage());
+            }
         }
 
         return "dashboard_admin";
@@ -111,34 +130,73 @@ public class DashboardController {
         return "mis_productos";
     }
 
-    // 3. PANEL CLIENTE (TIENDA) — con buscador funcional
+    // 3. PANEL CLIENTE (TIENDA) — con buscador y radar de cercanía
     @GetMapping("/tienda")
     public String tienda(Model model, Authentication auth,
-                         @RequestParam(value = "buscar", required = false) String buscar) {
+                         @RequestParam(value = "buscar", required = false) String buscar,
+                         @RequestParam(value = "lat", required = false) Double latCliente,
+                         @RequestParam(value = "lon", required = false) Double lonCliente) {
+        
+        List<Producto> productosList;
+
         // 1. Cargar productos (filtrados si hay búsqueda)
         if (buscar != null && !buscar.trim().isEmpty()) {
-            model.addAttribute("productos", productoRepo.findByNombreContainingIgnoreCase(buscar.trim()));
+            productosList = productoRepo.findByNombreContainingIgnoreCase(buscar.trim());
             model.addAttribute("busqueda", buscar.trim());
         } else {
-            model.addAttribute("productos", productoRepo.findAll());
+            productosList = productoRepo.findAll();
             model.addAttribute("busqueda", "");
         }
+
+        // 2. Lógica de Distancia Matemática (Haversine)
+        if (latCliente != null && lonCliente != null) {
+            for (Producto p : productosList) {
+                if (p.getLatitudOrigen() != null && p.getLongitudOrigen() != null) {
+                    double dist = calcularDistancia(latCliente, lonCliente, p.getLatitudOrigen(), p.getLongitudOrigen());
+                    // Redondear a 1 decimal
+                    p.setDistanciaKm(Math.round(dist * 10.0) / 10.0);
+                } else {
+                    // Si el producto no tiene ubicación definida, lo mandamos al fondo de la lista
+                    p.setDistanciaKm(9999.9);
+                }
+            }
+            // Ordenar la lista del más cercano al más lejano
+            productosList.sort(Comparator.comparing(Producto::getDistanciaKm));
+            model.addAttribute("modoCercania", true);
+        } else {
+            model.addAttribute("modoCercania", false);
+        }
+
+        model.addAttribute("productos", productosList);
         
         // 2. Cargar cantidad del carrito
         model.addAttribute("cantidadCarrito", carritoService.contarItems());
 
-        // 3. LÓGICA NUEVA: Obtener el nombre real del cliente
-        String email = auth.getName();
-        // Buscamos al usuario por su email
-        Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
-        
-        if (usuario != null) {
-            // Mandamos el nombre completo a la vista
-            model.addAttribute("nombreCliente", usuario.getNombreCompleto());
+        // 3. LÓGICA NUEVA: Obtener el nombre real del cliente (solo si está logueado)
+        if (auth != null && auth.isAuthenticated()) {
+            String email = auth.getName();
+            Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
+            if (usuario != null) {
+                model.addAttribute("nombreCliente", usuario.getNombreCompleto());
+            } else {
+                model.addAttribute("nombreCliente", "Cliente");
+            }
         } else {
-            model.addAttribute("nombreCliente", "Cliente");
+            model.addAttribute("nombreCliente", "Invitado");
         }
 
         return "tienda";
+    }
+
+    // --- Helper: Fórmula de Haversine para Distancias Reales ---
+    private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
+        final int RADIO_TIERRA_KM = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return RADIO_TIERRA_KM * c;
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+y <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <title>Informe Python - AgroConecta</title>
@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -132,7 +134,7 @@
                     <i class="fas fa-arrow-left"></i> Volver a Mis Productos
                 </a>
                 <span class="python-badge">
-                    <i class="fab fa-python mr-1"></i> Generado con Python + Matplotlib
+                    <i class="fab fa-python mr-1"></i> Python + ApexCharts
                 </span>
             </div>
 
@@ -226,8 +228,7 @@
                     <span class="python-badge ml-auto">Python</span>
                 </div>
                 <div th:if="${graficoTopProductos != null}">
-                    <img th:src="'data:image/png;base64,' + ${graficoTopProductos}"
-                         class="chart-img" alt="Top Productos" />
+                    <div id="chart-top-productos" style="min-height:300px;"></div>
                 </div>
                 <div th:if="${graficoTopProductos == null}" class="no-data">
                     <i class="fas fa-chart-bar text-4xl mb-3"></i>
@@ -247,8 +248,7 @@
                     <span class="python-badge ml-auto">Python</span>
                 </div>
                 <div th:if="${graficoDistribucion != null}">
-                    <img th:src="'data:image/png;base64,' + ${graficoDistribucion}"
-                         class="chart-img" alt="Distribución de Ingresos" />
+                    <div id="chart-distribucion" style="min-height:300px;"></div>
                 </div>
                 <div th:if="${graficoDistribucion == null}" class="no-data">
                     <i class="fas fa-chart-pie text-4xl mb-3"></i>
@@ -270,8 +270,7 @@
                 <span class="python-badge ml-auto">Python</span>
             </div>
             <div th:if="${graficoIngresosMes != null}">
-                <img th:src="'data:image/png;base64,' + ${graficoIngresosMes}"
-                     class="chart-img" alt="Ingresos por Mes" />
+                <div id="chart-ingresos-mes" style="min-height:300px;"></div>
             </div>
             <div th:if="${graficoIngresosMes == null}" class="no-data">
                 <i class="fas fa-chart-line text-4xl mb-3"></i>
@@ -291,8 +290,7 @@
                 <span class="python-badge ml-auto">SIPSA + Python</span>
             </div>
             <div th:if="${graficoVsMercado != null}">
-                <img th:src="'data:image/png;base64,' + ${graficoVsMercado}"
-                     class="chart-img" alt="Tu Precio vs Mercado" />
+                <div id="chart-vs-mercado" style="min-height:300px;"></div>
             </div>
             <div th:if="${graficoVsMercado == null}" class="no-data">
                 <i class="fas fa-balance-scale text-4xl mb-3"></i>
@@ -393,7 +391,8 @@
             <div class="inline-flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-sm border border-gray-100">
                 <i class="fab fa-python text-blue-500 text-xl"></i>
                 <span class="text-sm text-gray-500">
-                    Gráficas generadas con <strong class="text-gray-700">Python 3 + Matplotlib</strong>
+                    Análitica procesada con <strong class="text-gray-700">Python 3 + Flask</strong>
+                    · Visualización: <strong class="text-gray-700">ApexCharts</strong>
                     · Precios de mercado: <strong class="text-gray-700">SIPSA - DANE Colombia</strong>
                 </span>
                 <i class="fas fa-leaf text-green-500 text-xl"></i>
@@ -403,5 +402,123 @@
 
     </main>
 
+    <!-- DATOS DE PYTHON INYECTADOS POR THYMELEAF -->
+    <script th:inline="javascript">
+        var dataTopProd    = /*[[${graficoTopProductos}]]*/ null;
+        var dataDistrib    = /*[[${graficoDistribucion}]]*/ null;
+        var dataIngMes     = /*[[${graficoIngresosMes}]]*/ null;
+        var dataVsMercado  = /*[[${graficoVsMercado}]]*/ null;
+
+        if (typeof dataTopProd === 'string')   try { dataTopProd = JSON.parse(dataTopProd); }     catch(e) { dataTopProd = null; }
+        if (typeof dataDistrib === 'string')   try { dataDistrib = JSON.parse(dataDistrib); }     catch(e) { dataDistrib = null; }
+        if (typeof dataIngMes === 'string')    try { dataIngMes = JSON.parse(dataIngMes); }       catch(e) { dataIngMes = null; }
+        if (typeof dataVsMercado === 'string') try { dataVsMercado = JSON.parse(dataVsMercado); } catch(e) { dataVsMercado = null; }
+    </script>
+
+    <!-- LOGICA APEXCHARTS DEL INFORME -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var VERDE = '#16a34a';
+            var AZUL = '#3b82f6';
+            var AMARILLO = '#f59e0b';
+            var NARANJA = '#f97316';
+            var MORADO = '#8b5cf6';
+            var ROSA = '#ec4899';
+
+            // --- 1. Top Productos (Barras horizontales con degradado) ---
+            var el1 = document.getElementById('chart-top-productos');
+            if (el1 && dataTopProd && dataTopProd.labels) {
+                new ApexCharts(el1, {
+                    chart: { type: 'bar', height: 320, toolbar: { show: false },
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+                    plotOptions: { bar: { horizontal: true, borderRadius: 7,
+                                         dataLabels: { position: 'top' } } },
+                    colors: [VERDE],
+                    fill: { type: 'gradient',
+                            gradient: { shade: 'light', type: 'horizontal',
+                                         gradientToColors: ['#86efac'], stops: [0, 100] } },
+                    series: dataTopProd.series,
+                    xaxis: { categories: dataTopProd.labels,
+                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#374151', fontWeight: '700', fontSize: '12px' } } },
+                    dataLabels: { enabled: true, style: { colors: ['#1f2937'], fontSize: '11px' },
+                                  formatter: function(v) { return v + ' uds'; }, offsetX: 5 },
+                    grid: { borderColor: '#f3f4f6', xaxis: { lines: { show: true } } },
+                    tooltip: { theme: 'light', y: { formatter: function(v) { return v + ' unidades'; } } }
+                }).render();
+            }
+
+            // --- 2. Distribucion de Ingresos (Donut premium) ---
+            var el2 = document.getElementById('chart-distribucion');
+            if (el2 && dataDistrib && dataDistrib.labels) {
+                new ApexCharts(el2, {
+                    chart: { type: 'donut', height: 320,
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+                    colors: [VERDE, AZUL, AMARILLO, NARANJA, MORADO, ROSA],
+                    series: dataDistrib.series,
+                    labels: dataDistrib.labels,
+                    plotOptions: { pie: { donut: { size: '65%',
+                                                   labels: { show: true,
+                                                             total: { show: true, label: 'Ingresos',
+                                                                       formatter: function(w) { return '$' + Number(w.globals.seriesTotals.reduce(function(a,b){return a+b;}, 0)).toLocaleString('es-CO'); } } } } } },
+                    legend: { position: 'bottom', fontSize: '12px', markers: { radius: 4 } },
+                    dataLabels: { enabled: true, formatter: function(val) { return val.toFixed(1) + '%'; },
+                                  dropShadow: { enabled: false } },
+                    tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } }
+                }).render();
+            }
+
+            // --- 3. Ingresos por Mes (Area con gradiente) ---
+            var el3 = document.getElementById('chart-ingresos-mes');
+            if (el3 && dataIngMes && dataIngMes.labels) {
+                new ApexCharts(el3, {
+                    chart: { type: 'area', height: 320, toolbar: { show: false },
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 900 } },
+                    colors: [VERDE],
+                    fill: { type: 'gradient',
+                            gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.02, stops: [0, 100] } },
+                    stroke: { curve: 'smooth', width: 3 },
+                    series: dataIngMes.series,
+                    xaxis: { categories: dataIngMes.labels,
+                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#6b7280', fontSize: '12px' },
+                                       formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
+                    markers: { size: 5, colors: [VERDE], strokeColors: '#fff', strokeWidth: 3,
+                                hover: { size: 7 } },
+                    grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+                    dataLabels: { enabled: false },
+                    tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } }
+                }).render();
+            }
+
+            // --- 4. Tu Precio vs Mercado SIPSA (Barras agrupadas) ---
+            var el4 = document.getElementById('chart-vs-mercado');
+            if (el4 && dataVsMercado && dataVsMercado.labels) {
+                new ApexCharts(el4, {
+                    chart: { type: 'bar', height: 320, toolbar: { show: false },
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 700 } },
+                    plotOptions: { bar: { horizontal: false, borderRadius: 5,
+                                         columnWidth: '55%' } },
+                    colors: [VERDE, AZUL],
+                    series: dataVsMercado.series,
+                    xaxis: { categories: dataVsMercado.labels,
+                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#6b7280', fontSize: '12px' },
+                                       formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
+                    legend: { position: 'top', markers: { radius: 4 } },
+                    grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+                    dataLabels: { enabled: false },
+                    tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO') + '/kg'; } } }
+                }).render();
+            }
+        });
+    </script>
+
 </body>
 </html>
+

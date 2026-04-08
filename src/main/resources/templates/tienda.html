@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Imagen por defecto global para cuando fallan las fotos de los productos
+        window.fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Cpath d='M 125,120 Q 150,90 175,120 Q 175,150 150,150 Q 125,150 125,120 Z' fill='%23d1d5db' stroke='%239ca3af' stroke-width='4'/%3E%3Ctext x='150' y='185' font-family='sans-serif' font-size='24' font-weight='bold' fill='%239ca3af' text-anchor='middle'%3EAgroConecta%3C/text%3E%3C/svg%3E";
+    </script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -51,19 +56,26 @@
                 </div>
 
                 <!-- Buscador Central (Desktop) - FUNCIONAL -->
-                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 max-w-lg mx-8">
+                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 max-w-lg mx-8 relative" id="search-form" onsubmit="return false;">
                     <div class="relative w-full">
-                        <input type="text" name="buscar" th:value="${busqueda}" 
+                        <input type="text" name="buscar" id="search-input" th:value="${busqueda}" autocomplete="off"
                                placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
                                class="w-full pl-12 pr-12 py-3 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
-                        <button type="submit" class="absolute left-3 top-2.5 text-gray-400 hover:text-green-600 transition p-1">
+                        <button type="button" class="absolute left-3 top-2.5 text-gray-400 hover:text-green-600 transition p-1 cursor-default">
                             <i class="fas fa-search"></i>
                         </button>
-                        <!-- Botón limpiar búsqueda -->
-                        <a th:if="${busqueda != null && !busqueda.isEmpty()}" th:href="@{/tienda}" 
-                           class="absolute right-3 top-2.5 text-gray-400 hover:text-red-500 transition p-1" title="Limpiar búsqueda">
+                        <!-- Botón limpiar búsqueda (Ya no recarga) -->
+                        <button type="button" id="clear-search" class="absolute right-3 top-2.5 text-gray-400 hover:text-red-500 transition p-1 hidden" title="Limpiar búsqueda">
                             <i class="fas fa-times"></i>
-                        </a>
+                        </button>
+                    </div>
+                    
+                    <!-- Búsqueda Predictiva (Dropdown) -->
+                    <div id="search-suggestions" class="absolute top-[110%] left-0 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden hidden z-50 max-h-80 overflow-y-auto">
+                        <div class="px-4 py-3 text-[10px] text-gray-400 font-extrabold uppercase tracking-widest bg-gray-50/80 backdrop-blur sticky top-0 border-b border-gray-100 hidden z-10" id="sug-header">Sugerencias encontradas</div>
+                        <ul id="suggestions-list" class="py-1">
+                            <!-- JS injects items here -->
+                        </ul>
                     </div>
                 </form>
 
@@ -80,7 +92,7 @@
                         <div class="p-3 bg-gray-100 rounded-full group-hover:bg-green-50 transition">
                             <i class="fas fa-shopping-basket text-xl text-gray-600 group-hover:text-green-600"></i>
                         </div>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm"
+                        <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm transition-transform duration-300"
                               th:text="${cantidadCarrito != null ? cantidadCarrito : 0}">0</span>
                     </a>
 
@@ -138,27 +150,106 @@
         </div>
     </div>
 
-    <!-- GRID DE PRODUCTOS -->
+    <!-- GRID DE PRODUCTOS Y SIDEBAR -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         
-        <div class="flex justify-between items-end mb-8">
-            <div>
-                <h2 class="text-3xl font-bold text-gray-900">Productos Destacados</h2>
-                <p class="text-gray-500 mt-1">Selección fresca de la semana.</p>
-            </div>
-            <!-- Filtro simple -->
-            <select class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-2.5 shadow-sm outline-none">
-                <option>Ordenar por: Recientes</option>
-                <option>Precio: Menor a Mayor</option>
-                <option>Precio: Mayor a Menor</option>
-            </select>
-        </div>
-
-        <!-- Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
             
-            <!-- Tarjeta Producto (Bucle) -->
-            <div th:each="p : ${productos}" class="product-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full group relative">
+            <!-- SIDEBAR (Filtros) -->
+            <aside class="w-full lg:w-1/4 flex-shrink-0 lg:sticky lg:top-28 z-30">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600"><i class="fas fa-sliders-h text-sm"></i></div>
+                        <h3 class="text-lg font-extrabold text-gray-900">Filtros</h3>
+                    </div>
+
+                    <!-- Filtro Categoría -->
+                    <div class="mb-8">
+                        <h4 class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4">Categoría</h4>
+                        <div class="space-y-3" id="filter-categories">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Frutas" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
+                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🍎 Frutas</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Verduras" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
+                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🥦 Verduras</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Tubérculos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
+                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🥔 Tubérculos</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Lácteos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
+                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🧀 Lácteos</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Granos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
+                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🌾 Granos</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Filtro Precio -->
+                    <div>
+                        <h4 class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 flex justify-between items-center">
+                            Rango de Precio
+                            <button id="btn-clear-price" class="text-[9px] bg-red-50 text-red-500 px-2 rounded-full cursor-pointer hover:bg-red-100 hidden py-0.5">Limpiar</button>
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400 font-bold w-8">Min $</span>
+                                <input type="number" id="price-min" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50 outline-none">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400 font-bold w-8">Max $</span>
+                                <input type="number" id="price-max" placeholder="100000" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50 outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- PRODUCTOS MAIN AREA -->
+            <div class="flex-1 w-full relative">
+                
+                <!-- HEADER DE PRODUCTOS -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                            Catálogo
+                            <button onclick="buscarCercaDeMi()" class="text-[11px] bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white transition px-3 py-1.5 rounded-full font-bold tracking-wide uppercase shadow-sm flex items-center gap-1">
+                                <i class="fas fa-location-arrow"></i> Cerca de Mí
+                            </button>
+                        </h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Mostrando <span id="count-productos" class="font-bold text-green-600 px-2 bg-green-50 rounded-md">--</span> resultados.
+                            <span th:if="${modoCercania}" class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-bold"><i class="fas fa-radar"></i> Ordenado por Cercanía</span>
+                        </p>
+                    </div>
+                    <!-- Menu Desplegable de Ordenamiento -->
+                    <div class="flex items-center gap-3">
+                        <label class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest hidden sm:block">Ordenar:</label>
+                        <select id="sort-select" class="bg-gray-50 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl focus:ring-1 focus:ring-green-500 focus:border-green-500 block px-4 py-2 outline-none cursor-pointer">
+                            <option value="relevancia">Relevancia</option>
+                            <option value="recientes" selected>Más recientes</option>
+                            <option value="asc">Precio: Menor a Mayor</option>
+                            <option value="desc">Precio: Mayor a Menor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 relative" id="products-grid">
+            
+            <!-- Tarjeta Producto -->
+            <div th:each="p : ${productos}" 
+                 th:data-id="${p.id}" 
+                 th:data-precio="${p.precio}" 
+                 th:data-cat="${p.categoria}" 
+                 th:data-nombre="${#strings.toLowerCase(p.nombre)}"
+                 th:data-desc="${p.descripcion}"
+                 class="product-card js-product-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full group relative transition-all duration-300">
                 
                 <!-- Badge Flotante -->
                 <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-green-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide z-10 shadow-sm"
@@ -169,7 +260,7 @@
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition duration-700 ease-out" 
                          alt="Producto"
-                         onerror="this.src='https://via.placeholder.com/300x300?text=Producto'">
+                         onerror="this.onerror=null; this.src=window.fallbackImg">
                     
                     <!-- Overlay Oscuro al Hover -->
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
@@ -179,14 +270,31 @@
                 <div class="p-5 flex-1 flex flex-col relative">
                     
                     <!-- Vendedor (Avatar pequeño) -->
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner">
                             <i class="fas fa-tractor"></i>
                         </div>
-                        <span class="text-xs text-gray-500 font-medium truncate" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                        <span class="text-xs text-gray-500 font-bold truncate flex-1" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
                     </div>
 
                     <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors" th:text="${p.nombre}">Nombre</h3>
+                    
+                    <!-- Ubicación y Distancia -->
+                    <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                        <i class="fas fa-map-marker-alt text-red-500 text-[10px]"></i>
+                        <span class="text-[9px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[120px]" th:text="${p.municipioOrigen}">Lugar</span>
+                        
+                        <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                              class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                              A <span th:text="${p.distanciaKm}"></span> km
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-1 mb-3">
+                        <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                        <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                        <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                    </div>
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2" th:text="${p.descripcion}">Desc...</p>
                     
                     <div class="mt-auto flex items-end justify-between">
@@ -198,26 +306,44 @@
                             </div>
                         </div>
                         
-                        <!-- Botón Añadir (Con efecto visual) -->
-                        <a th:href="@{'/carrito/agregar/' + ${p.id}}" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95">
-                            <i class="fas fa-plus"></i>
-                        </a>
+                        <div class="flex gap-2">
+                            <!-- Botón Vista Rápida -->
+                            <button type="button" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-precio="${p.precio}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}" th:data-cat="${p.categoria}" th:data-id="${p.id}" onclick="abrirModal(this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
+                                <i class="far fa-eye"></i>
+                            </button>
+                            <!-- Botón Añadir (Con efecto visual) -->
+                            <a th:href="@{'/carrito/agregar/' + ${p.id}}" th:data-nombre="${p.nombre}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
+                                <i class="fas fa-plus transition-all text-sm"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
+                </div>
+                
+                <!-- Mensaje vacío Dinámico -->
+                <div id="empty-state" class="text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm mt-6 hidden">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-orange-50 mb-6">
+                        <i class="fas fa-search text-4xl text-orange-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Sin resultados</h3>
+                    <p class="text-gray-500 max-w-sm mx-auto">No encontramos productos que coincidan con tu búsqueda o filtros actuales. Intenta modificar tus criterios.</p>
+                    <button type="button" id="btn-reset-filters" class="mt-8 bg-white border-2 border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl font-bold hover:border-gray-300 hover:shadow-sm transition-all active:scale-95">Limpiar Filtros</button>
+                </div>
 
-        <!-- Mensaje vacío -->
-        <div th:if="${#lists.isEmpty(productos)}" class="text-center py-20">
-            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6">
-                <i class="fas fa-seedling text-4xl text-gray-400"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900">Aún no hay cosecha</h3>
-            <p class="text-gray-500 mt-2">Los campesinos están preparando productos frescos. Vuelve pronto.</p>
-        </div>
-
-    </div>
+                <!-- Mensaje vacío Thymeleaf original -->
+                <div th:if="${#lists.isEmpty(productos)}" class="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm mt-6">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6">
+                        <i class="fas fa-seedling text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">Aún no hay cosecha</h3>
+                    <p class="text-gray-500 mt-2">Los campesinos están preparando productos frescos. Vuelve pronto.</p>
+                </div>
+                
+            </div> <!-- End Flex-1 -->
+        </div> <!-- End Flex row container -->
+    </div> <!-- End Main Container -->
 
     <!-- Footer Pro -->
     <footer class="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
@@ -259,5 +385,512 @@
         </div>
     </footer>
 
+    <!-- Modal Vista Rápida -->
+    <div id="quickViewModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div id="modalBackdrop" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm cursor-pointer transition-opacity" onclick="cerrarModal()"></div>
+        <!-- Contenido -->
+        <div id="modalContent" class="bg-white rounded-3xl shadow-2xl relative z-10 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row transform scale-95 opacity-0 transition-all duration-300">
+            <!-- Botón Cerrar -->
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 w-8 h-8 bg-black/10 hover:bg-black/20 rounded-full flex items-center justify-center transition z-20">
+                <i class="fas fa-times text-gray-800"></i>
+            </button>
+            
+            <!-- Imagen Modal -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-100 relative">
+                <span id="modalCat" class="absolute top-4 left-4 bg-white/90 backdrop-blur text-green-700 text-[10px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wide shadow-sm z-10">CAT</span>
+                <img id="modalImg" src="" alt="Producto" class="w-full h-full object-cover mix-blend-multiply" onerror="this.onerror=null; this.src=window.fallbackImg">
+            </div>
+            
+            <!-- Info Modal -->
+            <div class="md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <span id="modalCampesino" class="text-sm text-gray-500 font-bold">Vendedor</span>
+                </div>
+                
+                <h2 id="modalNombre" class="text-3xl font-extrabold text-gray-900 mb-2">Nombre</h2>
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="text-xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full" id="modalStock"><i class="fas fa-check-circle mr-1"></i> Stock garantizado</span>
+                </div>
+                
+                <p id="modalDesc" class="text-gray-500 text-sm mb-4 leading-relaxed">Descripción detallada</p>
+                
+                <!-- Reseñas SECCION INTERACTIVA -->
+                <div class="border-t border-gray-100 pt-6 mt-4 flex-col hidden" id="modalReviewsSection">
+                    <h3 class="text-base font-bold text-gray-800 mb-4 flex justify-between items-center">
+                        Opiniones de Clientes
+                        <button onclick="document.getElementById('formReview').classList.toggle('hidden')" class="text-xs font-bold bg-green-50 text-green-700 px-3 py-1.5 rounded-full hover:bg-green-100 transition shadow-sm"><i class="fas fa-pen mr-1"></i> Escribir</button>
+                    </h3>
+                    
+                    <form id="formReview" class="hidden mb-6 bg-white border border-gray-100 shadow-sm rounded-2xl p-4 transition-all" onsubmit="enviarResena(event)">
+                        <input type="hidden" id="reviewProductoId">
+                        <div class="min-w-0">
+                            <p class="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-wider">Tu Calificación</p>
+                            <div class="mb-3 flex gap-2 text-2xl text-gray-200" id="starSelector">
+                                <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="1"></i>
+                                <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="2"></i>
+                                <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="3"></i>
+                                <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="4"></i>
+                                <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="5"></i>
+                            </div>
+                            <input type="hidden" id="reviewEstrellas" value="0" required>
+                            <textarea id="reviewTexto" class="w-full text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 p-3 mb-3 resize-none transition" rows="2" placeholder="¿Cómo te pareció la calidad y el servicio?" required maxlength="800"></textarea>
+                            <button type="submit" id="btnSubmitReview" class="w-full bg-gray-900 border border-transparent text-white text-sm font-bold py-2.5 rounded-xl hover:bg-gray-800 hover:shadow-lg transition active:scale-95 text-center flex justify-center items-center gap-2">Publicar Opinión</button>
+                        </div>
+                    </form>
+                    
+                    <div id="reviewsList" class="space-y-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
+                        <div class="text-center text-xs text-gray-400 py-4"><i class="fas fa-circle-notch fa-spin"></i> Cargando...</div>
+                    </div>
+                </div>
+                
+                <div class="mt-auto border-t border-gray-100 pt-6 mt-6">
+                    <div class="flex items-end justify-between mb-6">
+                        <div>
+                            <p class="text-xs text-gray-400 font-semibold uppercase mb-1">Precio Unitario</p>
+                            <span id="modalPrecio" class="text-4xl font-extrabold text-green-600">$0</span>
+                        </div>
+                    </div>
+                    <button id="modalBtnAdd" onclick="añadirCarritoDesdeModal(this)" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-[0_10px_20px_rgba(22,163,74,0.3)] hover:bg-green-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                        <i class="fas fa-cart-plus"></i> <span id="modalBtnAddText">Añadir al carrito</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function añadirCarrito(event, elemento) {
+            event.preventDefault();
+            
+            const url = elemento.getAttribute('href') || elemento.getAttribute('data-href');
+            const nombreProducto = elemento.getAttribute('data-nombre');
+            const icon = elemento.querySelector('i');
+            
+            // Cambiar ícono a cargando
+            icon.className = 'fas fa-circle-notch fa-spin text-sm';
+            elemento.classList.add('pointer-events-none');
+            
+            fetch(url)
+                .then(response => {
+                    // Mostrar ¡Añadido! visualmente en el botón
+                    icon.className = 'fas fa-check font-extrabold text-lg transition-transform scale-125';
+                    setTimeout(() => {
+                        icon.className = 'fas fa-plus text-sm';
+                        elemento.classList.remove('pointer-events-none');
+                    }, 1200);
+                    
+                    // Mostrar alerta emergente (Toast)
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'bottom-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                        }
+                    });
+                    
+                    Toast.fire({
+                        icon: 'success',
+                        title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif;">¡${nombreProducto} añadido al carrito!</span>`
+                    });
+                    
+                    // Actualizar badge visualmente
+                    const badge = document.getElementById('cart-badge');
+                    if (badge) {
+                        let actual = parseInt(badge.innerText) || 0;
+                        badge.innerText = actual + 1;
+                        badge.classList.add('scale-125');
+                        setTimeout(() => badge.classList.remove('scale-125'), 300);
+                    }
+                })
+                .catch(error => {
+                    icon.className = 'fas fa-plus';
+                    elemento.classList.remove('pointer-events-none');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ups...',
+                        text: 'Hubo un problema al añadir el producto.',
+                        confirmButtonColor: '#16a34a'
+                    });
+                });
+        }
+
+        // LÓGICA DE UBICACIÓN CLIENTE
+        function buscarCercaDeMi() {
+            if ("geolocation" in navigator) {
+                Swal.fire({
+                    title: 'Localizando...',
+                    text: 'Buscando las mejores cosechas cerca de ti',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        // Redirigir enviando coords
+                        window.location.href = `/tienda?lat=${lat}&lon=${lon}`;
+                    },
+                    function(error) {
+                        console.error("Error Obteniendo Ubicación", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Permiso Denegado',
+                            text: 'No pudimos acceder a tu ubicación. Por favor acepta los permisos en tu navegador.',
+                            confirmButtonColor: '#16a34a'
+                        });
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                Swal.fire('No soportado', 'Tu navegador no soporta geolocalización', 'info');
+            }
+        }
+
+        // Modal Functions
+        function abrirModal(btn) {
+            const modal = document.getElementById('quickViewModal');
+            const content = document.getElementById('modalContent');
+            
+            // Llenar datos
+            document.getElementById('modalNombre').textContent = btn.getAttribute('data-nombre');
+            document.getElementById('modalDesc').textContent = btn.getAttribute('data-desc');
+            document.getElementById('modalPrecio').textContent = '$' + btn.getAttribute('data-precio');
+            document.getElementById('modalImg').src = btn.getAttribute('data-img');
+            document.getElementById('modalCampesino').textContent = btn.getAttribute('data-campesino');
+            document.getElementById('modalCat').textContent = btn.getAttribute('data-cat');
+            
+            cargarResenas(btn.getAttribute('data-id'));
+            
+            // Configurar botón de compra del modal
+            const addBtn = document.getElementById('modalBtnAdd');
+            addBtn.setAttribute('data-href', '/carrito/agregar/' + btn.getAttribute('data-id'));
+            addBtn.setAttribute('data-nombre', btn.getAttribute('data-nombre'));
+            addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> <span id="modalBtnAddText">Añadir al carrito</span>';
+            addBtn.classList.remove('pointer-events-none', 'bg-green-700', 'cursor-not-allowed');
+
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Animar entrada
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('quickViewModal');
+            const content = document.getElementById('modalContent');
+            
+            // Animar salida
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function añadirCarritoDesdeModal(btn) {
+            añadirCarrito(new Event('click'), btn);
+        }
+
+        function cargarResenas(productoId) {
+            document.getElementById('reviewProductoId').value = productoId;
+            const container = document.getElementById('reviewsList');
+            document.getElementById('modalReviewsSection').classList.remove('hidden');
+            document.getElementById('modalReviewsSection').classList.add('flex');
+            
+            // Reset modal scroll status
+            container.innerHTML = '<div class="text-center text-xs text-gray-400 py-6"><i class="fas fa-circle-notch fa-spin text-lg mb-2 block"></i> Cargando opiniones...</div>';
+            
+            fetch('/api/resenas/producto/' + productoId)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.length === 0) {
+                        container.innerHTML = '<div class="text-center bg-gray-50 border border-gray-100 rounded-xl p-4 text-xs text-gray-500">Aún no hay reseñas. ¡Sé el primero en calificar!</div>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    data.forEach(r => {
+                        let starsHtml = '';
+                        for(let i=1; i<=5; i++) {
+                            starsHtml += `<i class="fas fa-star ${i <= r.estrellas ? 'text-amber-400' : 'text-gray-200'}"></i>`;
+                        }
+                        container.innerHTML += `
+                            <div class="bg-gray-50/50 border border-gray-100 rounded-xl p-4 hover:shadow-sm transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex gap-0.5 text-[10px]">${starsHtml}</div>
+                                    <span class="text-[10px] text-gray-400 font-medium">${r.fecha || ''}</span>
+                                </div>
+                                <h4 class="text-xs font-bold text-gray-900 mb-1 leading-none">${r.nombreAutor}</h4>
+                                <p class="text-[13px] text-gray-600 leading-relaxed">${r.comentario}</p>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(e => {
+                    container.innerHTML = '<div class="text-xs text-red-500 bg-red-50 p-4 border border-red-100 text-center rounded-xl font-bold"><i class="fas fa-exclamation-triangle"></i> Error al cargar reseñas</div>';
+                });
+        }
+
+        document.getElementById('starSelector')?.addEventListener('click', function(e) {
+            if(e.target.tagName === 'I') {
+                const val = parseInt(e.target.getAttribute('data-val'));
+                document.getElementById('reviewEstrellas').value = val;
+                Array.from(this.children).forEach((star, idx) => {
+                    if (idx < val) {
+                        star.classList.remove('text-gray-200');
+                        star.classList.add('text-amber-400');
+                    } else {
+                        star.classList.add('text-gray-200');
+                        star.classList.remove('text-amber-400');
+                    }
+                });
+            }
+        });
+
+        function enviarResena(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitReview');
+            const productoId = document.getElementById('reviewProductoId').value;
+            const estrellas = document.getElementById('reviewEstrellas').value;
+            const comentario = document.getElementById('reviewTexto').value;
+
+            if(estrellas == 0) {
+                Swal.fire({icon: 'warning', title: 'Oops', text:'Selecciona al menos una estrella', confirmButtonColor:'#16a34a'});
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publicando...';
+
+            fetch('/api/resenas', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({productoId, estrellas, comentario})
+            })
+            .then(async r => {
+                const res = await r.json();
+                if(r.ok) {
+                    Swal.fire({
+                        html: `
+                            <div class="text-center font-sans">
+                                <div class="mx-auto w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6 shadow-inner relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-amber-400 opacity-20 animate-pulse"></div>
+                                    <i class="fas fa-star text-5xl text-amber-400 drop-shadow-lg z-10"></i>
+                                </div>
+                                <h2 class="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">¡Opinión Publicada!</h2>
+                                <p class="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">Gracias por tomarte el tiempo. Tu voz impulsa el comercio justo y ayuda a toda la comunidad. 🌱</p>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Genial, gracias',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'rounded-[2rem] shadow-2xl border-0 p-8',
+                            confirmButton: 'mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl w-full transition active:scale-95'
+                        },
+                        backdrop: `rgba(0, 0, 0, 0.4) backdrop-blur-sm`
+                    });
+                    document.getElementById('formReview').reset();
+                    document.getElementById('formReview').classList.add('hidden');
+                    
+                    Array.from(document.getElementById('starSelector').children).forEach(s => {
+                        s.classList.add('text-gray-200'); s.classList.remove('text-amber-400');
+                    });
+                    document.getElementById('reviewEstrellas').value = 0;
+                    
+                    cargarResenas(productoId);
+                } else {
+                    Swal.fire({icon: 'error', title: 'Acceso Denegado', text: res.error || 'Debes iniciar sesión con una cuenta para poder reseñar.', confirmButtonColor:'#16a34a'});
+                }
+            })
+            .catch(e => Swal.fire({icon: 'error', title: 'Error', text: 'Problema de conexión.', confirmButtonColor:'#16a34a'}))
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Publicar Opinión';
+            });
+        }
+        
+        // --- MOTOR DE BÚSQUEDA Y FILTRADO REALTIME ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('products-grid');
+            if(!grid) return;
+
+            const productNodes = Array.from(grid.getElementsByClassName('js-product-card'));
+            const searchInput = document.getElementById('search-input');
+            const clearSearchBtn = document.getElementById('clear-search');
+            const categoryCheckboxes = document.querySelectorAll('.js-filter-chk');
+            const minPriceInput = document.getElementById('price-min');
+            const maxPriceInput = document.getElementById('price-max');
+            const sortSelect = document.getElementById('sort-select');
+            const resetFiltersBtn = document.getElementById('btn-reset-filters');
+            const clearPriceBtn = document.getElementById('btn-clear-price');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('count-productos');
+            
+            // Sugerencias predictivas
+            const suggestionsDiv = document.getElementById('search-suggestions');
+            const suggestionsList = document.getElementById('suggestions-list');
+            const sugHeader = document.getElementById('sug-header');
+
+            const applyFiltersAndSort = () => {
+                const query = searchInput.value.toLowerCase().trim();
+                const checkedCats = Array.from(categoryCheckboxes).filter(chk => chk.checked).map(chk => chk.value.toUpperCase());
+                const minPrice = minPriceInput.value === '' ? 0 : parseFloat(minPriceInput.value);
+                const maxPrice = maxPriceInput.value === '' ? Infinity : parseFloat(maxPriceInput.value);
+
+                if (minPriceInput.value !== '' || maxPriceInput.value !== '') {
+                    clearPriceBtn.classList.remove('hidden');
+                } else {
+                    clearPriceBtn.classList.add('hidden');
+                }
+
+                let visibleCount = 0;
+                productNodes.forEach(node => {
+                    const name = node.getAttribute('data-nombre') || "";
+                    const desc = (node.getAttribute('data-desc') || "").toLowerCase();
+                    const cat = (node.getAttribute('data-cat') || "").toUpperCase();
+                    const price = parseFloat(node.getAttribute('data-precio') || "0");
+
+                    const matchesSearch = query === '' || name.includes(query) || desc.includes(query);
+                    const matchesCat = checkedCats.length === 0 || checkedCats.includes(cat);
+                    const matchesPrice = price >= minPrice && price <= maxPrice;
+
+                    if (matchesSearch && matchesCat && matchesPrice) {
+                        node.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        node.style.display = 'none';
+                    }
+                });
+
+                // Ordenamiento
+                const sortType = sortSelect.value;
+                const sortedNodes = productNodes.slice().sort((a, b) => {
+                    if(sortType === 'relevancia') {
+                        return a.getAttribute('data-nombre').localeCompare(b.getAttribute('data-nombre'));
+                    } else if (sortType === 'asc') {
+                        return parseFloat(a.getAttribute('data-precio')) - parseFloat(b.getAttribute('data-precio'));
+                    } else if (sortType === 'desc') {
+                        return parseFloat(b.getAttribute('data-precio')) - parseFloat(a.getAttribute('data-precio'));
+                    } else {
+                        return parseInt(b.getAttribute('data-id')) - parseInt(a.getAttribute('data-id'));
+                    }
+                });
+
+                sortedNodes.forEach(node => grid.appendChild(node));
+                countLabel.textContent = visibleCount;
+
+                if (visibleCount === 0 && productNodes.length > 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            };
+
+            // Listeners Filtros
+            categoryCheckboxes.forEach(chk => chk.addEventListener('change', applyFiltersAndSort));
+            minPriceInput.addEventListener('input', applyFiltersAndSort);
+            maxPriceInput.addEventListener('input', applyFiltersAndSort);
+            sortSelect.addEventListener('change', applyFiltersAndSort);
+
+            // Listener Búsqueda Predictiva
+            searchInput.addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase().trim();
+                
+                if (q.length > 0) {
+                    clearSearchBtn.classList.remove('hidden');
+                    const matches = productNodes.filter(n => n.getAttribute('data-nombre').includes(q)).slice(0, 5);
+                    
+                    suggestionsList.innerHTML = '';
+                    if (matches.length > 0) {
+                        sugHeader.classList.remove('hidden');
+                        matches.forEach(m => {
+                            const valNombre = m.querySelector('h3').textContent;
+                            const precio = m.getAttribute('data-precio');
+                            const imgUrl = m.querySelector('img').src;
+                            const cat = m.getAttribute('data-cat');
+                            const regex = new RegExp(`(${q})`, "gi");
+                            const highlighted = valNombre.replace(regex, "<span class='text-green-600 font-extrabold'>$1</span>");
+
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <a href="javascript:void(0)" class="flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition border-b border-gray-50 last:border-0" data-val="${valNombre}">
+                                    <img src="${imgUrl}" class="w-10 h-10 object-cover rounded-lg shadow-sm" onerror="this.onerror=null; this.src=window.fallbackImg">
+                                    <div class="flex-1 text-left">
+                                        <h4 class="text-sm font-bold text-gray-800">${highlighted}</h4>
+                                        <p class="text-[10px] uppercase font-bold text-gray-400">${cat} · $${precio}</p>
+                                    </div>
+                                    <i class="fas fa-search text-gray-300 text-xs"></i>
+                                </a>
+                            `;
+                            // Click handler
+                            li.querySelector('a').addEventListener('click', () => {
+                                searchInput.value = valNombre;
+                                suggestionsDiv.classList.add('hidden');
+                                searchInput.dispatchEvent(new Event('input')); // Re-trigger filtering
+                            });
+                            suggestionsList.appendChild(li);
+                        });
+                        suggestionsDiv.classList.remove('hidden');
+                    } else {
+                        sugHeader.classList.add('hidden');
+                        suggestionsList.innerHTML = `<li class="px-4 py-3 text-sm text-gray-500 text-center">No hay productos que coincidan.</li>`;
+                        suggestionsDiv.classList.remove('hidden');
+                    }
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                    suggestionsDiv.classList.add('hidden');
+                }
+                applyFiltersAndSort();
+            });
+
+            // Cerrar sugerencias al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if(!document.getElementById('search-form').contains(e.target)) {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            });
+
+            clearPriceBtn.addEventListener('click', () => {
+                minPriceInput.value = '';
+                maxPriceInput.value = '';
+                applyFiltersAndSort();
+            });
+
+            resetFiltersBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                categoryCheckboxes.forEach(chk => chk.checked = false);
+                minPriceInput.value = '';
+                maxPriceInput.value = '';
+                sortSelect.value = 'recientes';
+                searchInput.dispatchEvent(new Event('input'));
+            });
+
+            applyFiltersAndSort();
+        });
+    </script>
 </body>
 </html>

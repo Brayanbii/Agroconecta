@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Ruta Logística - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <!-- SIN TAILWIND CDN — Tailwind rompe los tiles de Leaflet (img max-width:100%) -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #f1f5f9; 
+            min-height: 100vh;
+        }
+        
+        /* Navbar */
+        .nav { 
+            background: rgba(255,255,255,0.92); 
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e5e7eb; 
+            position: sticky; top: 0; z-index: 1000;
+            padding: 0 24px;
+        }
+        .nav-inner { 
+            max-width: 1200px; margin: 0 auto; 
+            display: flex; justify-content: space-between; align-items: center; 
+            height: 64px; 
+        }
+        .nav a { 
+            text-decoration: none; color: #6b7280; font-weight: 700; font-size: 14px;
+            display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+        }
+        .nav a:hover { color: #16a34a; }
+        .nav-brand { color: #1f2937 !important; font-size: 18px; font-weight: 800; }
+        .nav-brand span { color: #16a34a; }
+        
+        /* Layout principal */
+        .main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 32px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+        
+        /* Tarjeta info */
+        .card { 
+            background: white; border-radius: 24px; padding: 28px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f0fdf4;
+            position: relative; overflow: hidden;
+        }
+        .card-circle { 
+            position: absolute; right: -24px; top: -24px; 
+            width: 96px; height: 96px; border-radius: 50%; 
+            background: #f0fdf4; opacity: 0.5; 
+        }
+        .card-content { position: relative; z-index: 1; }
+        .label-sm { 
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; 
+            font-weight: 800; color: #16a34a; margin-bottom: 4px; 
+        }
+        .title-lg { 
+            font-size: 24px; font-weight: 800; color: #111827; 
+            margin: 8px 0 12px; word-break: break-word; 
+        }
+        .badge { 
+            display: inline-block; background: #dcfce7; color: #166534; 
+            padding: 4px 12px; border-radius: 99px; font-size: 13px; font-weight: 700; 
+        }
+        .badge-text { color: #6b7280; font-size: 13px; font-weight: 500; margin-left: 8px; }
+        
+        /* Métricas */
+        .metrics { 
+            background: #f9fafb; border-radius: 16px; padding: 16px; 
+            border: 1px solid #f3f4f6; margin: 20px 0; 
+        }
+        .metric-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 6px 0; 
+        }
+        .metric-label { font-size: 13px; font-weight: 700; color: #6b7280; }
+        .metric-label i { color: #9ca3af; width: 20px; }
+        .metric-value { font-weight: 800; color: #111827; font-size: 15px; }
+        .metric-value.green { color: #16a34a; }
+        
+        /* Destino */
+        .dest-label { 
+            font-size: 10px; font-weight: 800; color: #9ca3af; 
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; 
+        }
+        .dest-text { font-size: 13px; color: #374151; font-weight: 500; line-height: 1.5; }
+        .python-badge { 
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; color: #3b82f6; font-weight: 600; 
+            background: #eff6ff; padding: 6px 12px; border-radius: 8px; margin-top: 10px; 
+        }
+        
+        /* Mapa */
+        .map-wrapper { 
+            background: white; padding: 12px; border-radius: 24px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;
+        }
+        #map { 
+            width: 100%; 
+            height: 500px; 
+            border-radius: 16px; 
+        }
+        
+        /* Alerta sin ruta */
+        .no-route { 
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); 
+            border-radius: 24px; border: 2px dashed #fecaca; 
+            padding: 48px; text-align: center; margin-bottom: 16px;
+        }
+        .no-route-icon { 
+            width: 80px; height: 80px; background: #fef2f2; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; 
+        }
+        .no-route-icon i { font-size: 28px; color: #f87171; }
+        .no-route h3 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+        .no-route p { font-size: 14px; color: #6b7280; max-width: 380px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a th:href="@{/campesino/productos/ventas}">
+                <i class="fas fa-arrow-left"></i> Volver a Ventas
+            </a>
+            <div class="nav-brand">
+                <i class="fas fa-route" style="color:#16a34a;margin-right:8px;"></i>
+                Inteligencia <span>Logística</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <div class="main">
+        <div class="grid">
+            
+            <!-- TARJETA INFO -->
+            <div>
+                <div class="card">
+                    <div class="card-circle"></div>
+                    <div class="card-content">
+                        <div class="label-sm">Detalle del Envío</div>
+                        <div class="title-lg" th:text="${detalle.nombre}">Producto</div>
+                        
+                        <div style="margin-bottom:20px;">
+                            <span class="badge" th:text="${detalle.cantidad} + ' Unidades'"></span>
+                            <span class="badge-text" th:text="'Total: $' + ${detalle.total}"></span>
+                        </div>
+
+                        <div class="metrics">
+                            <div class="metric-row">
+                                <span class="metric-label"><i class="fas fa-road"></i> Distancia OSRM</span>
+                                <span class="metric-value" th:text="${distancia_km != null ? distancia_km + ' km' : '--'}"></span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label"><i class="fas fa-clock"></i> Tiempo Estimado</span>
+                                <span class="metric-value green" th:text="${duracion_min != null ? duracion_min + ' mins' : '--'}"></span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:16px;">
+                            <div class="dest-label">Destino Final</div>
+                            <div class="dest-text" th:text="${detalle.orden.direccionEnvio}">Dirección</div>
+                            <div class="python-badge">
+                                <i class="fas fa-robot"></i> Ruta optimizada por Python
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAPA -->
+            <div>
+                <div th:if="${geometriaJson == null}" class="no-route">
+                    <div class="no-route-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <h3>Servicio de Rutas Inactivo</h3>
+                    <p>No pudimos conectar con el motor logístico de Python.</p>
+                </div>
+
+                <div class="map-wrapper">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Datos para JS -->
+    <input type="hidden" id="origenLat" th:value="${origenLat}">
+    <input type="hidden" id="origenLon" th:value="${origenLon}">
+    <input type="hidden" id="destLat" th:value="${destLat}">
+    <input type="hidden" id="destLon" th:value="${destLon}">
+    <input type="hidden" id="geometriaJson" th:value="${geometriaJson != null ? geometriaJson : ''}">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        window.addEventListener('load', function() {
+            var oLat = parseFloat(document.getElementById('origenLat').value) || 5.9317;
+            var oLon = parseFloat(document.getElementById('origenLon').value) || -73.6147;
+            var dLat = parseFloat(document.getElementById('destLat').value) || 7.1254;
+            var dLon = parseFloat(document.getElementById('destLon').value) || -73.1198;
+            var geo  = document.getElementById('geometriaJson').value || '';
+
+            var map = L.map('map').setView([(oLat+dLat)/2, (oLon+dLon)/2], 9);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Forzar recálculo
+            setTimeout(function(){ map.invalidateSize(); }, 250);
+            setTimeout(function(){ map.invalidateSize(); }, 1000);
+
+            // Iconos estándar de Leaflet con colores
+            var greenIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+            var redIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+
+            L.marker([oLat, oLon], {icon: greenIcon}).addTo(map).bindPopup('<b>Tu Finca</b>').openPopup();
+            L.marker([dLat, dLon], {icon: redIcon}).addTo(map).bindPopup('<b>Cliente</b>');
+
+            if (geo && geo.trim().length > 2) {
+                try {
+                    var routeLayer = L.geoJSON({type:"Feature", geometry: JSON.parse(geo)}, {
+                        style: { color: '#16a34a', weight: 5, opacity: 0.8, dashArray: '12, 8' }
+                    }).addTo(map);
+                    map.fitBounds(routeLayer.getBounds(), {padding: [40,40]});
+                } catch(e) {
+                    console.error('Error ruta:', e);
+                    L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#ef4444', weight:3, dashArray:'10,10'}).addTo(map);
+                    map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+                }
+            } else {
+                L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#94a3b8', weight:3, dashArray:'10,10'}).addTo(map);
+                map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+            }
+        });
+    </script>
+</body>
+</html>

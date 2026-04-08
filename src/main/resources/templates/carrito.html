@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Imagen por defecto global para cuando fallan las fotos de los productos
+        window.fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Cpath d='M 125,120 Q 150,90 175,120 Q 175,150 150,150 Q 125,150 125,120 Z' fill='%23d1d5db' stroke='%239ca3af' stroke-width='4'/%3E%3Ctext x='150' y='185' font-family='sans-serif' font-size='24' font-weight='bold' fill='%239ca3af' text-anchor='middle'%3EAgroConecta%3C/text%3E%3C/svg%3E";
+    </script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -55,6 +60,40 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <!-- Stepper (Progreso de Compra) -->
+        <div class="mb-14 max-w-2xl mx-auto w-full relative pt-4 hidden md:block">
+            <div class="relative flex justify-between items-center w-full">
+                <!-- Línea de fondo -->
+                <div class="absolute left-0 top-5 transform -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full z-0"></div>
+                <!-- Línea de progreso (hasta la mitad para el carrito) -->
+                <div class="absolute left-0 top-5 transform -translate-y-1/2 w-0 h-1 bg-green-500 rounded-full z-0 shadow-[0_0_10px_rgba(34,197,94,0.5)] transition-all duration-700"></div>
+
+                <!-- Step 1 (Activo) -->
+                <div class="relative z-10 flex flex-col items-center group">
+                    <div class="w-10 h-10 rounded-full bg-green-600 text-white font-bold flex items-center justify-center shadow-lg ring-4 ring-white transition-transform group-hover:scale-110">
+                        <i class="fas fa-shopping-cart text-sm"></i>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-green-700 mt-2 absolute top-10 whitespace-nowrap uppercase tracking-wider">1. Carrito</span>
+                </div>
+                
+                <!-- Step 2 (Envío/Pago Inactivo) -->
+                <div class="relative z-10 flex flex-col items-center group cursor-not-allowed">
+                    <div class="w-10 h-10 rounded-full bg-white text-gray-300 font-bold flex items-center justify-center border-2 border-gray-200 transition-colors group-hover:border-gray-300">
+                        <i class="fas fa-truck text-sm"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-400 mt-2 absolute top-10 whitespace-nowrap uppercase tracking-wider">2. Datos de Envío</span>
+                </div>
+                
+                <!-- Step 3 (Confirmación Inactivo) -->
+                <div class="relative z-10 flex flex-col items-center group cursor-not-allowed">
+                    <div class="w-10 h-10 rounded-full bg-white text-gray-300 font-bold flex items-center justify-center border-2 border-gray-200 transition-colors group-hover:border-gray-300">
+                        <i class="fas fa-flag-checkered text-sm"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-400 mt-2 absolute top-10 whitespace-nowrap uppercase tracking-wider">3. Confirmado</span>
+                </div>
+            </div>
+        </div>
         
         <h1 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
             <span class="bg-green-100 text-green-600 p-2 rounded-lg">
@@ -103,7 +142,7 @@
                     <div class="w-full sm:w-32 h-32 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 relative">
                         <img th:src="${item.producto.imagenUrl.startsWith('http') ? item.producto.imagenUrl : '/images/' + item.producto.imagenUrl}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
-                             alt="Producto" onerror="this.src='https://via.placeholder.com/150?text=Producto'">
+                             alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                     </div>
 
                     <!-- Detalles -->
@@ -186,10 +225,10 @@
                         <span class="text-3xl font-extrabold text-green-600" th:text="'$' + ${total}">$0</span>
                     </div>
 
-                    <a th:href="@{/orden/pagar}" 
+                    <a id="btn-checkout" th:href="@{/orden/checkout}" 
                        class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-xl shadow-green-600/20 transition transform hover:-translate-y-1 flex justify-center items-center gap-2">
-                        <span>Confirmar Compra</span>
-                        <i class="fas fa-check-circle"></i>
+                        <span>Elegir Dirección de Envío</span>
+                        <i class="fas fa-map-marked-alt"></i>
                     </a>
                     
                     <div class="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
@@ -199,17 +238,35 @@
             </div>
         </div>
 
-        <!-- ESTADO 2: CARRITO VACÍO -->
-        <div th:if="${#lists.isEmpty(items)}" class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 text-center">
-            <div class="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                <i class="fas fa-shopping-basket text-6xl text-green-300"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h2>
-            <p class="text-gray-500 max-w-md mb-8">Parece que aún no has agregado productos frescos a tu canasta. ¡El campo te espera!</p>
+        <!-- ESTADO 2: CARRITO VACÍO PRO -->
+        <div th:if="${#lists.isEmpty(items)}" class="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl shadow-sm border border-gray-100 text-center relative overflow-hidden">
+            <!-- Círculo decorativo fondo -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-50 rounded-full opacity-50 blur-3xl -z-10"></div>
             
-            <a th:href="@{/tienda}" class="bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-green-700 transition hover:shadow-green-600/30">
-                Ir a la Tienda
+            <!-- Ilustración de canasta -->
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-7359557-6024626.png?f=webp" alt="Carrito vacío" class="w-48 h-48 object-contain mb-2 floating-animation drop-shadow-md" onerror="this.style.display='none'">
+            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-bounce" onerror="this.style.display='flex'" style="display:none;">
+                <i class="fas fa-shopping-basket text-4xl text-green-300"></i>
+            </div>
+            
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Tu canasta está esperando</h2>
+            <p class="text-gray-500 max-w-md mb-8 text-sm leading-relaxed">No hay productos frescos seleccionados por el momento. ¡Los campesinos tienen lo mejor de su cosecha listo para ti!</p>
+            
+            <a th:href="@{/tienda}" class="bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-xl shadow-green-600/20 hover:bg-green-700 hover:-translate-y-1 transition-all flex items-center gap-2 group active:scale-95">
+                <span>Explorar productos del campo</span>
+                <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </a>
+            
+            <style>
+                .floating-animation {
+                    animation: floatIcon 3s ease-in-out infinite;
+                }
+                @keyframes floatIcon {
+                    0% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                    100% { transform: translateY(0px); }
+                }
+            </style>
         </div>
 
     </main>
@@ -229,5 +286,12 @@
         </div>
     </footer>
 
+    <script>
+        document.getElementById('btn-pagar')?.addEventListener('click', function() {
+            this.style.pointerEvents = 'none';
+            this.classList.add('opacity-75');
+            this.innerHTML = '<i class="fas fa-circle-notch fa-spin font-bold text-lg"></i><span class="font-bold">Procesando pago...</span>';
+        });
+    </script>
 </body>
 </html>

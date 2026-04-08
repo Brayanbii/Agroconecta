@@ -25,6 +25,11 @@ public class Orden {
     // Estado del pedido: Pendiente, Enviado, Entregado
     private String estado;
 
+    // Datos de Envío (Ubicación del Cliente)
+    private String direccionEnvio;
+    private Double latitudEnvio;
+    private Double longitudEnvio;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario; // El Cliente

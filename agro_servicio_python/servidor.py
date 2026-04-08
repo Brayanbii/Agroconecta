@@ -1,11 +1,6 @@
 from flask import Flask, jsonify, request
 import requests
 import random
-import io
-import base64
-import matplotlib
-matplotlib.use('Agg')  # Backend sin pantalla (para servidor)
-import matplotlib.pyplot as plt
 from datetime import datetime
 
 app = Flask(__name__)
@@ -13,9 +8,10 @@ app = Flask(__name__)
 # ============================================================
 # FUENTE REAL: SIPSA - Sistema de Información de Precios
 # del Sector Agropecuario — DANE Colombia
-# API pública en: https://www.datos.gov.co
+# API pública oficial: https://www.datos.gov.co/resource/ch4u-f3i5.json
+# (Datos Agropecuarios Históricos SIPSA)
 # ============================================================
-SIPSA_API_URL = "https://www.datos.gov.co/resource/ha6j-pa2r.json"
+SIPSA_API_URL = "https://www.datos.gov.co/resource/ch4u-f3i5.json"
 
 # Palabras clave para filtrar productos del SIPSA
 PRODUCTOS_INTERES = {
@@ -220,28 +216,14 @@ def estado():
 
 
 # ============================================================
-# GRAFICOS ESTADISTICOS — Matplotlib
+# API DE ANALÍTICA (Preprocesamiento para gráficos JS en Frontend)
 # ============================================================
-
-def _fig_a_base64(fig):
-    """Convierte una figura Matplotlib a string base64 PNG."""
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight', dpi=100, facecolor='white')
-    buf.seek(0)
-    img_b64 = base64.b64encode(buf.read()).decode('utf-8')
-    buf.close()
-    plt.close(fig)
-    return img_b64
-
 
 @app.route('/api/v1/graficos', methods=['POST'])
 def generar_graficos():
     """
-    Recibe datos de ventas desde Java (JSON) y genera 3 graficos:
-      1. Barras horizontales: Top productos mas vendidos
-      2. Barras verticales:   Ventas totales por mes
-      3. Torta:               Distribucion de pedidos por estado
-    Devuelve las imagenes codificadas en base64.
+    Recibe datos de compras globales de Java y los modela para
+    los graficos dinámicos interactivos del Administrador (ApexCharts).
     """
     datos = request.get_json(silent=True)
     if not datos:
@@ -251,138 +233,58 @@ def generar_graficos():
     ventas_mes = datos.get("ventas_mes", [])
     estados    = datos.get("estados",    [])
 
-    # Paleta de colores AgroConecta
-    VERDE      = '#16a34a'
-    VERDE_CLARO= '#86efac'
-    AZUL       = '#3b82f6'
-    AMARILLO   = '#f59e0b'
-    ROJO       = '#ef4444'
-    MORADO     = '#8b5cf6'
-    GRIS_TEXTO = '#374151'
-    GRIS_EJE   = '#6b7280'
-    GRIS_BORDE = '#e5e7eb'
-
     resultado = {}
 
-    # ----------------------------------------------------------
-    # GRAFICO 1: Top productos mas vendidos (barras horizontales)
-    # ----------------------------------------------------------
+    # GRAFICO 1: Top productos (Barras)
     if productos:
-        top = productos[:8]
-        nombres   = [str(p.get("nombre", "?")) for p in top]
+        top = sorted(productos, key=lambda x: x.get("cantidad", 0), reverse=True)[:8]
+        nombres    = [str(p.get("nombre", "?")) for p in top]
         cantidades = [int(p.get("cantidad", 0)) for p in top]
-
-        fig, ax = plt.subplots(figsize=(7, max(3, len(nombres) * 0.55)))
-        fig.patch.set_facecolor('white')
-
-        colores = [VERDE if i == 0 else VERDE_CLARO for i in range(len(nombres))]
-        bars = ax.barh(nombres, cantidades, color=colores, edgecolor='white', height=0.6)
-
-        max_val = max(cantidades) if cantidades else 1
-        for bar, val in zip(bars, cantidades):
-            ax.text(bar.get_width() + max_val * 0.02,
-                    bar.get_y() + bar.get_height() / 2,
-                    str(val), va='center', ha='left',
-                    fontsize=9, fontweight='bold', color=GRIS_TEXTO)
-
-        ax.set_xlabel('Unidades vendidas', fontsize=9, color=GRIS_EJE)
-        ax.set_title('Productos Mas Vendidos', fontsize=12,
-                     fontweight='bold', color='#111827', pad=12)
-        ax.set_xlim(0, max_val * 1.25)
-        for spine in ['top', 'right']:
-            ax.spines[spine].set_visible(False)
-        for spine in ['left', 'bottom']:
-            ax.spines[spine].set_color(GRIS_BORDE)
-        ax.tick_params(colors=GRIS_EJE, labelsize=8)
-        plt.tight_layout()
-        resultado["grafico_productos"] = _fig_a_base64(fig)
+        resultado["grafico_productos"] = {
+            "type": "bar",
+            "labels": nombres,
+            "series": [{"name": "Unidades vendidas", "data": cantidades}]
+        }
     else:
         resultado["grafico_productos"] = None
 
-    # ----------------------------------------------------------
-    # GRAFICO 2: Ventas por mes (barras verticales)
-    # ----------------------------------------------------------
+    # GRAFICO 2: Ventas por mes (Área/Línea)
     if ventas_mes:
         meses   = [str(v.get("mes", "?")) for v in ventas_mes]
         totales = [float(v.get("total", 0)) for v in ventas_mes]
-
-        fig, ax = plt.subplots(figsize=(7, 4))
-        fig.patch.set_facecolor('white')
-
-        bars = ax.bar(meses, totales, color=VERDE, edgecolor='white', width=0.6, alpha=0.9)
-
-        max_val = max(totales) if totales else 1
-        for bar, val in zip(bars, totales):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + max_val * 0.01,
-                    f'${val:,.0f}',
-                    ha='center', va='bottom',
-                    fontsize=8, fontweight='bold', color=GRIS_TEXTO)
-
-        ax.set_ylabel('Total ($COP)', fontsize=9, color=GRIS_EJE)
-        ax.set_title('Ventas por Mes', fontsize=12,
-                     fontweight='bold', color='#111827', pad=12)
-        ax.yaxis.set_major_formatter(
-            plt.FuncFormatter(lambda x, _: f'${x:,.0f}'))
-        for spine in ['top', 'right']:
-            ax.spines[spine].set_visible(False)
-        for spine in ['left', 'bottom']:
-            ax.spines[spine].set_color(GRIS_BORDE)
-        ax.tick_params(colors=GRIS_EJE, labelsize=8)
-        plt.tight_layout()
-        resultado["grafico_meses"] = _fig_a_base64(fig)
+        resultado["grafico_meses"] = {
+            "type": "area",
+            "labels": meses,
+            "series": [{"name": "Ingresos ($)", "data": totales}]
+        }
     else:
         resultado["grafico_meses"] = None
 
-    # ----------------------------------------------------------
-    # GRAFICO 3: Estado de pedidos (torta)
-    # ----------------------------------------------------------
+    # GRAFICO 3: Estado de pedidos (Donut)
     if estados:
         labels = [str(e.get("estado", "Sin estado")) for e in estados]
         sizes  = [int(e.get("cantidad", 0)) for e in estados]
-        colores_torta = [VERDE, AZUL, AMARILLO, ROJO, MORADO][:len(labels)]
-
-        fig, ax = plt.subplots(figsize=(5, 4))
-        fig.patch.set_facecolor('white')
-
-        wedges, texts, autotexts = ax.pie(
-            sizes,
-            labels=labels,
-            colors=colores_torta,
-            autopct='%1.0f%%',
-            startangle=90,
-            wedgeprops={'edgecolor': 'white', 'linewidth': 2},
-            textprops={'fontsize': 9, 'color': GRIS_TEXTO}
-        )
-        for at in autotexts:
-            at.set_fontsize(9)
-            at.set_fontweight('bold')
-            at.set_color('white')
-
-        ax.set_title('Estado de Pedidos', fontsize=12,
-                     fontweight='bold', color='#111827', pad=12)
-        plt.tight_layout()
-        resultado["grafico_estados"] = _fig_a_base64(fig)
+        resultado["grafico_estados"] = {
+            "type": "donut",
+            "labels": labels,
+            "series": sizes
+        }
     else:
         resultado["grafico_estados"] = None
 
-    print(f"[OK] Graficos generados correctamente.")
+    print(f"[OK] Analitica de Admin procesada en JSON para Java.")
     return jsonify(resultado)
 
 
 # ============================================================
-# SUPER INFORME CAMPESINO — Reporte detallado con 4 graficas
+# SUPER INFORME CAMPESINO — Procesamiento Analítico
 # ============================================================
 
 @app.route('/api/v1/informe-campesino', methods=['POST'])
 def super_informe_campesino():
     """
-    Genera un super informe detallado para el campesino con 4 graficas:
-      1. Top productos por cantidad vendida (barras horizontales)
-      2. Ingresos por mes (barras verticales con gradiente)
-      3. Distribucion de ingresos por producto (torta premium)
-      4. Precio campesino vs precio mercado SIPSA (barras agrupadas)
-    Tambien devuelve estadisticas de resumen.
+    Construye las estadísticas maestras del campesino, interactuando
+    con SIPSA para contrastar precios. Devuelve un Payload JSON con series.
     """
     datos = request.get_json(silent=True)
     if not datos:
@@ -392,219 +294,139 @@ def super_informe_campesino():
     ventas_mes = datos.get("ventas_mes", [])
     resumen    = datos.get("resumen",    {})
 
-    # Paleta de colores premium AgroConecta
-    VERDE       = '#16a34a'
-    VERDE_OSC   = '#14532d'
-    VERDE_CLARO = '#86efac'
-    AZUL        = '#3b82f6'
-    AZUL_CLARO  = '#93c5fd'
-    AMARILLO    = '#f59e0b'
-    NARANJA     = '#f97316'
-    ROJO        = '#ef4444'
-    MORADO      = '#8b5cf6'
-    ROSA        = '#ec4899'
-    GRIS_TEXTO  = '#1f2937'
-    GRIS_EJE    = '#6b7280'
-    GRIS_BORDE  = '#e5e7eb'
-    FONDO       = '#f9fafb'
-
-    COLORES_TORTA = [VERDE, AZUL, AMARILLO, NARANJA, MORADO, ROSA, ROJO, AZUL_CLARO]
-
     resultado = {}
 
-    # ----------------------------------------------------------
-    # GRAFICA 1: Top productos por cantidad vendida
-    # ----------------------------------------------------------
+    # GRAFICA 1: Top productos vendidos
     if productos:
         top = sorted(productos, key=lambda x: x.get("cantidad", 0), reverse=True)[:8]
-        nombres    = [str(p.get("nombre", "?")) for p in top]
-        cantidades = [int(p.get("cantidad", 0)) for p in top]
-
-        fig, ax = plt.subplots(figsize=(8, max(3.5, len(nombres) * 0.65)))
-        fig.patch.set_facecolor('white')
-        ax.set_facecolor(FONDO)
-
-        colores_bar = [VERDE if i == 0 else (VERDE_CLARO if i < 3 else '#d1fae5') for i in range(len(nombres))]
-        bars = ax.barh(nombres, cantidades, color=colores_bar, edgecolor='white', height=0.65)
-
-        max_val = max(cantidades) if cantidades else 1
-        for bar, val in zip(bars, cantidades):
-            ax.text(bar.get_width() + max_val * 0.02,
-                    bar.get_y() + bar.get_height() / 2,
-                    f'{val} uds', va='center', ha='left',
-                    fontsize=9, fontweight='bold', color=GRIS_TEXTO)
-
-        ax.set_xlabel('Unidades vendidas', fontsize=9, color=GRIS_EJE)
-        ax.set_title('🏆 Top Productos Más Vendidos', fontsize=13,
-                     fontweight='bold', color=VERDE_OSC, pad=14)
-        ax.set_xlim(0, max_val * 1.3)
-        for spine in ['top', 'right']:
-            ax.spines[spine].set_visible(False)
-        for spine in ['left', 'bottom']:
-            ax.spines[spine].set_color(GRIS_BORDE)
-        ax.tick_params(colors=GRIS_EJE, labelsize=9)
-        ax.grid(axis='x', linestyle='--', alpha=0.4, color=GRIS_BORDE)
-        plt.tight_layout()
-        resultado["grafico_top_productos"] = _fig_a_base64(fig)
+        resultado["grafico_top_productos"] = {
+            "labels": [str(p.get("nombre", "?")) for p in top],
+            "series": [{"name": "Unidades Vendidas", "data": [int(p.get("cantidad", 0)) for p in top]}]
+        }
     else:
         resultado["grafico_top_productos"] = None
 
-    # ----------------------------------------------------------
-    # GRAFICA 2: Ingresos por mes (barras con etiquetas)
-    # ----------------------------------------------------------
+    # GRAFICA 2: Ingresos mensuales
     if ventas_mes:
-        meses   = [str(v.get("mes", "?")) for v in ventas_mes]
-        totales = [float(v.get("total", 0)) for v in ventas_mes]
-
-        fig, ax = plt.subplots(figsize=(9, 4.5))
-        fig.patch.set_facecolor('white')
-        ax.set_facecolor(FONDO)
-
-        # Gradiente de color: el mes con más ventas en verde oscuro
-        max_idx = totales.index(max(totales)) if totales else 0
-        colores_mes = [VERDE_OSC if i == max_idx else VERDE for i in range(len(meses))]
-
-        bars = ax.bar(meses, totales, color=colores_mes, edgecolor='white', width=0.65, alpha=0.92)
-
-        max_val = max(totales) if totales else 1
-        for bar, val in zip(bars, totales):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + max_val * 0.015,
-                    f'${val:,.0f}',
-                    ha='center', va='bottom',
-                    fontsize=8, fontweight='bold', color=GRIS_TEXTO)
-
-        ax.set_ylabel('Ingresos ($COP)', fontsize=9, color=GRIS_EJE)
-        ax.set_title('📅 Ingresos por Mes', fontsize=13,
-                     fontweight='bold', color=VERDE_OSC, pad=14)
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'${x:,.0f}'))
-        for spine in ['top', 'right']:
-            ax.spines[spine].set_visible(False)
-        for spine in ['left', 'bottom']:
-            ax.spines[spine].set_color(GRIS_BORDE)
-        ax.tick_params(colors=GRIS_EJE, labelsize=9)
-        ax.grid(axis='y', linestyle='--', alpha=0.4, color=GRIS_BORDE)
-        plt.tight_layout()
-        resultado["grafico_ingresos_mes"] = _fig_a_base64(fig)
+        resultado["grafico_ingresos_mes"] = {
+            "labels": [str(v.get("mes", "?")) for v in ventas_mes],
+            "series": [{"name": "Ingresos COP", "data": [float(v.get("total", 0)) for v in ventas_mes]}]
+        }
     else:
         resultado["grafico_ingresos_mes"] = None
 
-    # ----------------------------------------------------------
-    # GRAFICA 3: Distribucion de ingresos por producto (torta premium)
-    # ----------------------------------------------------------
+    # GRAFICA 3: Distribución de rentabilidad
     if productos:
         top_torta = sorted(productos, key=lambda x: x.get("total", 0), reverse=True)[:6]
-        labels_t  = [str(p.get("nombre", "?")) for p in top_torta]
-        sizes_t   = [float(p.get("total", 0)) for p in top_torta]
-        colores_t = COLORES_TORTA[:len(labels_t)]
-
-        fig, ax = plt.subplots(figsize=(6.5, 5))
-        fig.patch.set_facecolor('white')
-
-        wedges, texts, autotexts = ax.pie(
-            sizes_t,
-            labels=None,
-            colors=colores_t,
-            autopct='%1.1f%%',
-            startangle=140,
-            pctdistance=0.78,
-            wedgeprops={'edgecolor': 'white', 'linewidth': 2.5},
-        )
-        for at in autotexts:
-            at.set_fontsize(9)
-            at.set_fontweight('bold')
-            at.set_color('white')
-
-        ax.legend(wedges, labels_t,
-                  title="Productos",
-                  loc="center left",
-                  bbox_to_anchor=(1, 0, 0.5, 1),
-                  fontsize=8,
-                  title_fontsize=9)
-
-        ax.set_title('💰 Distribución de Ingresos', fontsize=13,
-                     fontweight='bold', color=VERDE_OSC, pad=14)
-        plt.tight_layout()
-        resultado["grafico_distribucion"] = _fig_a_base64(fig)
+        resultado["grafico_distribucion"] = {
+            "labels": [str(p.get("nombre", "?")) for p in top_torta],
+            "series": [float(p.get("total", 0)) for p in top_torta]
+        }
     else:
         resultado["grafico_distribucion"] = None
 
-    # ----------------------------------------------------------
-    # GRAFICA 4: Precio promedio del campesino vs precio mercado SIPSA
-    # ----------------------------------------------------------
+    # GRAFICA 4: Precios SIPSA vs Campesino (Analítica híbrida)
     if productos:
-        # Obtener precios de mercado (SIPSA o simulacion)
         precios_mercado_raw = obtener_datos_sipsa() or obtener_datos_dinamicos()
         mercado_dict = {p["nombre"].lower()[:5]: p["precio"] for p in precios_mercado_raw}
 
-        comparacion = []
+        nombres_c, precios_c, precios_m = [], [], []
+
         for p in productos[:6]:
             nombre = str(p.get("nombre", "?"))
             precio_camp = float(p.get("precio_promedio", 0))
-            if precio_camp <= 0:
-                continue
-            # Buscar precio de mercado por coincidencia parcial
+            if precio_camp <= 0: continue
+            
             precio_mkt = next(
                 (v for k, v in mercado_dict.items() if k in nombre.lower()[:5] or nombre.lower()[:5] in k),
                 None
             )
             if precio_mkt:
-                comparacion.append({
-                    "nombre": nombre[:12],
-                    "campesino": precio_camp,
-                    "mercado": precio_mkt
-                })
+                nombres_c.append(nombre[:12])
+                precios_c.append(precio_camp)
+                precios_m.append(precio_mkt)
 
-        if comparacion:
-            nombres_c  = [c["nombre"] for c in comparacion]
-            precios_c  = [c["campesino"] for c in comparacion]
-            precios_m  = [c["mercado"]   for c in comparacion]
-
-            x = range(len(nombres_c))
-            ancho = 0.38
-
-            fig, ax = plt.subplots(figsize=(8, 4.5))
-            fig.patch.set_facecolor('white')
-            ax.set_facecolor(FONDO)
-
-            bars1 = ax.bar([i - ancho/2 for i in x], precios_c, ancho,
-                           label='Tu precio', color=VERDE, edgecolor='white', alpha=0.9)
-            bars2 = ax.bar([i + ancho/2 for i in x], precios_m, ancho,
-                           label='Precio mercado', color=AZUL, edgecolor='white', alpha=0.9)
-
-            ax.set_xticks(list(x))
-            ax.set_xticklabels(nombres_c, fontsize=8, color=GRIS_TEXTO)
-            ax.set_ylabel('Precio ($COP/kg)', fontsize=9, color=GRIS_EJE)
-            ax.set_title('📊 Tu Precio vs Precio de Mercado (SIPSA)', fontsize=12,
-                         fontweight='bold', color=VERDE_OSC, pad=14)
-            ax.legend(fontsize=9)
-            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'${x:,.0f}'))
-            for spine in ['top', 'right']:
-                ax.spines[spine].set_visible(False)
-            for spine in ['left', 'bottom']:
-                ax.spines[spine].set_color(GRIS_BORDE)
-            ax.tick_params(colors=GRIS_EJE, labelsize=8)
-            ax.grid(axis='y', linestyle='--', alpha=0.4, color=GRIS_BORDE)
-            plt.tight_layout()
-            resultado["grafico_vs_mercado"] = _fig_a_base64(fig)
+        if nombres_c:
+            resultado["grafico_vs_mercado"] = {
+                "labels": nombres_c,
+                "series": [
+                    {"name": "Tu Precio", "data": precios_c},
+                    {"name": "Precio Mercado (SIPSA)", "data": precios_m}
+                ]
+            }
         else:
             resultado["grafico_vs_mercado"] = None
     else:
         resultado["grafico_vs_mercado"] = None
 
     resultado["resumen"] = resumen
-    print(f"[OK] Informe Campesino generado correctamente.")
+    print(f"[OK] Analitica del Campesino procesada en JSON para Java.")
     return jsonify(resultado)
+
+
+# ============================================================
+# MOTOR DE LOGÍSTICA - RUTAS Y MAPAS
+# ============================================================
+
+@app.route('/api/v1/logistica-rutas', methods=['POST'])
+def calcular_ruta():
+    """
+    Calcula la ruta real de conducción entre un origen y un destino
+    utilizando el API pública gratuita de OSRM (Open Source Routing Machine).
+    Devuelve la distancia en km, el tiempo en minutos y la geometría GeoJSON.
+    """
+    datos = request.get_json(silent=True)
+    if not datos or 'origen' not in datos or 'destino' not in datos:
+        return jsonify({"error": "Faltan coordenadas de origen y/o destino"}), 400
+
+    origin_lat = datos['origen'].get('lat')
+    origin_lon = datos['origen'].get('lon')
+    dest_lat = datos['destino'].get('lat')
+    dest_lon = datos['destino'].get('lon')
+
+    if not all([origin_lat, origin_lon, dest_lat, dest_lon]):
+         return jsonify({"error": "Coordenadas incompletas"}), 400
+
+    try:
+        # API OSRM Pública (Formato de OSRM en URL es longitud,latitud)
+        url = f"http://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=full&geometries=geojson"
+        
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data["code"] == "Ok" and len(data["routes"]) > 0:
+                ruta = data["routes"][0]
+                distancia_km = ruta["distance"] / 1000 # Convertir metros a km
+                duracion_min = ruta["duration"] / 60   # Convertir segundos a min
+                
+                print(f"[OK] Ruta OSRM calculada: {distancia_km:.1f} km, {duracion_min:.1f} mins")
+                
+                return jsonify({
+                    "status": "success",
+                    "distancia_km": round(distancia_km, 2),
+                    "duracion_min": int(duracion_min),
+                    "geometria": ruta["geometry"]
+                })
+        
+        print("[!] No se pudo obtener la ruta desde OSRM")
+        return jsonify({"error": "No se pudo trazar la ruta"}), 500
+        
+    except Exception as e:
+        print(f"[!] Error consultando OSRM: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("  Servidor Python de AgroConecta v3.0")
+    print("  Servidor Python de AgroConecta v4.0 (Con Mapas/OSRM)")
     print("  Fuente precios: SIPSA - DANE Colombia (datos.gov.co)")
-    print("  Graficos: Matplotlib")
+    print("  Graficos: Matplotlib / ApexCharts")
+    print("  Motor Rutas: OSRM Public API")
     print("  GET  http://localhost:5000/api/v1/precios")
     print("  GET  http://localhost:5000/api/v1/precios/estado")
     print("  POST http://localhost:5000/api/v1/graficos")
     print("  POST http://localhost:5000/api/v1/informe-campesino")
+    print("  POST http://localhost:5000/api/v1/logistica-rutas")
     print("=" * 60)
     app.run(host='0.0.0.0', port=5000, debug=True)

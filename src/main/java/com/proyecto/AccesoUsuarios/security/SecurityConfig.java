@@ -18,11 +18,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // CSRF habilitado por defecto (ya no se deshabilita)
-            // Thymeleaf con th:action inyecta el token automáticamente en los formularios
+            // Deshabilitar CSRF solo para las rutas API públicas, necesario para poder hacer peticiones POST por Fetch JS
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
                 // AGREGAMOS "/" AQUÍ AL PRINCIPIO
-                .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
+                .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/api/usuarios/**", "/api/resenas/**", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
                 // Rutas protegidas por ROL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/campesino/**").hasRole("CAMPESINO")

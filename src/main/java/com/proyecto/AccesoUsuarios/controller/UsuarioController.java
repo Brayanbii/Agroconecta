@@ -112,6 +112,11 @@ public class UsuarioController {
             return "redirect:/registro?error_email"; 
         }
 
+        // Validar username duplicado
+        if (repo.findByUserName(usuario.getUserName()).isPresent()) {
+            return "redirect:/registro?error_username"; 
+        }
+
         if (!"CAMPESINO".equals(usuario.getRol())) {
             usuario.setRol("CLIENTE");
         }
@@ -121,9 +126,24 @@ public class UsuarioController {
         try {
             repo.save(usuario);
         } catch (Exception e) {
-            return "redirect:/registro?error_email";
+            return "redirect:/registro?error_general";
         }
         
         return "redirect:/login?registrado"; 
+    }
+
+    // --- API PÚBLICA (Validación Asíncrona) ---
+    @GetMapping("/api/usuarios/check-email")
+    @ResponseBody
+    public java.util.Map<String, Boolean> checkEmail(@RequestParam String email) {
+        boolean exists = repo.findByEmail(email).isPresent();
+        return java.util.Collections.singletonMap("exists", exists);
+    }
+
+    @GetMapping("/api/usuarios/check-username")
+    @ResponseBody
+    public java.util.Map<String, Boolean> checkUsername(@RequestParam String username) {
+        boolean exists = repo.findByUserName(username).isPresent();
+        return java.util.Collections.singletonMap("exists", exists);
     }
 }

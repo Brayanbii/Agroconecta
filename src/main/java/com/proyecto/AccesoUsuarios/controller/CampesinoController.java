@@ -3,6 +3,7 @@ package com.proyecto.AccesoUsuarios.controller;
 import com.proyecto.AccesoUsuarios.model.DetalleOrden;
 import com.proyecto.AccesoUsuarios.model.Producto;
 import com.proyecto.AccesoUsuarios.model.Usuario;
+import com.proyecto.AccesoUsuarios.model.Orden;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
@@ -22,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.io.IOException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 @RequestMapping("/campesino/productos")
@@ -43,8 +46,19 @@ public class CampesinoController {
     private PythonService pythonService;
 
     @GetMapping("/nuevo")
-    public String nuevoProducto(Model model) {
-        model.addAttribute("producto", new Producto());
+    public String nuevoProducto(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+
+        Producto p = new Producto();
+        // Cargar ubicación por defecto del campesino (si la tiene)
+        if (campesino.getLatitud() != null && campesino.getLongitud() != null) {
+            p.setLatitudOrigen(campesino.getLatitud());
+            p.setLongitudOrigen(campesino.getLongitud());
+            // No seteamos el municipio aún, el JS en el cliente hará el Reverse Geocoding
+        }
+
+        model.addAttribute("producto", p);
 
         // --- CONEXIÓN CON PYTHON: Precios de Referencia ---
         Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
@@ -146,6 +160,58 @@ public class CampesinoController {
     }
 
     // -------------------------------------------------------
+    // LOGISTICA PYTHON — Trazado de mapas con OSRM
+    // -------------------------------------------------------
+    @GetMapping("/logistica/{idDetalle}")
+    public String verLogistica(@PathVariable Long idDetalle, Model model, Authentication auth) {
+        DetalleOrden detalle = detalleRepo.findById(idDetalle).orElseThrow();
+        Orden orden = detalle.getOrden();
+        Usuario campesino = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
+
+        // Si el campesino no tiene ubicación, usamos Barbosa, Santander por defecto
+        Double origenLat = campesino.getLatitud() != null ? campesino.getLatitud() : 5.9317;
+        Double origenLon = campesino.getLongitud() != null ? campesino.getLongitud() : -73.6147;
+
+        // Si el cliente no marcó en el mapa durante el checkout, usamos Bucaramanga por defecto
+        Double destLat = orden.getLatitudEnvio() != null ? orden.getLatitudEnvio() : 7.1254;
+        Double destLon = orden.getLongitudEnvio() != null ? orden.getLongitudEnvio() : -73.1198;
+
+        Map<String, Object> origen = new HashMap<>();
+        origen.put("lat", origenLat);
+        origen.put("lon", origenLon);
+
+        Map<String, Object> destino = new HashMap<>();
+        destino.put("lat", destLat);
+        destino.put("lon", destLon);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("origen", origen);
+        payload.put("destino", destino);
+
+        // Llamar a Python (OSRM)
+        Map<String, Object> respuestaLogistica = pythonService.calcularRutaLogistica(payload);
+
+        model.addAttribute("detalle", detalle);
+        model.addAttribute("origenLat", origenLat);
+        model.addAttribute("origenLon", origenLon);
+        model.addAttribute("destLat", destLat);
+        model.addAttribute("destLon", destLon);
+
+        if (respuestaLogistica != null && respuestaLogistica.containsKey("geometria")) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                model.addAttribute("geometriaJson", mapper.writeValueAsString(respuestaLogistica.get("geometria")));
+                model.addAttribute("distancia_km", respuestaLogistica.get("distancia_km"));
+                model.addAttribute("duracion_min", respuestaLogistica.get("duracion_min"));
+            } catch (Exception e) {
+                System.out.println("Error parseando geometria: " + e.getMessage());
+            }
+        }
+
+        return "campesino_logistica";
+    }
+
+    // -------------------------------------------------------
     // SUPER INFORME PYTHON — Reporte detallado con graficas
     // -------------------------------------------------------
     @GetMapping("/informe")
@@ -221,10 +287,15 @@ public class CampesinoController {
         model.addAttribute("resumen", resumen);
         model.addAttribute("totalVentas", ventas.size());
         if (informe != null) {
-            model.addAttribute("graficoTopProductos", informe.get("grafico_top_productos"));
-            model.addAttribute("graficoIngresosMes",  informe.get("grafico_ingresos_mes"));
-            model.addAttribute("graficoDistribucion", informe.get("grafico_distribucion"));
-            model.addAttribute("graficoVsMercado",    informe.get("grafico_vs_mercado"));
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                model.addAttribute("graficoTopProductos", mapper.writeValueAsString(informe.get("grafico_top_productos")));
+                model.addAttribute("graficoIngresosMes",  mapper.writeValueAsString(informe.get("grafico_ingresos_mes")));
+                model.addAttribute("graficoDistribucion", mapper.writeValueAsString(informe.get("grafico_distribucion")));
+                model.addAttribute("graficoVsMercado",    mapper.writeValueAsString(informe.get("grafico_vs_mercado")));
+            } catch (Exception e) {
+                System.out.println("Error serializando JSON de informe campesino: " + e.getMessage());
+            }
         }
 
         return "campesino_informe";

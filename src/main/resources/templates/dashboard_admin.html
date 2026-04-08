@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -100,17 +102,14 @@
             </div>
 
             <!-- KPI CARDS (Métricas) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <!-- Card 1: Usuarios -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-blue-200 transition">
                     <div>
-                        <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Usuarios</p>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Usuarios</p>
                         <p class="text-3xl font-extrabold text-gray-900 mt-1" th:text="${totalUsuarios}">0</p>
-                        <p class="text-xs text-green-600 mt-2 font-medium flex items-center gap-1">
-                            <i class="fas fa-arrow-up"></i> 12% vs mes anterior
-                        </p>
                     </div>
-                    <div class="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:scale-110 transition">
                         <i class="fas fa-users"></i>
                     </div>
                 </div>
@@ -118,27 +117,33 @@
                 <!-- Card 2: Productos -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-green-200 transition">
                     <div>
-                        <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Productos</p>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Productos</p>
                         <p class="text-3xl font-extrabold text-gray-900 mt-1" th:text="${totalProductos}">0</p>
-                        <p class="text-xs text-green-600 mt-2 font-medium flex items-center gap-1">
-                            <i class="fas fa-arrow-up"></i> 5% vs mes anterior
-                        </p>
                     </div>
-                    <div class="w-14 h-14 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                    <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl group-hover:scale-110 transition">
                         <i class="fas fa-box-open"></i>
                     </div>
                 </div>
 
-                <!-- Card 3: Ventas (TotalVentas) -->
+                <!-- Card 3: Ventas -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-yellow-200 transition">
                     <div>
-                        <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total Ventas</p>
-                        <!-- Aquí usamos la variable corregida -->
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ventas</p>
                         <p class="text-3xl font-extrabold text-gray-900 mt-1" th:text="${totalVentas != null ? totalVentas : 0}">0</p>
-                        <p class="text-xs text-gray-400 mt-2 font-medium">Pedidos procesados</p>
                     </div>
-                    <div class="w-14 h-14 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-xl group-hover:scale-110 transition">
                         <i class="fas fa-shopping-bag"></i>
+                    </div>
+                </div>
+                
+                <!-- Card 4: Reseñas -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-purple-200 transition">
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Reseñas</p>
+                        <p class="text-3xl font-extrabold text-gray-900 mt-1" th:text="${totalResenas != null ? totalResenas : 0}">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                        <i class="fas fa-star"></i>
                     </div>
                 </div>
             </div>
@@ -164,10 +169,49 @@
                 </div>
             </div>
 
-            <!-- SECCION DE GRAFICOS ESTADISTICOS (generados por Python/Matplotlib) -->
+            <!-- SECCION: Últimas Reseñas -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-800">Actividad Reciente en Reseñas</h2>
+                    <span class="text-xs bg-purple-50 text-purple-600 font-bold px-3 py-1 rounded-full"><i class="fas fa-history mr-1"></i> Timeline</span>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                                    <th class="p-4 pl-6">Producto</th>
+                                    <th class="p-4">Calificación</th>
+                                    <th class="p-4 w-1/3">Comentario</th>
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4 pr-6 text-right">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr th:each="r : ${ultimasResenas}" class="border-b border-gray-50 hover:bg-gray-50/50 transition group">
+                                    <td class="p-4 pl-6 font-bold text-gray-800" th:text="${r.producto.nombre}">Producto</td>
+                                    <td class="p-4">
+                                        <div class="flex text-amber-400 text-[10px] drop-shadow-sm">
+                                            <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= r.estrellas} ? '' : ' text-gray-200'"></i>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-gray-500 text-xs italic line-clamp-2 mt-1" th:text="${r.comentario}">Comentario...</td>
+                                    <td class="p-4 text-gray-600 font-medium text-xs" th:text="${r.getNombreAutor()}">Cliente</td>
+                                    <td class="p-4 pr-6 text-right text-gray-400 text-xs font-bold" th:text="${r.fecha}">Fecha</td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(ultimasResenas)}">
+                                    <td colspan="5" class="p-8 text-center text-gray-400 text-sm">Aún no hay reseñas en la plataforma.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCION DE GRAFICOS ESTADISTICOS (procesados por Python + ApexCharts) -->
             <div class="mb-6">
                 <h2 class="text-lg font-bold text-gray-800 mb-1">Estadísticas de la Plataforma</h2>
-                <p class="text-sm text-gray-400">Gráficos generados en tiempo real por el motor de análisis Python.</p>
+                <p class="text-sm text-gray-400">Datos procesados en tiempo real por el motor analítico Python, visualizados interactivamente.</p>
             </div>
 
             <!-- Aviso si Python está apagado -->
@@ -178,25 +222,23 @@
                 <p class="text-sm text-yellow-600 mt-1">Inicia <code class="bg-yellow-100 px-1 rounded">servidor.py</code> para ver los gráficos estadísticos.</p>
             </div>
 
-            <!-- FILA 1: Productos más vendidos + Estado de pedidos -->
+            <!-- FILA 1: Top Productos + Estado de Pedidos -->
             <div th:if="${graficoProductos != null or graficoEstados != null}"
                  class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
-                <!-- Grafico 1: Top productos (ocupa 2/3) -->
+                <!-- Grafico 1: Top Productos (2/3) -->
                 <div th:if="${graficoProductos != null}"
                      class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-gray-800 flex items-center gap-2">
                             <i class="fas fa-chart-bar text-green-600"></i> Productos Más Vendidos
                         </h3>
-                        <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">Top 8</span>
+                        <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">Procesado por Python</span>
                     </div>
-                    <img th:src="'data:image/png;base64,' + ${graficoProductos}"
-                         alt="Productos más vendidos"
-                         class="w-full rounded-lg" />
+                    <div id="chart-productos" class="w-full" style="min-height:280px;"></div>
                 </div>
 
-                <!-- Grafico 3: Estado de pedidos (ocupa 1/3) -->
+                <!-- Grafico 3: Estado de Pedidos (1/3) -->
                 <div th:if="${graficoEstados != null}"
                      class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -204,34 +246,116 @@
                             <i class="fas fa-chart-pie text-blue-500"></i> Estado de Pedidos
                         </h3>
                     </div>
-                    <img th:src="'data:image/png;base64,' + ${graficoEstados}"
-                         alt="Estado de pedidos"
-                         class="w-full rounded-lg" />
+                    <div id="chart-estados" class="w-full" style="min-height:280px;"></div>
                 </div>
             </div>
 
-            <!-- FILA 2: Ventas por mes (ancho completo) -->
+            <!-- FILA 2: Ventas por Mes (ancho completo) -->
             <div th:if="${graficoMeses != null}"
-                 class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                 class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-chart-line text-green-600"></i> Ventas por Mes
+                        <i class="fas fa-chart-line text-green-600"></i> Ingresos por Mes
                     </h3>
                     <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">Año actual</span>
                 </div>
-                <img th:src="'data:image/png;base64,' + ${graficoMeses}"
-                     alt="Ventas por mes"
-                     class="w-full rounded-lg" />
-            </div>
-
-            <!-- Mensaje si hay datos pero no ventas aún -->
-            <div th:if="${graficoProductos == null and graficoMeses == null and graficoEstados != null}"
-                 class="mt-4 text-center text-sm text-gray-400">
-                <i class="fas fa-info-circle mr-1"></i> Aún no hay ventas registradas para mostrar gráficos de productos y meses.
+                <div id="chart-meses" class="w-full" style="min-height:300px;"></div>
             </div>
 
         </main>
     </div>
+
+    <!-- DATOS DE PYTHON INYECTADOS POR THYMELEAF -->
+    <script th:inline="javascript">
+        var dataProductos = /*[[${graficoProductos}]]*/ null;
+        var dataMeses     = /*[[${graficoMeses}]]*/ null;
+        var dataEstados   = /*[[${graficoEstados}]]*/ null;
+
+        // Parsear strings JSON a objetos
+        if (typeof dataProductos === 'string') try { dataProductos = JSON.parse(dataProductos); } catch(e) { dataProductos = null; }
+        if (typeof dataMeses === 'string')     try { dataMeses = JSON.parse(dataMeses); }         catch(e) { dataMeses = null; }
+        if (typeof dataEstados === 'string')   try { dataEstados = JSON.parse(dataEstados); }     catch(e) { dataEstados = null; }
+    </script>
+
+    <!-- LOGICA APEXCHARTS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const VERDE = '#16a34a';
+            const AZUL = '#3b82f6';
+            const AMARILLO = '#f59e0b';
+            const ROJO = '#ef4444';
+            const MORADO = '#8b5cf6';
+
+            // --- GRAFICO 1: Top Productos (Barras horizontales) ---
+            var elProductos = document.getElementById('chart-productos');
+            if (elProductos && dataProductos && dataProductos.labels) {
+                new ApexCharts(elProductos, {
+                    chart: { type: 'bar', height: 300, toolbar: { show: false },
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 700 } },
+                    plotOptions: { bar: { horizontal: true, borderRadius: 6,
+                                         dataLabels: { position: 'top' } } },
+                    colors: [VERDE],
+                    series: dataProductos.series,
+                    xaxis: { categories: dataProductos.labels,
+                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#374151', fontWeight: '600', fontSize: '12px' } } },
+                    dataLabels: { enabled: true, style: { colors: ['#1f2937'], fontSize: '11px' },
+                                  offsetX: 5 },
+                    grid: { borderColor: '#f3f4f6', xaxis: { lines: { show: true } } },
+                    tooltip: { theme: 'light',
+                               y: { formatter: function(v) { return v + ' uds'; } } }
+                }).render();
+            }
+
+            // --- GRAFICO 2: Ventas por Mes (Area con gradiente) ---
+            var elMeses = document.getElementById('chart-meses');
+            if (elMeses && dataMeses && dataMeses.labels) {
+                new ApexCharts(elMeses, {
+                    chart: { type: 'area', height: 300, toolbar: { show: false },
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+                    colors: [VERDE],
+                    fill: { type: 'gradient',
+                            gradient: { shadeIntensity: 1, opacityFrom: 0.55, opacityTo: 0.05,
+                                        stops: [0, 100] } },
+                    stroke: { curve: 'smooth', width: 3 },
+                    series: dataMeses.series,
+                    xaxis: { categories: dataMeses.labels,
+                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#6b7280', fontSize: '12px' },
+                                       formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
+                    markers: { size: 5, colors: [VERDE], strokeColors: '#fff', strokeWidth: 2 },
+                    grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+                    dataLabels: { enabled: false },
+                    tooltip: { theme: 'light',
+                               y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } }
+                }).render();
+            }
+
+            // --- GRAFICO 3: Estado de Pedidos (Donut animado) ---
+            var elEstados = document.getElementById('chart-estados');
+            if (elEstados && dataEstados && dataEstados.labels) {
+                new ApexCharts(elEstados, {
+                    chart: { type: 'donut', height: 280,
+                             fontFamily: 'Plus Jakarta Sans',
+                             animations: { enabled: true, easing: 'easeinout', speed: 700 } },
+                    colors: [VERDE, AZUL, AMARILLO, ROJO, MORADO],
+                    series: dataEstados.series,
+                    labels: dataEstados.labels,
+                    plotOptions: { pie: { donut: { size: '68%',
+                                                   labels: { show: true,
+                                                             total: { show: true, label: 'Total',
+                                                                      style: { fontSize: '13px', fontWeight: '700' } } } } } },
+                    legend: { position: 'bottom', fontSize: '12px',
+                               markers: { radius: 4 } },
+                    dataLabels: { enabled: false },
+                    tooltip: { theme: 'light' }
+                }).render();
+            }
+        });
+    </script>
 
 </body>
 </html>

@@ -44,6 +44,10 @@ public class Usuario {
 
     private String telefono;
 
+    // Coordenadas geográficas (ubicación por defecto o finca del campesino)
+    private Double latitud;
+    private Double longitud;
+
     // --- RELACIONES PARA BORRADO EN CASCADA ---
 
     // Si borro al usuario, se borran sus productos

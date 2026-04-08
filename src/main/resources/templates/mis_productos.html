@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Imagen por defecto global para cuando fallan las fotos de los productos
+        window.fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Cpath d='M 125,120 Q 150,90 175,120 Q 175,150 150,150 Q 125,150 125,120 Z' fill='%23d1d5db' stroke='%239ca3af' stroke-width='4'/%3E%3Ctext x='150' y='185' font-family='sans-serif' font-size='24' font-weight='bold' fill='%239ca3af' text-anchor='middle'%3EAgroConecta%3C/text%3E%3C/svg%3E";
+    </script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -59,13 +64,25 @@
                     </a>
                 </div>
 
-                <!-- SUPER BOTÓN PYTHON -->
+                <!-- BOTÓN ANALÍTICA DE VENTAS -->
                 <a th:href="@{/campesino/productos/informe}"
-                   class="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition transform hover:-translate-y-0.5 hover:shadow-xl"
-                   style="background: linear-gradient(135deg, #064e3b 0%, #065f46 25%, #059669 60%, #34d399 100%); box-shadow: 0 4px 18px rgba(5,150,105,0.45);">
-                    <i class="fab fa-python text-base"></i>
-                    <span>⚡ Informe Python</span>
-                    <i class="fas fa-chart-line text-xs opacity-80"></i>
+                   class="hidden md:flex items-center gap-3 pl-4 pr-5 py-2.5 rounded-2xl font-bold text-sm text-white shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
+                   style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%); box-shadow: 0 8px 24px rgba(15,23,42,0.4);">
+                    <!-- Brillo animado -->
+                    <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+                    <!-- Ícono -->
+                    <span class="relative bg-white/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-pie text-sm"></i>
+                    </span>
+                    <!-- Texto -->
+                    <span class="relative flex flex-col leading-tight">
+                        <span class="text-[13px] tracking-wide">Analítica de Ventas</span>
+                        <span class="text-[9px] text-slate-400 font-medium tracking-wider uppercase">Reporte inteligente</span>
+                    </span>
+                    <!-- Badge Python sutil -->
+                    <span class="relative bg-emerald-500/20 text-emerald-300 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        <i class="fab fa-python"></i>
+                    </span>
                 </a>
 
                 <!-- Perfil -->
@@ -116,7 +133,7 @@
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover transition duration-700 group-hover:scale-110" 
                          alt="Producto"
-                         onerror="this.src='https://via.placeholder.com/300x200?text=Sin+Imagen'">
+                         onerror="this.onerror=null; this.src=window.fallbackImg">
                     
                     <!-- Overlay Gradiente -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
@@ -132,8 +149,13 @@
 
                 <!-- Cuerpo de la Tarjeta -->
                 <div class="p-6 flex-1 flex flex-col">
-                    <div class="flex justify-between items-start mb-2">
+                    <div class="flex justify-between items-start mb-1">
                         <h3 class="text-lg font-bold text-gray-900 leading-tight line-clamp-2" th:text="${p.nombre}">Nombre Producto</h3>
+                    </div>
+                    <div class="flex items-center gap-1 mb-3">
+                        <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                        <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                        <span class="text-[10px] text-gray-400" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ' reseñas)'">(0 reseñas)</span>
                     </div>
 
                     <p class="text-sm text-gray-500 line-clamp-2 mb-6 flex-1" th:text="${p.descripcion}">Descripción corta del producto...</p>
@@ -161,9 +183,10 @@
                         </a>
                         
                         <form th:action="@{'/campesino/productos/eliminar/' + ${p.id}}" method="post" class="m-0 p-0"
-                              onsubmit="return confirm('¿Seguro que quieres eliminar este producto?')">
+                              th:data-nombre="${p.nombre}"
+                              onsubmit="confirmarEliminacion(event, this)">
                             <button type="submit" 
-                                    class="flex items-center justify-center gap-2 py-2.5 w-full rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition group/btn cursor-pointer border-none">
+                                    class="flex items-center justify-center gap-2 py-2.5 w-full rounded-xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 hover:text-red-700 transition group/btn cursor-pointer border-none shadow-sm h-full">
                                 <i class="fas fa-trash text-xs group-hover/btn:bounce transition"></i> Borrar
                             </button>
                         </form>
@@ -192,5 +215,51 @@
         </div>
     </footer>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmarEliminacion(event, form) {
+            event.preventDefault(); // Prevenir el envío automático
+            const nombre = form.getAttribute('data-nombre');
+
+            Swal.fire({
+                title: '¿Estás absolutamente seguro?',
+                html: `<div class="font-sans text-gray-500 mt-2">
+                        Estás a punto de eliminar <b>"${nombre}"</b> de tu catálogo público.<br><br>
+                        <span class="text-[10px] text-red-600 font-extrabold uppercase tracking-widest bg-red-50 px-3 py-1 rounded-full"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer</span>
+                       </div>`,
+                icon: 'warning',
+                iconColor: '#ef4444',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#f3f4f6',
+                confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Sí, eliminarlo',
+                cancelButtonText: '<span class="text-gray-700">Cancelar</span>',
+                buttonsStyling: false,
+                customClass: {
+                    title: 'text-2xl font-extrabold text-gray-800',
+                    popup: 'rounded-3xl border border-gray-100 shadow-2xl pb-6',
+                    confirmButton: 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30 text-white font-bold py-3 px-6 rounded-xl transition active:scale-95 ml-2',
+                    cancelButton: 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 font-bold py-3 px-6 rounded-xl transition active:scale-95 mr-2'
+                },
+                backdrop: `rgba(0, 0, 0, 0.4) backdrop-blur-sm`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Muestra animación de carga mientras procesa
+                    Swal.fire({
+                        title: 'Eliminando...',
+                        text: 'Actualizando catálogo',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    // Envía el formulario POST real a Spring Boot
+                    form.submit();
+                }
+            })
+        }
+    </script>
 </body>
 </html>
