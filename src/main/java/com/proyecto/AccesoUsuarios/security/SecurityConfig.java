@@ -22,7 +22,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(auth -> auth
                 // AGREGAMOS "/" AQUÍ AL PRINCIPIO
-                .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/api/usuarios/**", "/api/resenas/**", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
+                .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/api/usuarios/**", "/api/resenas/**", "/css/**", "/js/**", "/img/**", "/images/**", "/error").permitAll()
                 // Rutas protegidas por ROL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/campesino/**").hasRole("CAMPESINO")

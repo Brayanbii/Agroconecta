@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <title th:text="'Error ' + ${codigo != null ? codigo : ''} + ' - AgroConecta'">Error - AgroConecta</title>
+    <title th:text="'Error ' + (${#ctx.containsVariable('codigo')} ? ${codigo} : (${#ctx.containsVariable('status')} ? ${status} : '')) + ' - AgroConecta'">Error - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -38,17 +38,17 @@
             
             <!-- Icono animado -->
             <div class="w-32 h-32 mx-auto mb-8 bg-green-50 rounded-full flex items-center justify-center">
-                <i th:class="${icono != null ? icono : 'fas fa-exclamation-triangle'}" class="text-6xl text-green-400"></i>
+                <i th:classappend="${#ctx.containsVariable('icono')} ? ${icono} : 'fas fa-exclamation-triangle'" class="text-6xl text-green-400"></i>
             </div>
 
             <!-- Código de error -->
-            <h1 class="text-8xl font-extrabold text-green-600 mb-2" th:text="${codigo != null ? codigo : '¡Ups!'}">500</h1>
+            <h1 class="text-8xl font-extrabold text-green-600 mb-2" th:text="${#ctx.containsVariable('codigo')} ? ${codigo} : (${#ctx.containsVariable('status')} ? ${status} : '500')">500</h1>
             
             <!-- Título -->
-            <h2 class="text-2xl font-bold text-gray-900 mb-4" th:text="${titulo != null ? titulo : 'Algo salió mal'}">Error</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4" th:text="${#ctx.containsVariable('titulo')} ? ${titulo} : (${#ctx.containsVariable('error')} ? ${error} : 'Algo salió mal')">Error</h2>
             
             <!-- Mensaje descriptivo -->
-            <p class="text-gray-500 mb-8 leading-relaxed" th:text="${mensaje != null ? mensaje : 'Ocurrió un error inesperado. Por favor, intenta de nuevo.'}">
+            <p class="text-gray-500 mb-8 leading-relaxed" th:text="${#ctx.containsVariable('mensaje')} ? ${mensaje} : (${#ctx.containsVariable('message')} ? ${message} : 'Ocurrió un error inesperado. Por favor, intenta de nuevo.')">
                 Descripción del error.
             </p>
 
