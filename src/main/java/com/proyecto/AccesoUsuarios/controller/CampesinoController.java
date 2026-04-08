@@ -168,9 +168,19 @@ public class CampesinoController {
         Orden orden = detalle.getOrden();
         Usuario campesino = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
 
-        // Si el campesino no tiene ubicación, usamos Barbosa, Santander por defecto
-        Double origenLat = campesino.getLatitud() != null ? campesino.getLatitud() : 5.9317;
-        Double origenLon = campesino.getLongitud() != null ? campesino.getLongitud() : -73.6147;
+        // Prioridad 1: Ubicación exacta de la finca donde se registró el producto
+        // Prioridad 2: Ubicación del campesino (perfil)
+        // Prioridad 3: Barbosa, Santander (por defecto)
+        Double origenLat = 5.9317;
+        Double origenLon = -73.6147;
+
+        if (detalle.getProducto() != null && detalle.getProducto().getLatitudOrigen() != null) {
+            origenLat = detalle.getProducto().getLatitudOrigen();
+            origenLon = detalle.getProducto().getLongitudOrigen();
+        } else if (campesino.getLatitud() != null && campesino.getLongitud() != null) {
+            origenLat = campesino.getLatitud();
+            origenLon = campesino.getLongitud();
+        }
 
         // Si el cliente no marcó en el mapa durante el checkout, usamos Bucaramanga por defecto
         Double destLat = orden.getLatitudEnvio() != null ? orden.getLatitudEnvio() : 7.1254;

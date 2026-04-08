@@ -1,113 +1,139 @@
-y <!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <title>Informe Python - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Fondo animado */
-        .hero-bg {
-            background: linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 70%, #16a34a 100%);
-            position: relative;
-            overflow: hidden;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#064e3b',
+                        },
+                        surface: {
+                            50: '#FDFDFC',
+                            100: '#F4F5F7',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                        'float': '0 20px 40px -4px rgba(22, 163, 74, 0.12)',
+                        'bento': '0 4px 24px -4px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #FDFDFC;
+            -webkit-font-smoothing: antialiased;
         }
-        .hero-bg::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
-            animation: pulse-bg 6s ease-in-out infinite;
-        }
-        @keyframes pulse-bg {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
+
+        /* Ambient Background */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 15% 0%, rgba(22, 163, 74, 0.05), transparent 30%),
+                radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.04), transparent 30%);
+            pointer-events: none;
         }
 
         /* Tarjetas de estadísticas */
         .stat-card {
             background: white;
-            border-radius: 1.25rem;
+            border-radius: 1.5rem;
             padding: 1.5rem;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-            border: 1px solid #f0fdf4;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(22,163,74,0.15);
+            box-shadow: 0 20px 40px -4px rgba(22, 163, 74, 0.06);
+            border-color: #dcfce7;
         }
 
-        /* Tarjetas de gráficas */
+        /* Tarjetas de gráficas (Bento style) */
         .chart-card {
             background: white;
-            border-radius: 1.5rem;
-            padding: 1.75rem;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            border: 1px solid #f3f4f6;
+            border-radius: 1.75rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
         }
         .chart-card:hover {
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.06);
         }
 
-        /* Badge Python */
+        /* Badge Python Premium */
         .python-badge {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            color: #4338ca;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.7rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: 0.05em;
             text-transform: uppercase;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            backdrop-filter: blur(4px);
         }
 
         /* Animación de entrada */
         .fade-up {
-            animation: fadeUp 0.6s ease-out forwards;
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
+            transform: translateY(20px);
         }
         .fade-up:nth-child(1) { animation-delay: 0.1s; }
-        .fade-up:nth-child(2) { animation-delay: 0.2s; }
-        .fade-up:nth-child(3) { animation-delay: 0.3s; }
-        .fade-up:nth-child(4) { animation-delay: 0.4s; }
+        .fade-up:nth-child(2) { animation-delay: 0.15s; }
+        .fade-up:nth-child(3) { animation-delay: 0.2s; }
+        .fade-up:nth-child(4) { animation-delay: 0.25s; }
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Separador decorativo */
+        /* Separador decorativo Moderno */
         .section-title {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-bottom: 1.5rem;
         }
-        .section-title::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(to right, #e5e7eb, transparent);
-        }
 
-        /* Imagen de gráfica */
-        .chart-img {
-            width: 100%;
-            border-radius: 0.75rem;
-            border: 1px solid #f3f4f6;
-        }
-
-        /* Sin datos */
+        /* Sin datos Premium */
         .no-data {
             display: flex;
             flex-direction: column;
@@ -115,77 +141,117 @@ y <!DOCTYPE html>
             justify-content: center;
             padding: 3rem;
             color: #9ca3af;
-            background: #f9fafb;
-            border-radius: 0.75rem;
+            background: rgba(249, 250, 251, 0.5);
+            border-radius: 1rem;
             border: 2px dashed #e5e7eb;
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-slate-50 relative selection:bg-brand-500 selection:text-white">
 
-    <!-- ===== HERO HEADER ===== -->
-    <div class="hero-bg text-white py-12 px-4">
-        <div class="max-w-6xl mx-auto relative z-10">
+    <div class="ambient-bg"></div>
+
+    <!-- ===== NAVEGACIÓN Y CABECERA PREMIUM ===== -->
+    <div class="relative pt-10 pb-20 px-4 bg-gradient-to-br from-brand-900 via-brand-800 to-brand-600 overflow-hidden">
+        
+        <!-- Elementos decorativos de fondo abstractos -->
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+
+        <div class="max-w-7xl mx-auto relative z-10">
 
             <!-- Navegación -->
-            <div class="flex items-center justify-between mb-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
                 <a th:href="@{/campesino/productos}"
-                   class="flex items-center gap-2 text-green-200 hover:text-white transition font-semibold text-sm">
-                    <i class="fas fa-arrow-left"></i> Volver a Mis Productos
+                   class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white shadow-sm border border-white/20 font-bold text-sm transition group">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Mis Productos
                 </a>
-                <span class="python-badge">
-                    <i class="fab fa-python mr-1"></i> Python + ApexCharts
-                </span>
-            </div>
-
-            <!-- Título principal -->
-            <div class="text-center">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6 border border-white/20">
-                    <i class="fas fa-chart-line text-4xl text-green-300"></i>
+                
+                <div class="flex items-center gap-2 bg-black/20 p-1.5 rounded-full border border-white/10 shadow-sm backdrop-blur-md">
+                    <div class="bg-blue-500/90 text-white p-2 rounded-full shadow-md">
+                        <i class="fab fa-python text-sm"></i>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-blue-100 pr-3">Inteligencia Artificial</span>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">
-                    ⚡ Informe Python
-                </h1>
-                <p class="text-green-200 text-lg font-medium mb-2">
-                    Análisis inteligente de tus ventas generado en tiempo real
-                </p>
-                <p class="text-green-300 text-sm" th:text="'Campesino: ' + ${resumen?.nombre_campesino}">
-                    Campesino: —
-                </p>
             </div>
 
-            <!-- KPIs principales -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+            <!-- Título principal estilo Dashboard Moderno -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+                <div>
+                    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
+                        Analítica Inteligente
+                    </h1>
+                    <p class="text-brand-100 font-medium text-lg">
+                        Resumen financiero en tiempo real generado por <strong class="text-white">Python Analytics</strong>.
+                    </p>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-sm border border-white/20 text-right">
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-brand-200 mb-1">Propietario / Productor</p>
+                    <p class="font-bold text-white text-base flex items-center justify-end gap-2">
+                        <i class="fas fa-user-circle text-brand-300 text-xl"></i>
+                        <span th:text="${resumen?.nombre_campesino}">Campesino</span>
+                    </p>
+                </div>
+            </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
-                    <div class="text-3xl font-black text-white"
-                         th:text="${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
+            <!-- KPIs principales (Flotantes Premium) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 relative -mb-24 z-20">
+
+                <div class="stat-card fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
+                            Ingresos Totales
+                        </div>
+                        <div class="bg-green-100/50 text-green-600 p-2 rounded-lg">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl md:text-3xl font-black text-gray-900"
+                         th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
                         $0
                     </div>
-                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
-                        <i class="fas fa-dollar-sign mr-1"></i> Total Ingresos
-                    </div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500 opacity-20"></div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
-                    <div class="text-3xl font-black text-white" th:text="${resumen?.total_unidades}">0</div>
-                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
-                        <i class="fas fa-boxes mr-1"></i> Unidades Vendidas
+                <div class="stat-card fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
+                            Unidades Vendidas
+                        </div>
+                        <div class="bg-blue-100/50 text-blue-600 p-2 rounded-lg">
+                            <i class="fas fa-boxes"></i>
+                        </div>
                     </div>
+                    <div class="text-2xl md:text-3xl font-black text-gray-900" th:text="${resumen?.total_unidades}">0</div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-10"></div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
-                    <div class="text-xl font-black text-white truncate" th:text="${resumen?.producto_estrella}">—</div>
-                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
-                        <i class="fas fa-trophy mr-1"></i> Producto Estrella
+                <div class="stat-card fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
+                            Producto Estrella
+                        </div>
+                        <div class="bg-amber-100/50 text-amber-600 p-2 rounded-lg">
+                            <i class="fas fa-trophy"></i>
+                        </div>
                     </div>
+                    <div class="text-lg md:text-xl font-black text-gray-900 truncate" th:text="${resumen?.producto_estrella}">—</div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-yellow-500 opacity-10"></div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center fade-up">
-                    <div class="text-3xl font-black text-white" th:text="${resumen?.mejor_mes}">—</div>
-                    <div class="text-green-200 text-xs font-bold uppercase tracking-wider mt-1">
-                        <i class="fas fa-calendar-star mr-1"></i> Mejor Mes
+                <div class="stat-card fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
+                            Mejor Mes
+                        </div>
+                        <div class="bg-purple-100/50 text-purple-600 p-2 rounded-lg">
+                            <i class="fas fa-calendar-star"></i>
+                        </div>
                     </div>
+                    <div class="text-2xl md:text-3xl font-black text-gray-900" th:text="${resumen?.mejor_mes}">—</div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-fuchsia-500 opacity-10"></div>
                 </div>
 
             </div>
@@ -193,23 +259,19 @@ y <!DOCTYPE html>
     </div>
 
     <!-- ===== CONTENIDO PRINCIPAL ===== -->
-    <main class="max-w-6xl mx-auto px-4 py-10 space-y-10">
+    <main class="max-w-7xl mx-auto px-4 pt-8 pb-16 space-y-8 relative z-10">
 
         <!-- Aviso si Python está apagado -->
         <div th:if="${graficoTopProductos == null and graficoIngresosMes == null}"
-             class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
-            <div class="bg-amber-100 rounded-xl p-3 flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-amber-500 text-xl"></i>
+             class="bg-red-50 border border-red-200 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
+            <div class="bg-white text-red-500 rounded-xl p-3 shadow-sm flex-shrink-0">
+                <i class="fas fa-server text-xl"></i>
             </div>
-            <div>
-                <h3 class="font-bold text-amber-800 text-lg">Servidor Python apagado</h3>
-                <p class="text-amber-700 text-sm mt-1">
-                    Las gráficas no se pudieron generar porque el servidor Python no está activo.
-                    Inicia el servidor con: <code class="bg-amber-100 px-2 py-0.5 rounded font-mono text-xs">python servidor.py</code>
-                    y recarga esta página.
-                </p>
-                <p class="text-amber-600 text-xs mt-2">
-                    Los datos estadísticos del resumen sí están disponibles (vienen de la base de datos Java).
+            <div class="flex-1">
+                <h3 class="font-black text-red-900 text-lg">Servidor Analítico Inactivo</h3>
+                <p class="text-red-700 text-sm mt-0.5">
+                    Las gráficas avanzadas no se pudieron renderizar. Por favor, asegúrate de haber ejecutado: 
+                    <code class="bg-red-100 text-red-800 px-2 py-0.5 rounded font-mono font-bold text-xs shadow-sm ml-1">python servidor.py</code>
                 </p>
             </div>
         </div>
@@ -218,186 +280,191 @@ y <!DOCTYPE html>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             <!-- Gráfica 1: Top Productos -->
-            <div class="chart-card">
+            <div class="chart-card border-t-4 border-t-blue-500">
                 <div class="section-title">
-                    <span class="text-2xl">🏆</span>
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-800">Top Productos Más Vendidos</h2>
-                        <p class="text-xs text-gray-400">Por cantidad de unidades</p>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-sm text-blue-500">
+                        <i class="fas fa-chart-bar"></i>
                     </div>
-                    <span class="python-badge ml-auto">Python</span>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Top Productos</h2>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Por Volumen</p>
+                    </div>
+                    <span class="python-badge ml-auto border-none">Python Engine</span>
                 </div>
                 <div th:if="${graficoTopProductos != null}">
-                    <div id="chart-top-productos" style="min-height:300px;"></div>
+                    <div id="chart-top-productos" class="mt-4" style="min-height:300px;"></div>
                 </div>
-                <div th:if="${graficoTopProductos == null}" class="no-data">
-                    <i class="fas fa-chart-bar text-4xl mb-3"></i>
-                    <p class="font-semibold">Gráfica no disponible</p>
-                    <p class="text-sm">Inicia el servidor Python</p>
+                <div th:if="${graficoTopProductos == null}" class="no-data h-[300px]">
+                    <i class="fas fa-chart-bar text-4xl mb-3 text-slate-300"></i>
+                    <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
                 </div>
             </div>
 
             <!-- Gráfica 3: Distribución de Ingresos -->
-            <div class="chart-card">
+            <div class="chart-card border-t-4 border-t-emerald-500">
                 <div class="section-title">
-                    <span class="text-2xl">💰</span>
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-800">Distribución de Ingresos</h2>
-                        <p class="text-xs text-gray-400">Por producto (% del total)</p>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm text-emerald-500">
+                        <i class="fas fa-chart-pie"></i>
                     </div>
-                    <span class="python-badge ml-auto">Python</span>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Distribución de Ingresos</h2>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Porcentaje del total</p>
+                    </div>
+                    <span class="python-badge ml-auto border-none">Python Engine</span>
                 </div>
                 <div th:if="${graficoDistribucion != null}">
-                    <div id="chart-distribucion" style="min-height:300px;"></div>
+                    <div id="chart-distribucion" class="mt-4 flex justify-center" style="min-height:300px;"></div>
                 </div>
-                <div th:if="${graficoDistribucion == null}" class="no-data">
-                    <i class="fas fa-chart-pie text-4xl mb-3"></i>
-                    <p class="font-semibold">Gráfica no disponible</p>
-                    <p class="text-sm">Inicia el servidor Python</p>
+                <div th:if="${graficoDistribucion == null}" class="no-data h-[300px]">
+                    <i class="fas fa-chart-pie text-4xl mb-3 text-slate-300"></i>
+                    <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
                 </div>
             </div>
 
         </div>
 
         <!-- ===== FILA 2: Ingresos por Mes (ancho completo) ===== -->
-        <div class="chart-card">
+        <div class="chart-card border-t-4 border-t-purple-500">
             <div class="section-title">
-                <span class="text-2xl">📅</span>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Ingresos por Mes</h2>
-                    <p class="text-xs text-gray-400">Evolución temporal de tus ventas en COP</p>
+                <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center border border-purple-100 shadow-sm text-purple-500">
+                    <i class="fas fa-wave-square"></i>
                 </div>
-                <span class="python-badge ml-auto">Python</span>
+                <div>
+                    <h2 class="text-lg font-black text-slate-800 tracking-tight">Evolución de Ingresos</h2>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Histórico Anual en COP</p>
+                </div>
+                <span class="python-badge ml-auto border-none">Python Engine</span>
             </div>
             <div th:if="${graficoIngresosMes != null}">
-                <div id="chart-ingresos-mes" style="min-height:300px;"></div>
+                <div id="chart-ingresos-mes" class="mt-4" style="min-height:300px;"></div>
             </div>
-            <div th:if="${graficoIngresosMes == null}" class="no-data">
-                <i class="fas fa-chart-line text-4xl mb-3"></i>
-                <p class="font-semibold">Gráfica no disponible</p>
-                <p class="text-sm">Inicia el servidor Python</p>
+            <div th:if="${graficoIngresosMes == null}" class="no-data h-[300px]">
+                <i class="fas fa-wave-square text-4xl mb-3 text-slate-300"></i>
+                <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
             </div>
         </div>
 
         <!-- ===== FILA 3: Tu Precio vs Mercado SIPSA (ancho completo) ===== -->
-        <div class="chart-card">
-            <div class="section-title">
-                <span class="text-2xl">📊</span>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Tu Precio vs Precio de Mercado</h2>
-                    <p class="text-xs text-gray-400">Comparación con datos reales del SIPSA - DANE Colombia</p>
+        <div class="chart-card relative overflow-hidden border-t-4 border-t-amber-500">
+            <div class="absolute -right-10 -top-10 text-amber-50 opacity-50 z-0 pointer-events-none">
+                <i class="fas fa-balance-scale" style="font-size: 15rem;"></i>
+            </div>
+            <div class="relative z-10">
+                <div class="section-title">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-sm text-amber-500">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Competitividad (Precios SIPSA)</h2>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Tu Precio Promedio vs Promedio Mercado Nacional</p>
+                    </div>
+                    <span class="bg-slate-900 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-widest ml-auto shadow-sm">SIPSA-DANE</span>
                 </div>
-                <span class="python-badge ml-auto">SIPSA + Python</span>
-            </div>
-            <div th:if="${graficoVsMercado != null}">
-                <div id="chart-vs-mercado" style="min-height:300px;"></div>
-            </div>
-            <div th:if="${graficoVsMercado == null}" class="no-data">
-                <i class="fas fa-balance-scale text-4xl mb-3"></i>
-                <p class="font-semibold">Comparación no disponible</p>
-                <p class="text-sm">Requiere servidor Python activo y productos con precio registrado</p>
+                <div th:if="${graficoVsMercado != null}">
+                    <div id="chart-vs-mercado" class="mt-4" style="min-height:300px;"></div>
+                </div>
+                <div th:if="${graficoVsMercado == null}" class="no-data h-[300px]">
+                    <i class="fas fa-balance-scale text-4xl mb-3 text-slate-300"></i>
+                    <p class="font-bold text-slate-400">Datos comparativos fuera de línea</p>
+                </div>
             </div>
         </div>
 
         <!-- ===== RESUMEN ESTADÍSTICO DETALLADO ===== -->
-        <div class="chart-card">
-            <div class="section-title">
-                <span class="text-2xl">📋</span>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Resumen Estadístico</h2>
-                    <p class="text-xs text-gray-400">Calculado desde la base de datos en tiempo real</p>
+        <div class="bg-slate-900 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+            <!-- Destello de fondo -->
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-brand-500 rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
+
+            <div class="section-title mb-8 border-b border-slate-800 pb-6">
+                <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700 shadow-sm text-brand-400 text-xl">
+                    <i class="fas fa-layer-group"></i>
                 </div>
-                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ml-auto">
-                    Java + DB
-                </span>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tight">Cifras Transaccionales Java</h2>
+                    <p class="text-sm font-bold text-slate-400 tracking-wider mt-1">CORE SYSTEM DATABASE</p>
+                </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 relative z-10">
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-green-100 p-2.5 rounded-xl">
-                            <i class="fas fa-dollar-sign text-green-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-brand-500/50 transition">
+                            <i class="fas fa-dollar-sign text-emerald-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Ingresos</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Bruto Acumulado</span>
                     </div>
-                    <p class="text-2xl font-black text-gray-900"
+                    <p class="text-2xl font-black text-white"
                        th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
                         $0
                     </p>
-                    <p class="text-xs text-gray-400 mt-1">Pesos colombianos (COP)</p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-blue-100 p-2.5 rounded-xl">
-                            <i class="fas fa-boxes text-blue-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-blue-500/50 transition">
+                            <i class="fas fa-boxes text-blue-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Unidades Vendidas</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Volumen Físico</span>
                     </div>
-                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.total_unidades}">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Total de unidades despachadas</p>
+                    <p class="text-2xl font-black text-white" th:text="${resumen?.total_unidades}">0</p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-purple-100 p-2.5 rounded-xl">
-                            <i class="fas fa-receipt text-purple-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-purple-500/50 transition">
+                            <i class="fas fa-receipt text-purple-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Pedidos</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Líneas de Venta</span>
                     </div>
-                    <p class="text-2xl font-black text-gray-900" th:text="${totalVentas}">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Líneas de venta registradas</p>
+                    <p class="text-2xl font-black text-white" th:text="${totalVentas}">0</p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-yellow-100 p-2.5 rounded-xl">
-                            <i class="fas fa-trophy text-yellow-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-yellow-500/50 transition">
+                            <i class="fas fa-trophy text-yellow-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Producto Estrella</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Categoría Top</span>
                     </div>
-                    <p class="text-xl font-black text-gray-900 truncate" th:text="${resumen?.producto_estrella}">—</p>
-                    <p class="text-xs text-gray-400 mt-1">El más vendido por cantidad</p>
+                    <p class="text-lg font-black text-white truncate" th:text="${resumen?.producto_estrella}">—</p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-orange-100 p-2.5 rounded-xl">
-                            <i class="fas fa-calendar-check text-orange-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-orange-500/50 transition">
+                            <i class="fas fa-calendar-check text-orange-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Mejor Mes</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Pico de Ventas</span>
                     </div>
-                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.mejor_mes}">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Mayor ingreso mensual</p>
+                    <p class="text-xl font-black text-white" th:text="${resumen?.mejor_mes}">—</p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="bg-teal-100 p-2.5 rounded-xl">
-                            <i class="fas fa-seedling text-teal-600"></i>
+                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-teal-500/50 transition">
+                            <i class="fas fa-seedling text-teal-400"></i>
                         </div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Productos Activos</span>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Catálogo Activo</span>
                     </div>
-                    <p class="text-2xl font-black text-gray-900" th:text="${resumen?.total_productos}">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Tipos de producto vendidos</p>
+                    <p class="text-2xl font-black text-white" th:text="${resumen?.total_productos}">0</p>
                 </div>
 
             </div>
         </div>
 
-        <!-- ===== FOOTER DEL INFORME ===== -->
-        <div class="text-center py-6 border-t border-gray-100">
-            <div class="inline-flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-sm border border-gray-100">
+        <!-- ===== FOOTER ===== -->
+        <div class="text-center py-8">
+            <div class="inline-flex flex-col md:flex-row items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl px-6 py-4 shadow border border-gray-100/50">
                 <i class="fab fa-python text-blue-500 text-xl"></i>
-                <span class="text-sm text-gray-500">
-                    Análitica procesada con <strong class="text-gray-700">Python 3 + Flask</strong>
-                    · Visualización: <strong class="text-gray-700">ApexCharts</strong>
-                    · Precios de mercado: <strong class="text-gray-700">SIPSA - DANE Colombia</strong>
+                <span class="text-xs font-bold text-gray-500 tracking-wide uppercase">
+                    Análitica procesada con <strong class="text-gray-800">Python 3 + Flask</strong>
+                    · Visualización: <strong class="text-gray-800">ApexCharts</strong>
+                    · Precios de mercado: <strong class="text-gray-800">SIPSA - DANE Colombia</strong>
                 </span>
                 <i class="fas fa-leaf text-green-500 text-xl"></i>
             </div>
-            <p class="text-xs text-gray-400 mt-3">&copy; 2025 AgroConecta · Panel de Campesino</p>
+            <p class="text-xs font-bold text-gray-300 mt-4">&copy; 2025 AgroConecta · SaaS Edition</p>
         </div>
 
     </main>
