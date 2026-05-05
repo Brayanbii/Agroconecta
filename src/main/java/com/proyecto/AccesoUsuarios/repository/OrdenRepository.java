@@ -10,6 +10,9 @@ public interface OrdenRepository extends JpaRepository<Orden, Long> {
 
     // Para que el cliente vea SUS compras
     List<Orden> findByUsuario(Usuario usuario);
+    
+    // Para ver las ultimas 5 compras
+    List<Orden> findTop5ByUsuarioOrderByFechaCreacionDesc(Usuario usuario);
 
     // Ventas totales agrupadas por mes (para grafico de lineas del Admin)
     @Query("SELECT MONTH(o.fechaCreacion), SUM(o.total) " +

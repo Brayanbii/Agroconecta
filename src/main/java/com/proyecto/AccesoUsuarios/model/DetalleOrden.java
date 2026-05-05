@@ -2,12 +2,18 @@ package com.proyecto.AccesoUsuarios.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "detalle_orden")
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"orden", "producto"})
+@EqualsAndHashCode(exclude = {"orden", "producto"})
 @AllArgsConstructor
 @NoArgsConstructor
 public class DetalleOrden {

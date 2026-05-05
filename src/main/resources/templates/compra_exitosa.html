@@ -60,6 +60,11 @@
                 <span class="font-mono font-bold text-gray-800" th:text="${'#' + orden.numeroOrden}">#12345</span>
             </div>
             
+            <div th:if="${mp_id != null}" class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+                <span class="text-sm text-gray-500">Transacción Mercado Pago</span>
+                <span class="font-mono text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded" th:text="${'MP-' + mp_id}">MP-000</span>
+            </div>
+            
             <div class="space-y-3">
                 <div th:each="d : ${orden.detalles}" class="flex justify-between text-sm">
                     <span class="text-gray-600">

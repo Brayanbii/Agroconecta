@@ -90,6 +90,13 @@
             <artifactId>openpdf</artifactId>
             <version>1.3.30</version>
         </dependency>
+
+        <!-- Mercado Pago SDK for Java -->
+        <dependency>
+            <groupId>com.mercadopago</groupId>
+            <artifactId>sdk-java</artifactId>
+            <version>2.1.27</version>
+        </dependency>
     </dependencies>
 
     <build>

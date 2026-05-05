@@ -12,6 +12,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Leaflet para Mapas Gratis OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -115,12 +119,27 @@
     <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
-                <!-- Logo -->
-                <div class="flex items-center gap-2 cursor-pointer">
-                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20">
-                        <i class="fas fa-leaf text-xl"></i>
+                <!-- Logo y Location -->
+                <div class="flex items-center gap-4 md:gap-8">
+                    <!-- Logo -->
+                    <a th:href="@{/tienda}" class="flex items-center gap-2 cursor-pointer group">
+                        <div class="bg-green-600 text-white p-2 flex items-center justify-center rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
+                            <i class="fas fa-leaf text-xl leading-none"></i>
+                        </div>
+                        <span class="text-2xl font-extrabold text-gray-800 tracking-tight hidden lg:block">Agro<span class="text-green-600">Conecta</span></span>
+                    </a>
+                    
+                    <!-- Location Selector -->
+                    <div onclick="openLocationModal()" class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 md:px-3 md:py-2 rounded-xl transition-colors select-none group border border-transparent hover:border-gray-200">
+                        <i class="fas fa-map-marker-alt text-red-500 text-xl group-hover:scale-110 transition-transform"></i>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Entregar en</span>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                <span id="nav-address-text" class="text-xs md:text-sm font-bold text-gray-800 max-w-[100px] md:max-w-[200px] truncate leading-none">Agrega una dirección</span>
+                                <i class="fas fa-chevron-down text-[10px] text-red-500 transition-transform group-hover:translate-y-0.5"></i>
+                            </div>
+                        </div>
                     </div>
-                    <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
                 </div>
 
                 <!-- Buscador Central (Desktop) - FUNCIONAL -->
@@ -166,14 +185,19 @@
 
                     <!-- Perfil -->
                     <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
-                        <div class="text-right hidden lg:block">
-                            <p class="text-xs text-gray-400 font-bold uppercase">Hola,</p>
-                            <p class="text-sm font-bold text-gray-800 truncate max-w-[150px]" th:text="${nombreCliente}">Juan Pérez</p>
-                        </div>
+                        <a th:href="@{/perfil/ajustes}" class="flex items-center gap-3 hover:opacity-80 transition group">
+                            <div class="text-right hidden lg:block">
+                                <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest group-hover:text-green-500 transition-colors">Mi Perfil</p>
+                                <p class="text-sm font-bold text-gray-800 truncate max-w-[150px]" th:text="${nombreCliente}">Juan Pérez</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-green-50 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-green-600 font-bold group-hover:shadow-md transition">
+                                <i class="fas fa-user text-sm"></i>
+                            </div>
+                        </a>
                         
                         <!-- Dropdown simple para salir -->
                         <form th:action="@{/logout}" method="post">
-                            <button type="submit" class="bg-white border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
+                            <button type="submit" class="bg-gray-50 border border-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
                                 <i class="fas fa-sign-out-alt"></i>
                             </button>
                         </form>
@@ -181,111 +205,60 @@
                 </div>
             </div>
         </div>
+        <!-- Menú Horizontal Sticky Categories -->
+        <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+            <div class="flex items-center gap-3 overflow-x-auto scrollbar-thin pb-1">
+                <button class="js-filter-btn flex-shrink-0 active flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 shadow-sm transition-all font-bold text-sm bg-gray-900 text-white" data-val="">
+                   <i class="fas fa-border-all text-green-400"></i> Explorar Todo
+                </button>
+                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="VERDURAS">
+                   🥦 Verduras
+                </button>
+                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="FRUTAS">
+                   🍎 Frutas
+                </button>
+                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="TUBÉRCULOS">
+                   🥔 Tubérculos
+                </button>
+                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="LÁCTEOS">
+                   🧀 Lácteos
+                </button>
+                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="GRANOS">
+                   🌾 Granos
+                </button>
+            </div>
+        </div>
     </nav>
 
-    <!-- HERO SECTION (Portada) -->
+    <!-- HERO BANNER -->
     <div class="relative bg-brand-900 overflow-hidden rounded-b-[2.5rem] shadow-glass mx-2 mb-4">
         <!-- Imagen de fondo -->
         <div class="absolute inset-0 z-0">
             <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1374&auto=format&fit=crop" 
-                 class="w-full h-full object-cover opacity-40 mix-blend-overlay" alt="Campo">
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-900 via-brand-900/60 to-transparent"></div>
+                 id="hero-bg" class="w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Campo">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-900 via-brand-900/80 to-brand-900/50"></div>
         </div>
         
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-            <span class="inline-block py-1.5 px-4 rounded-full bg-white/10 text-brand-50 border border-white/20 text-[10px] font-extrabold tracking-widest uppercase mb-6 backdrop-blur-md animate-float shadow-sm">
-                🌱 Frescura Garantizada
-            </span>
-            <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight drop-shadow-md">
-                Del campo colombiano<br/><span class="text-brand-400">directo a tu mesa.</span>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
+                Del campo colombiano<br/><span class="text-brand-300">directo a tu mesa.</span>
             </h1>
-            <p class="text-lg text-brand-100 max-w-2xl mx-auto mb-10 font-medium">
+            <p class="text-sm md:text-base text-brand-100/80 max-w-lg mx-auto font-medium leading-relaxed">
                 Apoya a los campesinos locales comprando sin intermediarios. Calidad premium, precios justos y sabor real.
             </p>
-            
-            <!-- Categorías Rápidas (Pills) -->
-            <div class="flex flex-wrap justify-center gap-3">
-                <button class="bg-white text-brand-800 px-6 py-2 rounded-full font-bold text-sm hover:bg-brand-50 transition shadow-float hover:shadow-brand-500/40">
-                    🍅 Verduras
-                </button>
-                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-md">
-                    🍎 Frutas
-                </button>
-                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-md">
-                    🥔 Tubérculos
-                </button>
-                <button class="bg-white/10 text-white border border-white/20 px-6 py-2 rounded-full font-bold text-sm hover:bg-white/20 transition backdrop-blur-md">
-                    🧀 Lácteos
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- GRID DE PRODUCTOS Y SIDEBAR -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- GRID DE PRODUCTOS FULL-WIDTH -->
+    <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div class="flex flex-col lg:flex-row gap-8 items-start">
+        <div>
             
-            <!-- SIDEBAR (Filtros) -->
-            <aside class="w-full lg:w-1/4 flex-shrink-0 lg:sticky lg:top-28 z-30">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600"><i class="fas fa-sliders-h text-sm"></i></div>
-                        <h3 class="text-lg font-extrabold text-gray-900">Filtros</h3>
-                    </div>
-
-                    <!-- Filtro Categoría -->
-                    <div class="mb-8">
-                        <h4 class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4">Categoría</h4>
-                        <div class="space-y-3" id="filter-categories">
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Frutas" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
-                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🍎 Frutas</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Verduras" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
-                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🥦 Verduras</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Tubérculos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
-                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🥔 Tubérculos</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Lácteos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
-                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🧀 Lácteos</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Granos" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 js-filter-chk">
-                                <span class="text-sm text-gray-600 group-hover:text-green-700 font-semibold transition-colors">🌾 Granos</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Filtro Precio -->
-                    <div>
-                        <h4 class="text-xs font-bold uppercase text-gray-400 tracking-widest mb-4 flex justify-between items-center">
-                            Rango de Precio
-                            <button id="btn-clear-price" class="text-[9px] bg-red-50 text-red-500 px-2 rounded-full cursor-pointer hover:bg-red-100 hidden py-0.5">Limpiar</button>
-                        </h4>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400 font-bold w-8">Min $</span>
-                                <input type="number" id="price-min" placeholder="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50 outline-none">
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400 font-bold w-8">Max $</span>
-                                <input type="number" id="price-max" placeholder="100000" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50 outline-none">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
             <!-- PRODUCTOS MAIN AREA -->
-            <div class="flex-1 w-full relative">
+            <div class="w-full relative">
                 
                 <!-- HEADER DE PRODUCTOS -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
                     <div>
                         <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
                             Catálogo
@@ -298,10 +271,70 @@
                             <span th:if="${modoCercania}" class="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-bold"><i class="fas fa-radar"></i> Ordenado por Cercanía</span>
                         </p>
                     </div>
-                    <!-- Menu Desplegable de Ordenamiento -->
-                    <div class="flex items-center gap-3">
-                        <label class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest hidden sm:block">Ordenar:</label>
-                        <select id="sort-select" class="bg-gray-50 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl focus:ring-1 focus:ring-green-500 focus:border-green-500 block px-4 py-2 outline-none cursor-pointer">
+                    
+                    <!-- Filtros Dropdown & Ordenamiento -->
+                    <div class="flex items-center gap-3 relative" id="filter-container">
+                        <!-- Filtro Toggle Button -->
+                        <button type="button" onclick="document.getElementById('dropdown-filtros').classList.toggle('hidden')" class="bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-green-50 hover:text-green-700 hover:border-green-200 focus:ring-1 focus:ring-green-500 flex items-center gap-2 px-5 py-2.5 transition shadow-sm">
+                            <i class="fas fa-sliders-h"></i> <span class="hidden sm:inline text-xs uppercase tracking-wide">Filtros</span>
+                        </button>
+
+                        <!-- Dropdown panel de filtros -->
+                        <div id="dropdown-filtros" class="absolute right-0 sm:right-[150px] top-[110%] w-80 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 p-6 hidden z-50 transform origin-top-right transition-all">
+                            <!-- Filtro Precio con Slider -->
+                            <div class="mb-5">
+                                <h4 class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest mb-4 flex justify-between items-center">
+                                    Presupuesto Máximo
+                                    <button id="btn-clear-price" class="text-[9px] bg-red-50 text-red-500 px-2 rounded-full cursor-pointer hover:bg-red-100 hidden py-0.5">Limpiar</button>
+                                </h4>
+                                <div class="px-2">
+                                    <input type="range" id="price-slider" min="0" max="250000" step="5000" value="250000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                                    <div class="flex items-center justify-between mt-4">
+                                        <span class="text-xs font-bold text-gray-400">$0</span>
+                                        <span id="price-display" class="text-sm font-extrabold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-100">Sin límite</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Filtro Calificación -->
+                            <div class="mb-5 pt-4 border-t border-gray-100">
+                                <h4 class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest mb-3">Calidad y Confianza</h4>
+                                <div class="flex justify-between items-center bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                                    <input type="radio" name="star-filter" value="0" id="star0" class="sr-only peer filter-trigger" checked>
+                                    <label for="star0" class="cursor-pointer text-xs font-bold px-3 py-1 rounded-lg text-gray-500 peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-gray-900 transition-all flex-1 text-center">Todo</label>
+
+                                    <input type="radio" name="star-filter" value="3" id="star3" class="sr-only peer filter-trigger">
+                                    <label for="star3" class="cursor-pointer text-xs font-bold px-3 py-1 rounded-lg text-gray-500 peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-amber-500 transition-all flex-1 text-center">3+ ⭐</label>
+
+                                    <input type="radio" name="star-filter" value="4" id="star4" class="sr-only peer filter-trigger">
+                                    <label for="star4" class="cursor-pointer text-xs font-bold px-3 py-1 rounded-lg text-gray-500 peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-amber-500 transition-all flex-1 text-center">4+ ⭐</label>
+                                </div>
+                            </div>
+
+                            <!-- Filtros Extras (Disponibilidad y Cercanía) -->
+                            <div class="pt-5 border-t border-gray-100 space-y-4">
+                                <label class="flex items-center gap-3 cursor-pointer group select-none">
+                                    <div class="relative flex items-center">
+                                        <input type="checkbox" id="chk-en-stock" class="sr-only peer filter-trigger">
+                                        <div class="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-green-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Ocultar Agotados</span>
+                                </label>
+                                
+                                <label class="flex items-center gap-3 cursor-pointer group select-none">
+                                    <div class="relative flex items-center">
+                                        <input type="checkbox" id="chk-cercano" class="sr-only peer filter-trigger">
+                                        <div class="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 shadow-inner"></div>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">A menos de 50km <i class="fas fa-truck-fast text-blue-400 ml-1 text-[10px]"></i></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Menu Desplegable de Ordenamiento -->
+                        <div class="hidden sm:block h-8 border-l border-gray-200 mx-1"></div>
+                        <label class="text-[10px] font-extrabold uppercase text-gray-400 tracking-widest hidden lg:block">Ordenar:</label>
+                        <select id="sort-select" class="bg-gray-50 border border-transparent text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-100 focus:ring-1 focus:ring-green-500 focus:bg-white block px-4 py-2.5 outline-none cursor-pointer transition">
                             <option value="relevancia">Relevancia</option>
                             <option value="recientes" selected>Más recientes</option>
                             <option value="asc">Precio: Menor a Mayor</option>
@@ -310,8 +343,8 @@
                     </div>
                 </div>
 
-                <!-- Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 relative" id="products-grid">
+                <!-- Grid Full Width -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 relative" id="products-grid">
             
             <!-- Tarjeta Producto -->
             <div th:each="p : ${productos}" 
@@ -320,6 +353,9 @@
                  th:data-cat="${p.categoria}" 
                  th:data-nombre="${#strings.toLowerCase(p.nombre)}"
                  th:data-desc="${p.descripcion}"
+                 th:data-stock="${p.stock}"
+                 th:data-calificacion="${p.promedioCalificacion}"
+                 th:data-distanciac="${p.distanciaKm != null ? p.distanciaKm : 9999}"
                  class="product-card js-product-card bg-white rounded-3xl shadow-bento border border-gray-100 overflow-hidden flex flex-col h-full group relative transition-all duration-300">
                 
                 <!-- Badge Flotante -->
@@ -365,6 +401,7 @@
                         <i class="fas fa-star text-amber-400 text-[10px]"></i>
                         <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
                         <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                        <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
                     </div>
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2" th:text="${p.descripcion}">Desc...</p>
                     
@@ -379,13 +416,13 @@
                         
                         <div class="flex gap-2">
                             <!-- Botón Vista Rápida -->
-                            <button type="button" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-precio="${p.precio}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}" th:data-cat="${p.categoria}" th:data-id="${p.id}" onclick="abrirModal(this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
+                            <button type="button" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-precio="${p.precio}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}" th:data-cat="${p.categoria}" th:data-id="${p.id}" th:data-stock="${p.stock}" th:data-unidad="${p.unidad}" th:data-unidadplural="${p.getUnidadPlural()}" onclick="abrirModal(this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
                                 <i class="far fa-eye"></i>
                             </button>
                             <!-- Botón Añadir (Con efecto visual) -->
-                            <a th:href="@{'/carrito/agregar/' + ${p.id}}" th:data-nombre="${p.nombre}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
                                 <i class="fas fa-plus transition-all text-sm"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -416,45 +453,6 @@
         </div> <!-- End Flex row container -->
     </div> <!-- End Main Container -->
 
-    <!-- Footer Pro -->
-    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center gap-2 mb-6">
-                        <i class="fas fa-leaf text-2xl text-green-500"></i>
-                        <span class="text-2xl font-extrabold">AgroConecta</span>
-                    </div>
-                    <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
-                        La plataforma líder en comercio justo agrícola. Conectamos corazones, cultivamos futuro y llevamos lo mejor del campo a tu hogar.
-                    </p>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Enlaces Rápidos</h4>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-green-400 transition">Inicio</a></li>
-                        <li><a href="#" class="hover:text-green-400 transition">Mis Pedidos</a></li>
-                        <li><a href="#" class="hover:text-green-400 transition">Soporte</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold uppercase tracking-wider mb-6 text-gray-200">Síguenos</h4>
-                    <div class="flex gap-4">
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-pink-600 transition text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-500 transition text-gray-400 hover:text-white"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-                <p>&copy; 2025 AgroConecta Inc. Todos los derechos reservados.</p>
-                <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="hover:text-gray-300">Privacidad</a>
-                    <a href="#" class="hover:text-gray-300">Términos</a>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Modal Vista Rápida -->
     <div id="quickViewModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
@@ -484,7 +482,7 @@
                 
                 <h2 id="modalNombre" class="text-3xl font-extrabold text-gray-900 mb-2">Nombre</h2>
                 <div class="flex items-center gap-2 mb-6">
-                    <span class="text-xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full" id="modalStock"><i class="fas fa-check-circle mr-1"></i> Stock garantizado</span>
+                    <span class="text-xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full" id="modalStock"><i class="fas fa-box-open mr-1"></i> <span id="modalStockNumber"></span> <span id="modalStockUnit"></span> disponibles</span>
                 </div>
                 
                 <p id="modalDesc" class="text-gray-500 text-sm mb-4 leading-relaxed">Descripción detallada</p>
@@ -539,16 +537,48 @@
         function añadirCarrito(event, elemento) {
             event.preventDefault();
             
-            const url = elemento.getAttribute('href') || elemento.getAttribute('data-href');
+            const productId = elemento.getAttribute('data-id');
             const nombreProducto = elemento.getAttribute('data-nombre');
+            const stockStr = elemento.getAttribute('data-stock');
+            const stock = stockStr ? parseInt(stockStr) : 0;
+            
+            if (stock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Producto Agotado!',
+                    text: 'Actualmente este producto no cuenta con unidades disponibles.',
+                    confirmButtonColor: '#16a34a'
+                });
+                return;
+            }
+            
             const icon = elemento.querySelector('i');
             
             // Cambiar ícono a cargando
             icon.className = 'fas fa-circle-notch fa-spin text-sm';
             elemento.classList.add('pointer-events-none');
             
-            fetch(url)
-                .then(response => {
+            fetch('/api/carrito/agregar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: productId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error === "stock_insuficiente") {
+                        Swal.fire({
+                            icon: 'info',
+                            title: '¡Límite alcanzado!',
+                            text: 'Ya tienes en el carrito todas las unidades disponibles (' + data.stock + ') de ' + nombreProducto + '.',
+                            confirmButtonColor: '#eab308',
+                            confirmButtonText: 'Entendido'
+                        });
+                        icon.className = 'fas fa-plus text-sm';
+                        elemento.classList.remove('pointer-events-none');
+                        return;
+                    }
+                    if (data.error) throw new Error(data.error);
+
                     // Mostrar ¡Añadido! visualmente en el botón
                     icon.className = 'fas fa-check font-extrabold text-lg transition-transform scale-125';
                     setTimeout(() => {
@@ -577,19 +607,18 @@
                     // Actualizar badge visualmente
                     const badge = document.getElementById('cart-badge');
                     if (badge) {
-                        let actual = parseInt(badge.innerText) || 0;
-                        badge.innerText = actual + 1;
+                        badge.innerText = data.cantidadItems || (parseInt(badge.innerText || 0) + 1);
                         badge.classList.add('scale-125');
                         setTimeout(() => badge.classList.remove('scale-125'), 300);
                     }
                 })
                 .catch(error => {
-                    icon.className = 'fas fa-plus';
+                    icon.className = 'fas fa-plus text-sm';
                     elemento.classList.remove('pointer-events-none');
                     Swal.fire({
                         icon: 'error',
                         title: 'Ups...',
-                        text: 'Hubo un problema al añadir el producto.',
+                        text: 'Hubo un problema de conexión.',
                         confirmButtonColor: '#16a34a'
                     });
                 });
@@ -638,17 +667,27 @@
             // Llenar datos
             document.getElementById('modalNombre').textContent = btn.getAttribute('data-nombre');
             document.getElementById('modalDesc').textContent = btn.getAttribute('data-desc');
-            document.getElementById('modalPrecio').textContent = '$' + btn.getAttribute('data-precio');
+            
+            const stockModal = parseInt(btn.getAttribute('data-stock')) || 0;
+            const unidad = btn.getAttribute('data-unidad');
+            const unidadPlural = btn.getAttribute('data-unidadplural');
+            
             document.getElementById('modalImg').src = btn.getAttribute('data-img');
             document.getElementById('modalCampesino').textContent = btn.getAttribute('data-campesino');
             document.getElementById('modalCat').textContent = btn.getAttribute('data-cat');
+            document.getElementById('modalStockNumber').textContent = stockModal.toString();
+            document.getElementById('modalStockUnit').textContent = stockModal === 1 ? unidad : unidadPlural;
+            
+            // Actualizar precio con unidad
+            document.getElementById('modalPrecio').innerHTML = '$' + btn.getAttribute('data-precio') + ' <span class="text-lg text-gray-400 font-medium">/ ' + unidad + '</span>';
             
             cargarResenas(btn.getAttribute('data-id'));
             
             // Configurar botón de compra del modal
             const addBtn = document.getElementById('modalBtnAdd');
-            addBtn.setAttribute('data-href', '/carrito/agregar/' + btn.getAttribute('data-id'));
+            addBtn.setAttribute('data-id', btn.getAttribute('data-id'));
             addBtn.setAttribute('data-nombre', btn.getAttribute('data-nombre'));
+            addBtn.setAttribute('data-stock', btn.getAttribute('data-stock'));
             addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> <span id="modalBtnAddText">Añadir al carrito</span>';
             addBtn.classList.remove('pointer-events-none', 'bg-green-700', 'cursor-not-allowed');
 
@@ -807,48 +846,67 @@
             const productNodes = Array.from(grid.getElementsByClassName('js-product-card'));
             const searchInput = document.getElementById('search-input');
             const clearSearchBtn = document.getElementById('clear-search');
-            const categoryCheckboxes = document.querySelectorAll('.js-filter-chk');
-            const minPriceInput = document.getElementById('price-min');
-            const maxPriceInput = document.getElementById('price-max');
+            
+            // Botones interactivos de categoría
+            const categoryBtns = document.querySelectorAll('.js-filter-btn');
+            let selectedCategory = ''; // Vacío significa 'Todas'
+            
+            // Slider de precio
+            const priceSlider = document.getElementById('price-slider');
+            const priceDisplay = document.getElementById('price-display');
+            const clearPriceBtn = document.getElementById('btn-clear-price');
+            
+            // Checkbox en stock y cercanía
+            const stockCheck = document.getElementById('chk-en-stock');
+            const nearCheck = document.getElementById('chk-cercano');
+            
             const sortSelect = document.getElementById('sort-select');
             const resetFiltersBtn = document.getElementById('btn-reset-filters');
-            const clearPriceBtn = document.getElementById('btn-clear-price');
             const emptyState = document.getElementById('empty-state');
             const countLabel = document.getElementById('count-productos');
-            
-            // Sugerencias predictivas
-            const suggestionsDiv = document.getElementById('search-suggestions');
-            const suggestionsList = document.getElementById('suggestions-list');
-            const sugHeader = document.getElementById('sug-header');
 
-            const applyFiltersAndSort = () => {
-                const query = searchInput.value.toLowerCase().trim();
-                const checkedCats = Array.from(categoryCheckboxes).filter(chk => chk.checked).map(chk => chk.value.toUpperCase());
-                const minPrice = minPriceInput.value === '' ? 0 : parseFloat(minPriceInput.value);
-                const maxPrice = maxPriceInput.value === '' ? Infinity : parseFloat(maxPriceInput.value);
-
-                if (minPriceInput.value !== '' || maxPriceInput.value !== '') {
-                    clearPriceBtn.classList.remove('hidden');
-                } else {
+            function applyFiltersAndSort() {
+                const searchVal = searchInput.value.toLowerCase().trim();
+                const maxPrice = parseInt(priceSlider.value);
+                const onlyInStock = stockCheck.checked;
+                const onlyNear = nearCheck ? nearCheck.checked : false;
+                
+                // Obtener estrella mínima seleccionada
+                const starFilterChecked = document.querySelector('input[name="star-filter"]:checked');
+                const minStars = starFilterChecked ? parseInt(starFilterChecked.value) : 0;
+                
+                // Actualizar UI del slider
+                if (maxPrice >= 250000) {
+                    priceDisplay.textContent = 'Sin límite';
                     clearPriceBtn.classList.add('hidden');
+                } else {
+                    priceDisplay.textContent = 'Hasta $' + maxPrice.toLocaleString('es-CO');
+                    clearPriceBtn.classList.remove('hidden');
                 }
 
-                let visibleCount = 0;
-                productNodes.forEach(node => {
-                    const name = node.getAttribute('data-nombre') || "";
-                    const desc = (node.getAttribute('data-desc') || "").toLowerCase();
-                    const cat = (node.getAttribute('data-cat') || "").toUpperCase();
-                    const price = parseFloat(node.getAttribute('data-precio') || "0");
+                let visibleCards = [];
+                productNodes.forEach(card => {
+                    const itemPrice = parseFloat(card.getAttribute('data-precio') || 0);
+                    const itemCat = card.getAttribute('data-cat') || '';
+                    const itemNombre = (card.getAttribute('data-nombre') || "").toLowerCase();
+                    const itemDesc = (card.getAttribute('data-desc') || "").toLowerCase();
+                    const itemStock = parseInt(card.getAttribute('data-stock') || 0);
+                    const itemCalificacion = parseFloat(card.getAttribute('data-calificacion') || 0);
+                    const itemDistancia = parseFloat(card.getAttribute('data-distanciac') || 9999);
 
-                    const matchesSearch = query === '' || name.includes(query) || desc.includes(query);
-                    const matchesCat = checkedCats.length === 0 || checkedCats.includes(cat);
-                    const matchesPrice = price >= minPrice && price <= maxPrice;
+                    // Filters evaluation
+                    const matchSearch = searchVal === '' || itemNombre.includes(searchVal) || itemDesc.includes(searchVal);
+                    const matchCat = (selectedCategory === '') || (itemCat.toUpperCase() === selectedCategory.toUpperCase());
+                    const matchPrice = itemPrice <= maxPrice;
+                    const matchStock = onlyInStock ? itemStock > 0 : true;
+                    const reqStars = minStars === 0 ? true : Math.floor(itemCalificacion) >= minStars;
+                    const matchNear = onlyNear ? itemDistancia <= 50 : true;
 
-                    if (matchesSearch && matchesCat && matchesPrice) {
-                        node.style.display = 'flex';
-                        visibleCount++;
+                    if (matchSearch && matchCat && matchPrice && matchStock && reqStars && matchNear) {
+                        card.style.display = 'flex';
+                        visibleCards.push(card);
                     } else {
-                        node.style.display = 'none';
+                        card.style.display = 'none';
                     }
                 });
 
@@ -867,20 +925,79 @@
                 });
 
                 sortedNodes.forEach(node => grid.appendChild(node));
-                countLabel.textContent = visibleCount;
+                countLabel.textContent = visibleCards.length;
 
-                if (visibleCount === 0 && productNodes.length > 0) {
+                if (visibleCards.length === 0 && productNodes.length > 0) {
                     emptyState.classList.remove('hidden');
                 } else {
                     emptyState.classList.add('hidden');
                 }
             };
 
-            // Listeners Filtros
-            categoryCheckboxes.forEach(chk => chk.addEventListener('change', applyFiltersAndSort));
-            minPriceInput.addEventListener('input', applyFiltersAndSort);
-            maxPriceInput.addEventListener('input', applyFiltersAndSort);
+            const updateHeroBtns = (val) => {
+                const heroBtns = document.querySelectorAll('.js-hero-filter-btn');
+                heroBtns.forEach(b => {
+                    if (b.getAttribute('data-val') === val) {
+                        b.className = 'js-hero-filter-btn active bg-white text-brand-800 px-6 py-2.5 rounded-full font-bold text-sm hover:scale-105 transition-all shadow-float hover:shadow-brand-500/40';
+                    } else {
+                        b.className = 'js-hero-filter-btn bg-white/10 text-white border border-white/20 px-6 py-2.5 rounded-full font-bold text-sm hover:bg-white/20 hover:scale-105 transition-all backdrop-blur-md shadow-lg shadow-black/10';
+                    }
+                });
+            };
+
+            // Fondos Dinámicos Inteligentes
+            const categoryBg = {
+                '': 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1374&auto=format&fit=crop',
+                'VERDURAS': 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=1374&auto=format&fit=crop',
+                'FRUTAS': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1374&auto=format&fit=crop',
+                'TUBÉRCULOS': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?q=80&w=1374&auto=format&fit=crop',
+                'LÁCTEOS': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=1374&auto=format&fit=crop'
+            };
+
+            // Listeners Categoría (Sticky Bar)
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const val = btn.getAttribute('data-val');
+                    
+                    // Actualiza UI Botones
+                    categoryBtns.forEach(b => {
+                        b.classList.remove('bg-gray-900', 'text-white', 'shadow-sm', 'border-gray-200');
+                        b.classList.add('bg-gray-50', 'text-gray-600', 'border-transparent');
+                    });
+                    btn.classList.add('bg-gray-900', 'text-white', 'shadow-sm', 'border-gray-200');
+                    btn.classList.remove('bg-gray-50', 'text-gray-600', 'border-transparent');
+                    
+                    selectedCategory = val;
+                    
+                    // Efecto inmersivo Hero
+                    const heroImg = document.getElementById('hero-bg');
+                    if (heroImg && categoryBg[val]) {
+                        heroImg.style.opacity = '0';
+                        setTimeout(() => {
+                            heroImg.src = categoryBg[val];
+                            heroImg.style.opacity = '0.4';
+                        }, 400); 
+                    }
+
+                    // Cerrar dropdown si estuviera abierto
+                    document.getElementById('dropdown-filtros').classList.add('hidden');
+                    
+                    applyFiltersAndSort();
+                });
+            });
+            
+            priceSlider.addEventListener('input', applyFiltersAndSort);
             sortSelect.addEventListener('change', applyFiltersAndSort);
+            
+            // Listeners para los nuevos filtros del Dropdown
+            document.querySelectorAll('.filter-trigger').forEach(trigger => {
+                trigger.addEventListener('change', applyFiltersAndSort);
+            });
+            
+            clearPriceBtn.addEventListener('click', () => {
+                priceSlider.value = 250000;
+                applyFiltersAndSort();
+            });
 
             // Listener Búsqueda Predictiva
             searchInput.addEventListener('input', (e) => {
@@ -946,21 +1063,530 @@
             });
 
             clearPriceBtn.addEventListener('click', () => {
-                minPriceInput.value = '';
-                maxPriceInput.value = '';
+                priceSlider.value = 250000;
                 applyFiltersAndSort();
             });
 
             resetFiltersBtn.addEventListener('click', () => {
                 searchInput.value = '';
-                categoryCheckboxes.forEach(chk => chk.checked = false);
-                minPriceInput.value = '';
-                maxPriceInput.value = '';
+                categoryBtns[0].click(); // Reiniciar a Todas
+                priceSlider.value = 250000;
+                stockCheck.checked = false;
                 sortSelect.value = 'recientes';
                 searchInput.dispatchEvent(new Event('input'));
             });
 
             applyFiltersAndSort();
+        });
+    </script>
+    <!-- FOOTER INSTITUCIONAL AZUL -->
+    <footer class="bg-slate-900 pt-10 pb-8 mt-12 relative overflow-hidden w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 mb-10">
+                <!-- Brand Col -->
+                <div class="md:col-span-4">
+                    <a th:href="@{/}" class="flex items-center gap-3 mb-5 group">
+                        <div class="bg-green-500 text-white p-2.5 rounded-xl shadow-lg shadow-green-500/20">
+                            <i class="fas fa-leaf text-lg"></i>
+                        </div>
+                        <span class="text-2xl font-extrabold tracking-tight text-white">Agro<span class="text-green-400">Conecta</span></span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed pr-8 mb-6 font-medium">
+                        La plataforma tecnológica que une al campo con la ciudad. Transformando el consumo de alimentos en una experiencia justa, rápida y moderna.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-500 transition shadow-sm hover:-translate-y-1"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-pink-500 transition shadow-sm hover:-translate-y-1"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition shadow-sm hover:-translate-y-1"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Links Cols -->
+                <div class="md:col-span-2 md:col-start-7">
+                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Red Oficial</h4>
+                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
+                        <li><a href="https://www.minagricultura.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-green-400 transition flex items-center gap-2">MinAgricultura <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
+                        <li><a href="https://www.ica.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-green-400 transition flex items-center gap-2">Portal ICA <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
+                        <li><a href="https://www.agrosavia.co/" target="_blank" rel="noopener noreferrer" class="hover:text-green-400 transition flex items-center gap-2">Agrosavia <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Compañía</h4>
+                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
+                        <li><a href="#" class="hover:text-green-400 transition">Sobre Nosotros</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Impacto Social</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Noticias</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Soporte</h4>
+                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
+                        <li><a href="#" class="hover:text-green-400 transition">Centro de Ayuda</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Privacidad</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Términos</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="border-t border-slate-700/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-slate-500 text-sm flex items-center gap-1 font-medium">
+                    &copy; 2026 AgroConecta. Hecho con <span class="text-green-400 mx-1">♥</span> en Colombia.
+                </p>
+                <div class="flex items-center gap-6 text-sm text-slate-500 font-medium">
+                    <span>Español (CO)</span>
+                    <span>Moneda: COP ($)</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- ========================================== -->
+    <!-- MODAL DE UBICACIÓN (Rappi-Clone Premium)   -->
+    <!-- ========================================== -->
+    <div id="locationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="locationModalContent" class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform scale-95 opacity-0 transition-all duration-300 overflow-hidden m-4 relative flex flex-col max-h-[92vh]" style="min-height: 540px;">
+            
+            <!-- Header Rappi Style -->
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-3 bg-white sticky top-0 z-10">
+                <button id="closeLocationModal" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors hidden">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <h3 class="font-bold text-lg text-gray-900">Agregar dirección</h3>
+            </div>
+
+            <!-- Body Scrollable -->
+            <div class="overflow-y-auto flex-1 custom-scrollbar flex flex-col">
+                
+                <!-- Mapa Interactivo -->
+                <div class="relative w-full h-[220px] flex-shrink-0 z-0 bg-gray-100">
+                    <div id="mapContainer" class="w-full h-full relative z-[10]"></div>
+                    <!-- Pin central estático (Fijo por encima del mapa) -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-[1000]">
+                        <div class="flex flex-col items-center -mt-10">
+                            <i class="fas fa-map-marker-alt text-red-600 text-[42px] drop-shadow-md" style="filter: drop-shadow(0 4px 6px rgba(220,38,38,0.5));"></i>
+                            <div class="w-4 h-1.5 bg-black/30 rounded-[100%] mt-1 blur-[1px]"></div>
+                        </div>
+                    </div>
+                    <!-- Botón GPS flotante (Z-Index alto) -->
+                    <button id="btnCenterGeo" type="button" class="absolute bottom-4 right-4 z-[1000] w-10 h-10 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 font-bold hover:bg-green-50 hover:text-green-600 hover:border-green-200 hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95" title="Centrar mi ubicación">
+                        <i class="fas fa-crosshairs text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Formulario estilo Rappi -->
+                <div class="p-6 flex-1 flex flex-col">
+                    
+                    <!-- Sección: Dirección (con geocoding overlay) -->
+                    <div class="relative">
+                        <div id="geoWaitOverlay" class="absolute inset-0 bg-white/80 z-10 hidden items-center justify-center rounded-xl backdrop-blur-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-circle-notch fa-spin text-green-500"></i>
+                                <span class="text-xs text-gray-500 font-medium">Buscando dirección...</span>
+                            </div>
+                        </div>
+
+                        <label class="text-[13px] font-semibold text-gray-500 mb-2 block">Dirección</label>
+                        <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200 mb-5 group hover:border-green-300 transition-colors cursor-text" onclick="document.getElementById('direccionInput').focus()">
+                            <input type="text" id="direccionInput" placeholder="Detectando tu ubicación..." class="flex-1 bg-transparent text-[14px] font-semibold text-gray-800 outline-none placeholder:text-gray-400 placeholder:font-normal">
+                            <i class="fas fa-pen text-gray-400 text-xs ml-3 group-hover:text-green-500 transition-colors"></i>
+                        </div>
+                    </div>
+
+                    <!-- Piso / Oficina / Apto -->
+                    <label class="text-[13px] font-semibold text-gray-500 mb-2 block">Piso / Oficina / Apto / Dpto (opcional)</label>
+                    <input type="text" id="detallesInput" placeholder="Descripción de la dirección" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 transition outline-none placeholder:text-gray-400 mb-6">
+
+                    <!-- Etiqueta (opcional) -->
+                    <label class="text-[13px] font-semibold text-gray-500 mb-3 block">Etiqueta (opcional)</label>
+                    <div class="flex flex-wrap gap-2 mb-8" id="aliasButtons">
+                        <button type="button" data-alias="Casa" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Casa</button>
+                        <button type="button" data-alias="Oficina" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Oficina</button>
+                        <button type="button" data-alias="Pareja" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Pareja</button>
+                        <button type="button" data-alias="Otro" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Otro</button>
+                    </div>
+                    <!-- Hidden input para el alias seleccionado -->
+                    <input type="hidden" id="aliasInput" value="Casa">
+                    <!-- Input custom para "Otro" -->
+                    <div id="customAliasBox" class="hidden mb-6 mt-2 animate-fadeIn">
+                        <input type="text" id="customAliasInput" placeholder="Ej: Finca de mamá, Casa del abuelo..." maxlength="30" class="w-full px-4 py-3 bg-gray-50 border border-green-300 rounded-xl text-[14px] font-medium focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 transition outline-none placeholder:text-gray-400">
+                    </div>
+
+                    <!-- Guardar dirección -->
+                    <button id="btnSaveAddress" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-[15px] rounded-xl py-3.5 transition-all hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5 active:scale-[0.98] outline-none">
+                        Guardar dirección
+                    </button>
+
+                    <!-- Divider: Mis direcciones guardadas -->
+                    <div class="flex items-center gap-3 mt-8 mb-4">
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Mis Direcciones</span>
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                    </div>
+
+                    <!-- DB Addresses List -->
+                    <div id="dbAddressesContainer" class="space-y-2 pb-2">
+                        <div class="text-center py-4 flex flex-col items-center">
+                            <i class="fas fa-circle-notch fa-spin text-gray-300 text-xl mb-2"></i>
+                            <span class="text-xs text-gray-400 font-medium">Cargando tu cuenta...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Overlay Full GPS -->
+            <div id="locLoadingOverlay" class="absolute inset-0 bg-white/95 backdrop-blur-md z-50 hidden items-center justify-center rounded-2xl">
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-full border-4 border-gray-100 border-t-green-500 animate-spin mb-4 shadow-lg shadow-green-500/20"></div>
+                    <p class="text-[15px] font-bold text-gray-800 tracking-tight">Buscando tu ubicación...</p>
+                    <p class="text-[11px] text-gray-400 font-medium mt-1">Revisa los permisos de tu navegador</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Geolocalización y Mapa REST API -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('locationModal');
+            const content = document.getElementById('locationModalContent');
+            const closeBtn = document.getElementById('closeLocationModal');
+            const navAddressText = document.getElementById('nav-address-text');
+            
+            // Formularios JS
+            const direccionInput = document.getElementById('direccionInput');
+            const detallesInput = document.getElementById('detallesInput');
+            const aliasInput = document.getElementById('aliasInput');
+            const btnSaveAddress = document.getElementById('btnSaveAddress');
+            const btnCenterGeo = document.getElementById('btnCenterGeo');
+            const dbAddressesContainer = document.getElementById('dbAddressesContainer');
+            
+            const loadingOverlay = document.getElementById('locLoadingOverlay');
+            const geoWaitOverlay = document.getElementById('geoWaitOverlay');
+
+            let map = null;
+            let currentLat = 4.6097100; // Por defecto Bogotá si nada funciona
+            let currentLng = -74.0817500;
+            let isMandatoryMode = false;
+            let dbAddresses = [];
+            let initialLoadAddressChecked = false;
+
+            // ALIAS PILL BUTTONS LOGIC
+            const aliasPills = document.querySelectorAll('.alias-pill');
+            const customAliasBox = document.getElementById('customAliasBox');
+            const customAliasInput = document.getElementById('customAliasInput');
+
+            aliasPills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    // Deseleccionar todos
+                    aliasPills.forEach(p => {
+                        p.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                        p.classList.add('border-gray-200', 'text-gray-600');
+                    });
+                    // Seleccionar el clickeado
+                    pill.classList.remove('border-gray-200', 'text-gray-600');
+                    pill.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                    
+                    const selectedAlias = pill.getAttribute('data-alias');
+                    
+                    if (selectedAlias === 'Otro') {
+                        customAliasBox.classList.remove('hidden');
+                        customAliasInput.focus();
+                        aliasInput.value = ''; // Se llenará del input custom al guardar
+                    } else {
+                        customAliasBox.classList.add('hidden');
+                        customAliasInput.value = '';
+                        aliasInput.value = selectedAlias;
+                    }
+                });
+            });
+            // Seleccionar "Casa" por defecto
+            if(aliasPills.length > 0) {
+                aliasPills[0].classList.remove('border-gray-200', 'text-gray-600');
+                aliasPills[0].classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+            }
+
+            // 1. ARRANCAR
+            // Verificar primero si hay dirección guardada localmente o en BD
+            const savedAddress = localStorage.getItem('user_address');
+            if (savedAddress) {
+                navAddressText.textContent = savedAddress;
+            }
+
+            // Exponer Función Global
+            window.openLocationModal = function() {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                    
+                    initMap();
+                    fetchMyAddresses(false); // Cargar nube sin bloquear
+                }, 10);
+            };
+
+            // En onDOMContentLoaded, disparar la inicialización condicional obligatoria
+            if (!savedAddress && !initialLoadAddressChecked) {
+                isMandatoryMode = true;
+                closeBtn.classList.add('hidden');
+                // Auto abrir y usar GPS obligatorio
+                openLocationModal();
+                initialLoadAddressChecked = true;
+                requestGPS();
+            }
+
+            function closeLocationModalHandler() {
+                if (isMandatoryMode && !localStorage.getItem('user_address')) {
+                    // Animación de negarse a cerrar
+                    content.classList.add('translate-x-2');
+                    setTimeout(() => content.classList.remove('translate-x-2'), 100);
+                    setTimeout(() => content.classList.add('-translate-x-2'), 200);
+                    setTimeout(() => content.classList.remove('-translate-x-2'), 300);
+                    return;
+                }
+                modal.classList.remove('opacity-100');
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            closeBtn.addEventListener('click', closeLocationModalHandler);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal && !isMandatoryMode) {
+                    closeLocationModalHandler();
+                }
+            });
+
+            // 2. LOGICA DEL MAPA (Leaflet)
+            function initMap() {
+                if(map) {
+                    map.invalidateSize(); // Refrescar si ya existía pero cambió div
+                    return;
+                }
+
+                // Cargar Bogotá por defecto, si no hay info
+                if(localStorage.getItem('last_lat') && localStorage.getItem('last_lng')) {
+                    currentLat = parseFloat(localStorage.getItem('last_lat'));
+                    currentLng = parseFloat(localStorage.getItem('last_lng'));
+                }
+
+                map = L.map('mapContainer', {
+                    zoomControl: false // Quitamos botones + - para UI limpia (Rappi style)
+                }).setView([currentLat, currentLng], 16);
+
+                // Capa de OpenStreetMap Blanca/Limpiada (CartoDB Positron va muy bien con este estilo, o estándar OSM)
+                // Usaremos estándar OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(map);
+
+                // Escuchar el movimiento del mapa (Cuando se detiene)
+                map.on('moveend', function() {
+                    const center = map.getCenter();
+                    currentLat = center.lat;
+                    currentLng = center.lng;
+                    doReverseGeocoding(currentLat, currentLng);
+                });
+            }
+
+            // 3. API OPENSTREETMAP (Reverse Geocoding)
+            let geoTimeout;
+            async function doReverseGeocoding(lat, lng) {
+                // Agregar un pequeño debounce (delay) para no inundar el API nativa
+                clearTimeout(geoTimeout);
+                geoWaitOverlay.classList.remove('hidden');
+                geoWaitOverlay.classList.add('flex');
+                
+                geoTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+                        const data = await res.json();
+                        if(data && data.address) {
+                            const road = data.address.road || '';
+                            const house = data.address.house_number || '';
+                            const suburb = data.address.suburb || data.address.neighbourhood || '';
+                            const city = data.address.city || data.address.town || '';
+                            
+                            let addressString = "";
+                            if(road) {
+                                addressString = `${road} ${house}`.trim();
+                                if(suburb) addressString += ` - ${suburb}`;
+                                else if(city) addressString += `, ${city}`;
+                            } else if (data.display_name) {
+                                // Fallback a texto largo corto
+                                addressString = data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1];
+                            }
+                            direccionInput.value = addressString;
+                        }
+                    } catch (err) {
+                        console.error('Error Reverse Geocoding', err);
+                    } finally {
+                        geoWaitOverlay.classList.add('hidden');
+                        geoWaitOverlay.classList.remove('flex');
+                    }
+                }, 800); // Esperar 800ms tras soltar mapa
+            }
+
+            // 4. GPS NATIVO NAVEGADOR
+            function requestGPS() {
+                if (!navigator.geolocation) return;
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        if(map) {
+                            map.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
+                        } else {
+                            currentLat = lat; currentLng = lng;
+                        }
+                        loadingOverlay.classList.add('hidden');
+                        loadingOverlay.classList.remove('flex');
+                    },
+                    (error) => {
+                        console.warn("GPS denegado o error", error);
+                        loadingOverlay.classList.add('hidden');
+                        loadingOverlay.classList.remove('flex');
+                        
+                        // Si falla, el usuario usa la caja manual o arrastra el mapa actual (por defecto bogotá).
+                        if(isMandatoryMode && !direccionInput.value) {
+                            direccionInput.placeholder = "Por favor, escribe tu dirección...";
+                            direccionInput.focus();
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            }
+
+            btnCenterGeo.addEventListener('click', requestGPS);
+
+            // 5. BD BACKEND INTEGRATION (REST)
+            function saveAddressLocally(addressStr, lat, lng) {
+                localStorage.setItem('user_address', addressStr);
+                localStorage.setItem('last_lat', lat);
+                localStorage.setItem('last_lng', lng);
+                navAddressText.textContent = addressStr.length > 25 ? addressStr.substring(0, 22) + '...' : addressStr;
+                
+                isMandatoryMode = false;
+                closeBtn.classList.remove('hidden');
+                closeLocationModalHandler();
+            }
+
+            btnSaveAddress.addEventListener('click', async () => {
+                const dirVal = direccionInput.value.trim();
+                if(dirVal.length < 4) {
+                    direccionInput.classList.add('border-red-500', 'bg-red-50');
+                    setTimeout(()=> direccionInput.classList.remove('border-red-500', 'bg-red-50'), 2000);
+                    return;
+                }
+                
+                const dataPayload = {
+                    alias: aliasInput.value || customAliasInput.value.trim() || 'Otro',
+                    direccionCompleta: dirVal,
+                    detalles: detallesInput.value.trim(),
+                    latitud: currentLat,
+                    longitud: currentLng,
+                    esPrincipal: true
+                };
+
+                // Optimizar UI primero (Guardar local rápido y cerrar)
+                saveAddressLocally(dirVal, currentLat, currentLng);
+
+                // Llamada asíncrona a la Rest API Backend para que persista
+                try {
+                    const response = await fetch('/api/direcciones', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dataPayload)
+                    });
+                    if(response.ok) {
+                        // Persistido exitoso en base de datos.
+                        fetchMyAddresses(true); // Refrescar lista invisiblemente para la prox vez
+                    } else if(response.status === 401) {
+                        console.log("Usuario anónimo: Dirección guardada en SessionLocal únicamente.");
+                    }
+                } catch(e) {
+                    console.error("Error al persistir BD:", e);
+                }
+            });
+
+            // 6. OBTENER DIRECCIONES DE BD
+            async function fetchMyAddresses(silent = false) {
+                if(!silent) dbAddressesContainer.innerHTML = '<div class="text-center py-4 text-xs text-gray-400 font-medium">Buscando tu cuenta...</div>';
+                
+                try {
+                    const res = await fetch('/api/direcciones');
+                    if(res.status === 401) {
+                        dbAddressesContainer.innerHTML = `
+                            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-3 mt-2">
+                                <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                <p class="text-[11px] text-blue-700 leading-tight">Inicia sesión y todas las direcciones que uses aquí se guardarán permanentemente en tu cuenta.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    if(!res.ok) throw new Error("Error fetching DB");
+                    
+                    const data = await res.json();
+                    dbAddresses = data;
+                    renderDBAddresses();
+
+                } catch(err) {
+                    console.error(err);
+                    dbAddressesContainer.innerHTML = '';
+                }
+            }
+
+            // Exponer global para el onClick
+            window.selectDBAddress = function(id) {
+                const addy = dbAddresses.find(d => d.id === parseInt(id));
+                if(addy) {
+                    currentLat = addy.latitud || currentLat;
+                    currentLng = addy.longitud || currentLng;
+                    
+                    // Call backend to set primary
+                    fetch(`/api/direcciones/${id}/principal`, { method: 'PUT' });
+                    
+                    saveAddressLocally(addy.direccionCompleta, currentLat, currentLng);
+                }
+            }
+
+            function renderDBAddresses() {
+                if(dbAddresses.length === 0) {
+                    dbAddressesContainer.innerHTML = `<p class="text-[11px] text-center text-gray-400 py-3">Aún no tienes direcciones en tu cuenta H2.</p>`;
+                    return;
+                }
+                
+                dbAddressesContainer.innerHTML = dbAddresses.map(d => {
+                    const isPrim = (localStorage.getItem('user_address') === d.direccionCompleta);
+                    let iconAlias = '📍';
+                    if(d.alias === 'Casa') iconAlias = '🏠';
+                    if(d.alias === 'Trabajo') iconAlias = '💼';
+                    if(d.alias === 'Finca') iconAlias = '🏡';
+
+                    return `
+                    <div class="flex items-center justify-between py-2 cursor-pointer group hover:bg-gray-50 rounded-xl px-3 transition-colors border border-transparent ${isPrim ? 'bg-green-50' : ''}" onclick="selectDBAddress('${d.id}')">
+                        <div class="flex items-start gap-3">
+                            <div class="text-lg opacity-80 group-hover:scale-110 transition-transform">${iconAlias}</div>
+                            <div>
+                                <h4 class="font-bold text-[13px] ${isPrim ? 'text-green-800' : 'text-gray-800'} leading-none mb-1">${d.alias || 'Dirección'}</h4>
+                                <p class="text-[11px] text-gray-500 font-medium tracking-tight truncate max-w-[200px]">${d.direccionCompleta}</p>
+                                ${d.detalles ? `<p class="text-[9px] text-gray-400 mt-0.5">${d.detalles}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="${isPrim ? 'text-green-500' : 'text-gray-200 group-hover:text-green-300'} transition-colors ml-2">
+                            <i class="${isPrim ? 'fas fa-check-circle' : 'far fa-circle'} text-lg"></i>
+                        </div>
+                    </div>
+                `}).join('');
+            }
         });
     </script>
 </body>

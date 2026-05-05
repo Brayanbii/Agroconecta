@@ -44,6 +44,25 @@ public class Usuario {
 
     private String telefono;
 
+    // --- PERFIL DE USUARIO AVANZADO ---
+    @Column(length = 500)
+    private String fotoPerfil; // URL o enlace
+    
+    private String numeroIdentidad;
+    
+    private java.time.LocalDate fechaNacimiento;
+    
+    private String genero; // 'Hombre', 'Mujer', 'Otro'
+    
+    @Column(columnDefinition = "numeric(10,2) default 0.0")
+    private Double creditos = 0.0; // AgroCréditos
+
+    // --- CAMPOS EXCLUSIVOS PARA CAMPESINOS (Vendedores) ---
+    private String nombreFinca;
+    
+    @Column(length = 1000)
+    private String descripcionFinca;
+
     // Coordenadas geográficas (ubicación por defecto o finca del campesino)
     private Double latitud;
     private Double longitud;
@@ -59,4 +78,9 @@ public class Usuario {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<Orden> ordenes;
+
+    // Si borro al usuario, se borran sus direcciones guardadas
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<Direccion> direcciones;
 }

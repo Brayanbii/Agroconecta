@@ -6,6 +6,11 @@ import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.service.CarritoService;
 import com.proyecto.AccesoUsuarios.service.PdfService;
+import com.proyecto.AccesoUsuarios.service.MercadoPagoService;
+import com.proyecto.AccesoUsuarios.repository.DireccionRepository;
+import com.mercadopago.resources.preference.Preference;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -34,6 +39,12 @@ public class OrdenController {
     private UsuarioRepository usuarioRepo;
 
     @Autowired
+    private DireccionRepository direccionRepo;
+
+    @Autowired
+    private MercadoPagoService mercadoPagoService;
+
+    @Autowired
     private OrdenRepository ordenRepo;
     
     @Autowired
@@ -48,15 +59,33 @@ public class OrdenController {
             return "redirect:/tienda";
         }
         
-        // Default coordinates (e.g. Bogotá) just in case
+        model.addAttribute("items", carritoService.obtenerItems());
+        
+        // Default coordinates
         model.addAttribute("lat_default", 4.7110);
         model.addAttribute("lng_default", -74.0721);
         model.addAttribute("total", carritoService.obtenerTotal());
+        
+        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        if (usuario != null) {
+            List<Direccion> misDirecciones = direccionRepo.findByUsuario(usuario);
+            model.addAttribute("misDirecciones", misDirecciones);
+            
+            Direccion dirPrincipal = misDirecciones.stream().filter(Direccion::getEsPrincipal).findFirst().orElse(null);
+            if (dirPrincipal != null) {
+                model.addAttribute("lat_default", dirPrincipal.getLatitud());
+                model.addAttribute("lng_default", dirPrincipal.getLongitud());
+                model.addAttribute("direccionPrincipal", dirPrincipal);
+            }
+        }
+        
+        model.addAttribute("costoEnvio", 3500.0);
+        model.addAttribute("tarifaServicio", carritoService.obtenerTotal() * 0.05);
         return "checkout_mapa";
     }
 
     @PostMapping("/pagar")
-    public String pagarOrden(Authentication auth, Model model,
+    public String pagarOrden(Authentication auth, Model model, HttpServletRequest request,
                              @RequestParam(required = false) String direccionEnvio,
                              @RequestParam(required = false) Double latitudEnvio,
                              @RequestParam(required = false) Double longitudEnvio) {
@@ -109,11 +138,56 @@ public class OrdenController {
         }
         
         orden.setDetalles(detalles);
-        ordenRepo.save(orden);
-        carritoService.limpiarCarrito();
+        ordenRepo.save(orden); // Ahora está Pendiente con ID en base de datos.
         
-        model.addAttribute("orden", orden);
-        return "compra_exitosa";
+        // Fase 2: Mandar preferencia a MP
+        try {
+            String serverUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+            Preference preference = mercadoPagoService.crearPreferenciaDePago(carritoService.obtenerItems(), serverUrl, orden.getId().toString());
+            
+            // Vaciar carrito luego de crear la preferencia (Opcional, en la vida real se vacía en el success)
+            carritoService.limpiarCarrito();
+            
+            // Re-dirigir a la pasarela mágica!
+            return "redirect:" + preference.getInitPoint();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/checkout?error=mercadopago_fallo";
+        }
+    }
+    
+    @GetMapping("/success")
+    public String pagoExitoso(@RequestParam(required = false) String collection_id,
+                              @RequestParam(required = false) String collection_status,
+                              @RequestParam(required = false) String external_reference,
+                              Model model) {
+        // En la Fase 4 el Webhook cambiará el estado, pero como esto es el FrontEnd 
+        // redirigido post-pago, le mostramos al usuario el ticket:
+        if (external_reference != null) {
+            try {
+                Orden orden = ordenRepo.findById(Long.parseLong(external_reference)).orElse(null);
+                if (orden != null) {
+                    model.addAttribute("orden", orden);
+                    model.addAttribute("mp_id", collection_id);
+                    return "compra_exitosa";
+                }
+            } catch(Exception e) {
+                // Ignore parse errors
+            }
+        }
+        return "redirect:/orden/mis-compras"; 
+    }
+
+    @GetMapping("/pending")
+    public String pagoPendiente() {
+        return "redirect:/orden/mis-compras?estado=pendiente";
+    }
+
+    @GetMapping("/failure")
+    public String pagoFallo(Model model) {
+        model.addAttribute("error", "El pago fue rechazado por Mercado Pago. Intenta usar otra tarjeta.");
+        return "redirect:/orden/checkout?error=pago_rechazado";
     }
     
     @GetMapping("/mis-compras")

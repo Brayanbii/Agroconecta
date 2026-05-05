@@ -21,9 +21,9 @@ public class CarritoService {
     private ProductoRepository productoRepo;
 
     // Añadir producto al carrito (con validación de stock)
-    public void agregarProducto(Long idProducto, Integer cantidad) {
+    public boolean agregarProducto(Long idProducto, Integer cantidad) {
         Producto producto = productoRepo.findById(idProducto).orElse(null);
-        if (producto == null) return;
+        if (producto == null) return false;
 
         // Stock disponible (si es null, tratamos como 0)
         int stockDisponible = (producto.getStock() != null) ? producto.getStock() : 0;
@@ -37,12 +37,25 @@ public class CarritoService {
             // Si ya existe, sumamos la cantidad pero sin exceder el stock
             ItemCarrito item = itemExistente.get();
             int nuevaCantidad = item.getCantidad() + cantidad;
-            item.setCantidad(Math.min(nuevaCantidad, stockDisponible));
+            if (nuevaCantidad > stockDisponible) {
+                item.setCantidad(stockDisponible);
+                return false; // Límite de stock excedido
+            } else {
+                item.setCantidad(nuevaCantidad);
+                return true; // Éxito
+            }
         } else {
             // Si no existe, lo agregamos limitando al stock
-            int cantidadReal = Math.min(cantidad, stockDisponible);
-            if (cantidadReal > 0) {
-                items.add(new ItemCarrito(producto, cantidadReal));
+            if (cantidad > stockDisponible) {
+                if (stockDisponible > 0) {
+                    items.add(new ItemCarrito(producto, stockDisponible));
+                }
+                return false; // Límite de stock excedido
+            } else {
+                if (cantidad > 0) {
+                    items.add(new ItemCarrito(producto, cantidad));
+                }
+                return true; // Éxito
             }
         }
     }
@@ -70,19 +83,26 @@ public class CarritoService {
     }
 
     // Actualizar cantidad (con validación de stock)
-    public void actualizarCantidad(Long idProducto, Integer nuevaCantidad) {
+    public boolean actualizarCantidad(Long idProducto, Integer nuevaCantidad) {
         for (ItemCarrito item : items) {
             if (item.getProducto().getId().equals(idProducto)) {
                 if (nuevaCantidad != null && nuevaCantidad > 0) {
                     // Recargar producto desde BD para tener stock actualizado
                     Producto producto = productoRepo.findById(idProducto).orElse(null);
                     int stockDisponible = (producto != null && producto.getStock() != null) ? producto.getStock() : 0;
-                    // No permitir más que el stock disponible
-                    item.setCantidad(Math.min(nuevaCantidad, stockDisponible));
+                    
+                    if (nuevaCantidad > stockDisponible) {
+                        item.setCantidad(stockDisponible);
+                        return true; // Se excedió el cupo y fue ajustado
+                    } else {
+                        item.setCantidad(nuevaCantidad);
+                        return false; // Todo okey
+                    }
                 }
                 break;
             }
         }
+        return false;
     }
     
     // Método para contar items (para el ícono del carrito)

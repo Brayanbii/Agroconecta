@@ -85,14 +85,22 @@
                     </span>
                 </a>
 
-                <!-- Perfil -->
+                <!-- Perfil y Logout -->
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Hola,</p>
-                        <p class="text-sm font-bold text-gray-800" th:text="${#authentication.name}">Pepe</p>
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Mi Perfil</p>
+                        <p class="text-sm font-bold text-gray-800" th:text="${usuario != null ? #strings.arraySplit(usuario.nombreCompleto, ' ')[0] : 'Campesino'}">Campesino</p>
                     </div>
-                    <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 p-2.5 rounded-xl transition shadow-sm group" title="Cerrar Sesión">
+                    
+                    <a th:href="@{/perfil}" class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 hover:bg-green-500 hover:text-white transition-colors cursor-pointer relative shadow-inner overflow-hidden border border-green-200" title="Ir a mi perfil">
+                        <img th:if="${usuario != null and usuario.fotoPerfil != null and !usuario.fotoPerfil.isEmpty()}" 
+                             th:src="${usuario.fotoPerfil}" class="w-full h-full object-cover">
+                        <i th:unless="${usuario != null and usuario.fotoPerfil != null and !usuario.fotoPerfil.isEmpty()}" 
+                           class="fas fa-user-alt text-sm"></i>
+                    </a>
+                    
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="w-10 h-10 bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 rounded-xl transition shadow-sm group" title="Cerrar Sesión">
                             <i class="fas fa-sign-out-alt group-hover:scale-110 transition-transform"></i>
                         </button>
                     </form>

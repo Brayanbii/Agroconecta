@@ -63,34 +63,7 @@ public class UsuarioController {
         return "redirect:/usuarios";
     }
 
-    // --- PERFIL DE USUARIO (CORREGIDO: BUSCA POR EMAIL) ---
-    
-    @GetMapping("/perfil")
-    public String perfil(Model model, Authentication auth) {
-        String email = auth.getName(); // Esto devuelve el email con el que se logueó
-        Usuario usuario = repo.findByEmail(email).orElseThrow(); // Buscamos por email
-        model.addAttribute("usuario", usuario);
-        return "form";
-    }
-
-    @PostMapping("/perfil/guardar")
-    public String guardarPerfil(@ModelAttribute Usuario usuario, Authentication auth) {
-        String email = auth.getName();
-        Usuario actual = repo.findByEmail(email).orElseThrow(); // Buscamos por email
-
-        // Actualizamos datos personales
-        actual.setNombreCompleto(usuario.getNombreCompleto());
-        actual.setEmail(usuario.getEmail());
-        actual.setTelefono(usuario.getTelefono());
-
-        // Contraseña opcional
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            actual.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        }
-
-        repo.save(actual); 
-        return "redirect:/home?actualizado";
-    }
+    // --- EL PERFIL AHORA SE MANEJA EN PerfilController ---
 
     // --- REGISTRO PÚBLICO ---
 

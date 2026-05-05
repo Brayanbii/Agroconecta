@@ -72,4 +72,23 @@ public class Producto {
     public Integer getTotalResenas() {
         return resenas == null ? 0 : resenas.size();
     }
+
+    @Transient
+    public String getUnidadPlural() {
+        if (unidad == null || unidad.trim().isEmpty()) return "";
+        String u = unidad.trim();
+        if (u.equalsIgnoreCase("Kg") || u.equalsIgnoreCase("Kilo") || u.equalsIgnoreCase("Lb")) return u;
+        if (u.toLowerCase().endsWith("s")) return u;
+        char lastChar = u.toLowerCase().charAt(u.length() - 1);
+        if (lastChar == 'd' || lastChar == 'n' || lastChar == 'l' || lastChar == 'r' || lastChar == 'z') {
+            return u + "es";
+        }
+        return u + "s";
+    }
+
+    @Transient
+    public String getUnidadFormateada(int cantidad) {
+        if (cantidad == 1) return unidad != null ? unidad : "";
+        return getUnidadPlural();
+    }
 }

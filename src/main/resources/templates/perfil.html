@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Mi Perfil - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: { 500: '#22c55e', 600: '#16a34a' }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFDFC; }
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -2;
+            background: radial-gradient(circle at 15% 50%, rgba(22, 163, 74, 0.03), transparent 25%);
+            pointer-events: none;
+        }
+        .nav-link.active {
+            color: #16a34a; font-weight: 700;
+        }
+        .nav-link.active::before {
+            content: ''; position: absolute; left: -1px; top: 10%; bottom: 10%; width: 4px;
+            background-color: #16a34a; border-radius: 0 4px 4px 0;
+        }
+        /* === TARJETA 3D FLIP === */
+        .card-scene { perspective: 1000px; }
+        .card-3d {
+            width: 100%; height: 12rem; position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+        }
+        .card-3d.flipped { transform: rotateY(180deg); }
+        .card-face {
+            position: absolute; inset: 0; border-radius: 1rem;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            overflow: hidden; padding: 1.5rem;
+        }
+        .card-front { z-index: 2; }
+        .card-back { transform: rotateY(180deg); }
+        /* Gradientes por red */
+        .card-theme-default { background: linear-gradient(135deg, #111827, #1f2937, #000); }
+        .card-theme-visa { background: linear-gradient(135deg, #1a1f71, #2563eb, #1e40af); }
+        .card-theme-mastercard { background: linear-gradient(135deg, #eb001b, #f79e1b, #ff6b35); }
+        .card-theme-amex { background: linear-gradient(135deg, #006fcf, #00aeef, #0095d9); }
+    </style>
+</head>
+<body class="text-gray-800 relative min-h-screen">
+    <div class="ambient-bg"></div>
+    
+    <!-- NAVBAR MINIMALISTA -->
+    <nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a th:if="${usuario.rol != 'CAMPESINO'}" th:href="@{/tienda}" class="text-sm font-bold bg-gray-50 hover:bg-green-50 hover:text-green-600 px-4 py-2 rounded-full transition-colors text-gray-600">
+                        <i class="fas fa-store mr-1"></i> Regresar a la Tienda
+                    </a>
+                    <a th:if="${usuario.rol == 'CAMPESINO'}" th:href="@{/campesino/productos}" class="text-sm font-bold bg-gray-50 hover:bg-green-50 hover:text-green-600 px-4 py-2 rounded-full transition-colors text-gray-600">
+                        <i class="fas fa-tractor mr-1"></i> Regresar al panel campesino
+                    </a>
+                    
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="bg-white border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- WRAPPER PERFIL -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex flex-col md:flex-row gap-8">
+            
+            <!-- SIDEBAR LATERAL -->
+            <aside class="w-full md:w-72 flex-shrink-0">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden sticky top-28">
+                    <!-- Foto y Título -->
+                    <div class="p-6 border-b border-gray-100 flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-gray-200 overflow-hidden shadow-sm border-2 border-white relative">
+                            <img th:if="${usuario.fotoPerfil != null}" th:src="${usuario.fotoPerfil}" class="w-full h-full object-cover">
+                            <div th:unless="${usuario.fotoPerfil != null}" class="w-full h-full bg-green-100 text-green-600 flex items-center justify-center text-2xl font-bold">
+                                <span th:text="${#strings.substring(usuario.nombreCompleto,0,1)}">U</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Mi perfil</p>
+                            <h2 class="text-lg font-bold text-gray-900 leading-tight" th:text="${#strings.arraySplit(usuario.nombreCompleto, ' ')[0]}">Nombre</h2>
+                            <span th:if="${usuario.rol == 'CAMPESINO'}" class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase mt-1 inline-block">Campesino Vendedor</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Menú -->
+                    <nav class="flex flex-col py-2 relative">
+                        <a th:href="@{/perfil/ajustes}" 
+                           th:classappend="${seccionActiva == 'ajustes'} ? 'active bg-green-50/50' : 'text-gray-500 hover:bg-gray-50'"
+                           class="nav-link relative px-8 py-4 text-sm font-semibold transition-colors flex items-center gap-3">
+                            <i class="fas" th:classappend="${usuario.rol == 'CAMPESINO'} ? 'fa-store' : 'fa-cog'"></i> 
+                            <span th:text="${usuario.rol == 'CAMPESINO'} ? 'Perfil Comercial' : 'Ajustes de cuenta'">Ajustes</span>
+                        </a>
+                        
+                        <a th:href="@{/perfil/creditos}" 
+                           th:classappend="${seccionActiva == 'creditos'} ? 'active bg-green-50/50' : 'text-gray-500 hover:bg-gray-50'"
+                           class="nav-link relative px-8 py-4 text-sm font-semibold transition-colors flex items-center gap-3 border-t border-gray-50">
+                            <i class="fas fa-coins"></i> AgroCréditos
+                        </a>
+                        
+                        <a th:href="@{/perfil/pagos}" 
+                           th:classappend="${seccionActiva == 'pagos'} ? 'active bg-green-50/50' : 'text-gray-500 hover:bg-gray-50'"
+                           class="nav-link relative px-8 py-4 text-sm font-semibold transition-colors flex items-center gap-3 border-t border-gray-50">
+                            <i class="fas" th:classappend="${usuario.rol == 'CAMPESINO'} ? 'fa-university' : 'fa-credit-card'"></i> 
+                            <span th:text="${usuario.rol == 'CAMPESINO'} ? 'Cuentas para Retiros' : 'Pagos'">Pagos</span>
+                        </a>
+                        
+                        <!-- Notificaciones y Otros... -->
+                        <a th:href="@{/perfil/notificaciones}" 
+                           th:classappend="${seccionActiva == 'notificaciones'} ? 'active bg-green-50/50' : 'text-gray-500 hover:bg-gray-50'"
+                           class="nav-link relative px-8 py-4 text-sm font-semibold transition-colors flex items-center gap-3 border-t border-gray-50">
+                            <i class="fas fa-bell"></i> Centro de notificaciones
+                        </a>
+                        
+                        <a th:if="${usuario.rol != 'CAMPESINO'}" th:href="@{/perfil/ordenes}" 
+                           th:classappend="${seccionActiva == 'ordenes'} ? 'active bg-green-50/50 text-green-700' : 'text-gray-500 hover:bg-gray-50'"
+                           class="nav-link relative px-8 py-4 text-sm font-semibold transition-colors flex items-center gap-3 border-t border-gray-50">
+                            <i class="fas fa-history" th:classappend="${seccionActiva == 'ordenes'} ? 'text-green-500' : ''"></i> Últimas órdenes
+                        </a>
+
+                        <a th:if="${usuario.rol == 'CAMPESINO'}" th:href="@{/campesino/productos}" 
+                           class="nav-link relative px-8 py-4 text-sm font-bold text-green-700 bg-green-100/50 hover:bg-green-100 transition-colors flex items-center gap-3 border-t border-green-200 mt-2">
+                            <i class="fas fa-tractor"></i> Mi Panel de Ventas
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- CONTENIDO CENTRAL DINÁMICO -->
+            <div class="flex-1">
+                <div class="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100 min-h-[500px]">
+                    
+                    <!-- ALERTAS -->
+                    <div th:if="${perfilExito}" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3 text-green-700">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <span class="font-bold text-sm" th:text="${perfilExito}"></span>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: AJUSTES -->
+                    <!-- ========================================== -->
+                    <div th:if="${seccionActiva == 'ajustes'}">
+                        <h3 class="text-xl font-extrabold text-gray-900 mb-8 border-b border-gray-100 pb-4" th:text="${usuario.rol == 'CAMPESINO' ? 'Perfil Comercial de la Finca' : 'Información de tu cuenta'}">Información de tu cuenta</h3>
+                        
+                        <form th:action="@{/perfil/actualizar}" method="post" class="space-y-6">
+                            
+                            <!-- Nombres y Apellidos -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Nombre Completo</label>
+                                    <input type="text" name="nombreCompleto" th:value="${usuario.nombreCompleto}" class="w-full border-b-2 border-gray-200 bg-transparent py-2 px-1 focus:border-green-500 focus:outline-none transition-colors text-sm font-semibold text-gray-800" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Correo Electrónico <i class="fas fa-lock text-green-500 ml-1"></i></label>
+                                    <input type="email" th:value="${usuario.email}" disabled class="w-full border-b-2 border-gray-100 bg-transparent py-2 px-1 text-sm font-semibold text-gray-500 cursor-not-allowed">
+                                </div>
+                            </div>
+
+                            <!-- Documento y Celular -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Número de identidad</label>
+                                    <input type="text" name="numeroIdentidad" th:value="${usuario.numeroIdentidad}" placeholder="Ej: 1234567890" class="w-full border-b-2 border-gray-200 bg-transparent py-2 px-1 focus:border-green-500 focus:outline-none transition-colors text-sm font-semibold text-gray-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Celular</label>
+                                    <input type="tel" name="telefono" th:value="${usuario.telefono}" placeholder="Ej: +57 320 000 0000" class="w-full border-b-2 border-gray-200 bg-transparent py-2 px-1 focus:border-green-500 focus:outline-none transition-colors text-sm font-semibold text-gray-800">
+                                </div>
+                            </div>
+                            
+                            <!-- Fecha y URL Foto -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Fecha de nacimiento</label>
+                                    <input type="date" name="fechaNacimiento" th:value="${usuario.fechaNacimiento}" class="w-full border-b-2 border-gray-200 bg-transparent py-2 px-1 focus:border-green-500 focus:outline-none transition-colors text-sm font-semibold text-gray-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Foto de Perfil</label>
+                                    <input type="hidden" id="fotoPerfilInput" name="fotoPerfil" th:value="${usuario.fotoPerfil}">
+                                    <button type="button" onclick="pedirFotoUrl()" class="w-full flex items-center justify-between border-b-2 border-gray-200 bg-transparent py-2 px-1 hover:border-green-500 transition-colors text-sm font-semibold text-gray-800 text-left">
+                                        <span id="fotoTexto" th:text="${usuario.fotoPerfil != null && usuario.fotoPerfil != '' ? 'URL Configurada' : 'Añadir ícono / Foto (URL)'}">Añadir Foto</span>
+                                        <i class="fas fa-camera text-green-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- DIVISOR COMERCIAL PARA CAMPESINOS -->
+                            <div th:if="${usuario.rol == 'CAMPESINO'}" class="pt-6 mt-6 border-t border-dashed border-gray-200">
+                                <h4 class="text-sm font-extrabold uppercase tracking-widest text-green-600 mb-6 flex items-center gap-2"><i class="fas fa-store"></i> Información de tu Finca / Negocio</h4>
+                                
+                                <div class="grid grid-cols-1 gap-6 mb-6">
+                                    <!-- Nombre Finca -->
+                                    <div>
+                                        <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Nombre de la Finca o Emprendimiento</label>
+                                        <input type="text" name="nombreFinca" th:value="${usuario.nombreFinca}" class="w-full border-b-2 border-gray-200 bg-transparent py-2 px-1 focus:outline-none focus:border-green-500 transition-colors text-sm font-semibold text-gray-800 placeholder-gray-300" placeholder="Ej: Finca El Rocío">
+                                    </div>
+                                    
+                                    <!-- Descripción Finca -->
+                                    <div>
+                                        <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-2">Descripción pública</label>
+                                        <textarea name="descripcionFinca" th:text="${usuario.descripcionFinca}" class="w-full border border-gray-200 bg-gray-50/50 rounded-xl p-3 focus:outline-none focus:border-green-500 focus:bg-white transition-colors text-sm text-gray-800 placeholder-gray-300 resize-none h-24" placeholder="Cuéntale a tus clientes sobre tus cultivos, tu historia o métodos artesanales..."></textarea>
+                                        <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-info-circle"></i> Esta información aparecerá en tu tienda vitrina para que los clientes confíen en ti.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- FIN DIVISOR COMERCIAL -->
+
+                            <!-- Género -->
+                            <div class="mb-4">
+                                <label class="block text-[11px] font-extrabold uppercase tracking-widest text-gray-400 mb-3">Género</label>
+                                <div class="flex items-center gap-6">
+                                    <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700">
+                                        <input type="radio" name="genero" value="Hombre" th:checked="${usuario.genero == 'Hombre'}" class="accent-green-600 w-4 h-4"> Hombre
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700">
+                                        <input type="radio" name="genero" value="Mujer" th:checked="${usuario.genero == 'Mujer'}" class="accent-green-600 w-4 h-4"> Mujer
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Botones Action -->
+                            <div class="pt-6 border-t border-gray-100 flex justify-between items-center mt-8">
+                                <button type="button" class="text-sm font-bold border border-red-200 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white px-6 py-2.5 rounded-xl transition-colors">Eliminar mi cuenta</button>
+                                <button type="submit" class="text-sm font-bold bg-green-600 text-white px-8 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-600/30">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: CRÉDITOS -->
+                    <!-- ========================================== -->
+                    <div th:if="${seccionActiva == 'creditos'}" class="flex flex-col items-center">
+                        <div class="w-full rounded-3xl bg-gradient-to-br from-green-500 via-emerald-600 to-green-900 text-white p-8 md:p-12 text-center shadow-2xl transform transition hover:scale-[1.01] overflow-hidden relative">
+                            <!-- Background decoration -->
+                            <i class="fas fa-leaf absolute -bottom-10 -right-10 text-[150px] opacity-10 rotate-12"></i>
+                            <h3 class="text-sm font-extrabold uppercase tracking-widest mb-2 opacity-90 relative z-10">Tus AgroCréditos</h3>
+                            <div class="text-6xl font-black tracking-tight relative z-10 drop-shadow-md" th:text="${'$' + #numbers.formatDecimal(usuario.creditos, 0, 'COMMA', 0, 'POINT')}">$0</div>
+                        </div>
+                        <a href="#" class="text-sm font-bold text-gray-800 hover:text-green-600 mt-6 underline decoration-2 decoration-green-200 underline-offset-4">¿Cómo funciona?</a>
+                        
+                        <div class="w-full mt-12">
+                            <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-4 mb-4">Historial</h4>
+                            <div th:if="${usuario.creditos > 0}" class="flex justify-between items-center py-4 border-b border-gray-50">
+                                <div class="flex items-center gap-4">
+                                    <div class="text-green-500 bg-green-50 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"><i class="fas fa-caret-up"></i></div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-800">Regalo de Bienvenida</p>
+                                        <p class="text-[10px] text-gray-400 font-bold">Vence en 30 días</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-green-600" th:text="${'$' + #numbers.formatDecimal(usuario.creditos, 0, 'COMMA', 0, 'POINT')}"></span>
+                            </div>
+                            <div th:unless="${usuario.creditos > 0}" class="text-center py-8">
+                                <i class="fas fa-piggy-bank text-4xl text-gray-200 mb-3"></i>
+                                <p class="text-sm text-gray-400 font-semibold">Tus movimientos aparecerán aquí.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: PAGOS (BETA) -->
+                    <!-- ========================================== -->
+                    <div th:if="${seccionActiva == 'pagos'}">
+                        <div class="flex gap-8 border-b border-gray-100 mb-8">
+                            <button id="tabBilletera" onclick="toggleTabPagos('billetera')" class="pb-3 border-b-2 border-green-500 font-bold text-green-600 text-sm flex items-center gap-2 transition-colors"><i class="fas fa-wallet"></i> Billetera Digital</button>
+                            <button id="tabHistorial" onclick="toggleTabPagos('historial')" class="pb-3 border-b-2 border-transparent font-bold text-gray-400 text-sm flex items-center gap-2 hover:text-gray-600 transition-colors"><i class="fas fa-history"></i> Historial de pagos</button>
+                        </div>
+                        
+                        <div id="vistaBilletera">
+                        
+                        <!-- Métodos Actuales (CLIENTE) -->
+                        <div th:if="${usuario.rol != 'CAMPESINO'}" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <!-- Pago en Efectivo -->
+                            <div class="h-40 rounded-3xl bg-green-500 text-white p-6 shadow-xl shadow-green-500/20 relative overflow-hidden transform hover:scale-[1.02] transition cursor-pointer flex justify-between items-center group">
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+                                <div class="absolute top-0 right-0 p-5"><div class="w-3 h-3 rounded-full bg-green-300 shadow-[0_0_10px_rgba(134,239,172,0.8)] animate-pulse"></div></div>
+                                <div class="relative z-10 w-full">
+                                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4 backdrop-blur-sm shadow-inner"><i class="fas fa-money-bill-wave text-xl"></i></div>
+                                    <h4 class="font-black text-xl leading-none tracking-tight">Efectivo</h4>
+                                    <p class="text-green-100 text-xs mt-1 font-semibold opacity-90">Pago al recibir</p>
+                                </div>
+                                <div class="text-right relative z-10 flex flex-col justify-between h-full items-end py-1 whitespace-nowrap">
+                                    <span class="bg-white text-green-600 text-[9px] font-extrabold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm">Pri.</span>
+                                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/30 transition-colors"><i class="fas fa-check text-white text-sm"></i></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mercado Pago -->
+                            <div class="h-40 rounded-3xl bg-[#009ee3] text-white p-6 shadow-xl shadow-blue-500/20 relative overflow-hidden transform hover:scale-[1.02] transition cursor-pointer flex justify-between items-center group">
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                                <div class="relative z-10 w-full">
+                                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-4 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+                                        <i class="fas fa-handshake text-[#009ee3] text-lg"></i>
+                                    </div>
+                                    <h4 class="font-black text-[17px] leading-tight tracking-tight">Mercado Pago</h4>
+                                    <p class="text-blue-100 text-[10px] mt-1 font-semibold opacity-90 uppercase tracking-widest">Billetera</p>
+                                </div>
+                            </div>
+
+                            <!-- Botón Añadir Tarjeta -->
+                            <div onclick="toggleFormTarjeta()" class="h-40 rounded-3xl border-2 border-dashed border-gray-200 hover:border-green-400 bg-gray-50 flex flex-col items-center justify-center gap-3 transition p-8 hover:bg-green-50/50 cursor-pointer group">
+                                <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 text-xl border-2 border-transparent group-hover:border-green-200 group-hover:text-green-500 transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500 group-hover:text-green-600 transition-colors text-center">Añadir Tarjeta<br><span class="text-[10px] font-normal">(Crédito/Débito)</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Métodos Actuales (CAMPESINO) -->
+                        <div th:if="${usuario.rol == 'CAMPESINO'}" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <!-- Nequi (Placeholder de retiro) -->
+                            <div class="h-40 rounded-3xl bg-slate-900 text-white p-6 shadow-xl shadow-slate-900/20 relative overflow-hidden transform hover:scale-[1.02] transition cursor-pointer flex justify-between items-center group">
+                                <div class="absolute inset-0 bg-gradient-to-br from-[#E10098]/30 to-transparent pointer-events-none opacity-50"></div>
+                                <div class="relative z-10 w-full">
+                                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center mb-4 shadow-md">
+                                        <div class="font-black text-[#E10098] tracking-tighter text-lg">N</div>
+                                    </div>
+                                    <h4 class="font-black text-xl leading-none tracking-tight">Nequi</h4>
+                                    <p class="text-slate-300 text-[10px] mt-1 font-semibold uppercase tracking-widest">Cuenta Principal</p>
+                                    <p class="text-white font-mono text-sm mt-1 opacity-80">••• 4567</p>
+                                </div>
+                                <div class="text-right relative z-10 flex flex-col justify-between h-full items-end py-1 whitespace-nowrap">
+                                    <span class="bg-[#E10098] text-white text-[9px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">Activa</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón Añadir Cuenta Bancaria -->
+                            <div class="h-40 rounded-3xl border-2 border-dashed border-gray-200 hover:border-slate-800 bg-gray-50 flex flex-col items-center justify-center gap-3 transition p-8 hover:bg-slate-50 cursor-pointer group">
+                                <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 text-xl border-2 border-transparent group-hover:border-slate-300 group-hover:text-slate-800 transition-colors">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <span class="text-sm font-bold text-gray-500 group-hover:text-slate-800 transition-colors text-center">Vincular Cuenta Bancaria<br><span class="text-[10px] font-normal">(Ahorros / Corriente)</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Modal de Nueva Tarjeta (Superpuesto) -->
+                        <div id="seccionFormTarjeta" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+                            <!-- Contenedor Modal -->
+                            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modalTarjetaContent">
+                                
+                                <!-- Header del modal -->
+                                <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                                    <h4 class="text-sm font-extrabold uppercase tracking-widest text-gray-900">Agregar nueva tarjeta</h4>
+                                    <button onclick="toggleFormTarjeta()" class="text-gray-400 hover:text-red-500 transition w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                </div>
+
+                                <div class="p-6 md:p-8 flex flex-col gap-8 max-h-[80vh] overflow-y-auto">
+                                    
+                                    <!-- Tarjeta Visual Interactiva 3D (Arriba) -->
+                                    <div class="w-full mx-auto relative z-10">
+                                        <!-- ESCENA 3D -->
+                                        <div class="card-scene">
+                                            <div id="card3d" class="card-3d shadow-xl rounded-2xl">
+                                                <!-- ========= FRENTE ========= -->
+                                                <div class="card-face card-front card-theme-default text-white">
+                                                    <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                                                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/5 blur-3xl rounded-full"></div>
+                                                    
+                                                    <div class="flex justify-between items-center mb-6 relative z-10">
+                                                        <div class="w-12 h-9 border border-yellow-500/30 rounded flex opacity-80" style="background: linear-gradient(135deg, #d4af37, #ffd700, #b8860b); overflow:hidden;">
+                                                            <div class="w-full h-px bg-black/20 my-auto"></div>
+                                                            <div class="h-full w-px bg-black/20 mx-auto"></div>
+                                                        </div>
+                                                        <i id="cardBrandIcon" class="fab fa-cc-mastercard text-4xl opacity-60 transition-all duration-500"></i>
+                                                    </div>
+                                                    
+                                                    <p id="cardDisplayNumber" class="font-mono text-[17px] tracking-[0.1em] mb-4 opacity-90 relative z-10 transition-all mt-1">•••• •••• •••• ••••</p>
+                                                    
+                                                    <div class="flex justify-between items-end relative z-10 w-full mt-2">
+                                                        <div class="max-w-[70%]">
+                                                            <p class="text-[8px] uppercase tracking-widest text-white/50 mb-0.5">Nombre en la tarjeta</p>
+                                                            <p id="cardDisplayName" class="font-bold text-[11px] tracking-wider line-clamp-1 uppercase transition-all" th:text="${usuario.nombreCompleto} != null ? ${usuario.nombreCompleto} : 'TU NOMBRE'">TU NOMBRE</p>
+                                                        </div>
+                                                        <div class="text-right">
+                                                            <div class="flex gap-2 items-center">
+                                                                <span class="text-[6px] uppercase tracking-widest text-white/50 leading-none">Valid<br>Thru</span>
+                                                                <p id="cardDisplayExpiry" class="font-mono text-sm transition-all relative top-0.5">MM/YY</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- ========= REVERSO ========= -->
+                                                <div class="card-face card-back card-theme-default text-white">
+                                                    <div class="w-full h-10 bg-black/80 rounded -mx-6 -mt-6 mb-4" style="width:calc(100% + 3rem)"></div>
+                                                    <div class="flex items-center justify-end gap-3 mt-4">
+                                                        <div class="flex-1 bg-white/20 h-8 rounded-sm"></div>
+                                                        <div class="bg-white text-gray-900 rounded-sm px-3 py-1 min-w-[50px] text-right shadow-inner">
+                                                            <p id="cardDisplayCVC" class="font-mono text-sm font-bold tracking-widest italic">•••</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-4 text-[7px] text-white/40 font-sans leading-tight pr-4">
+                                                        <p>Esta tarjeta es propiedad del banco emisor. Si la encuentra, por favor devuélvala. El uso de esta tarjeta está regido por los términos del acuerdo de cuenta.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Formulario Inputs (Abajo) -->
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Número de la tarjeta</label>
+                                            <input type="text" id="inputCardNumber" maxlength="19" placeholder="Ingresa los 16 dígitos" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm transition outline-none shadow-sm hover:border-gray-400">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Nombre y Apellido</label>
+                                            <input type="text" id="inputCardName" placeholder="Como aparece en la tarjeta" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm transition uppercase outline-none shadow-sm hover:border-gray-400">
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-gray-700 mb-2">Fecha de expiración</label>
+                                                <input type="text" id="inputCardExpiry" maxlength="5" placeholder="MM/AA" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm transition outline-none shadow-sm hover:border-gray-400">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-gray-700 mb-2">Código CVV</label>
+                                                <div class="relative">
+                                                    <input type="password" id="inputCardCVC" maxlength="4" placeholder="Ej: 123" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm transition outline-none shadow-sm hover:border-gray-400">
+                                                    <i class="far fa-question-circle absolute right-4 top-3.5 text-gray-400 hover:text-green-500 cursor-help" title="Los 3 o 4 dígitos de seguridad al reverso de tu tarjeta."></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer Modal: Botón Seguro -->
+                                <div class="bg-gray-50/80 border-t border-gray-100 p-6 flex flex-col gap-4">
+                                    <div class="flex items-start gap-3 px-2">
+                                        <i class="fas fa-shield-check text-green-500 mt-0.5 text-lg"></i>
+                                        <p class="text-[10px] text-gray-500 font-medium leading-relaxed">Al continuar, tus datos son encriptados de forma segura (PCI-DSS) y protegidos por AgroConecta. No guardamos el CVC.</p>
+                                    </div>
+                                    <button class="w-full bg-green-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-md hover:bg-green-600 transition transform hover:-translate-y-0.5 mt-2">
+                                        Guardar Tarjeta y Continuar
+                                    </button>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        </div> <!-- Cierre vistaBilletera -->
+
+                        <!-- Contenedor Historial de Pagos -->
+                        <div id="vistaHistorial" class="hidden animate-fade-in text-center py-16">
+                            <div class="w-32 h-32 bg-gray-50/80 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[inset_0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100">
+                                <i class="fas fa-file-invoice-dollar text-5xl text-gray-300 transform -rotate-12"></i>
+                            </div>
+                            <h2 class="text-xl font-black text-gray-900 mb-3 tracking-tight">Sin historial de pagos</h2>
+                            <p class="text-gray-500 text-sm max-w-sm mx-auto leading-relaxed">Aún no has realizado ninguna transacción. Cuando compres tus primeros insumos, los recibos aparecerán organizados aquí.</p>
+                            <button onclick="window.location.href='/tienda'" class="mt-8 bg-white border border-gray-200 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition shadow-sm text-sm">
+                                <i class="fas fa-shopping-basket text-green-500 mr-2"></i> Ir a la tienda
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: NOTIFICACIONES -->
+                    <!-- ========================================== -->
+                    <div th:if="${seccionActiva == 'notificaciones'}" class="text-center py-20">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i class="fas fa-bell-slash text-4xl text-gray-300"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-900 mb-2">Estás al día</h2>
+                        <p class="text-gray-500 text-sm max-w-sm mx-auto">Cuando tengas novedades sobre tus envíos o alertas importantes, aparecerán aquí.</p>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- SECCIÓN: ÚLTIMAS ÓRDENES -->
+                    <!-- ========================================== -->
+                    <div th:if="${seccionActiva == 'ordenes'}">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-900 border-l-4 border-green-500 pl-3">Tus últimas 5 compras</h3>
+                            <a th:href="@{/orden/mis-compras}" class="text-sm font-bold text-green-600 hover:text-green-700 hover:underline">Ver todo el historial</a>
+                        </div>
+                        
+                        <div th:if="${ultimasOrdenes != null and !ultimasOrdenes.isEmpty()}" class="space-y-4">
+                            <!-- Loop de Órdenes -->
+                            <div th:each="orden : ${ultimasOrdenes}" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow group flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                
+                                <div class="flex items-center gap-4">
+                                    <!-- Icono Estado -->
+                                    <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+                                         th:classappend="${orden.estado == 'Entregado'} ? 'bg-green-100 text-green-600' : (${orden.estado == 'Enviado'} ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-500')">
+                                        <i class="fas" th:classappend="${orden.estado == 'Entregado'} ? 'fa-check' : (${orden.estado == 'Enviado'} ? 'fa-truck' : 'fa-clock')"></i>
+                                    </div>
+                                    
+                                    <div>
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Orden #<span th:text="${orden.numeroOrden}"></span></p>
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-bold text-gray-900" th:text="${'$' + #numbers.formatDecimal(orden.total, 0, 'COMMA', 0, 'POINT')}">Total</h4>
+                                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                                                  th:text="${orden.estado}"
+                                                  th:classappend="${orden.estado == 'Entregado'} ? 'bg-green-50 text-green-600 border border-green-100' : (${orden.estado == 'Enviado'} ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-orange-50 text-orange-500 border border-orange-100')">
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1"><i class="far fa-calendar-alt mr-1"></i> <span th:text="${#temporals.format(orden.fechaCreacion, 'dd MMM yyyy, HH:mm')}"></span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3 w-full md:w-auto">
+                                    <a th:href="@{/orden/recibo/{id}(id=${orden.id})}" class="ml-auto md:ml-0 text-xs font-bold text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap flex items-center gap-2">
+                                        <i class="fas fa-file-download text-gray-500"></i> Descargar recibo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado vacío -->
+                        <div th:if="${ultimasOrdenes == null or ultimasOrdenes.isEmpty()}" class="text-center py-16 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
+                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                                <i class="fas fa-box-open text-3xl text-gray-300"></i>
+                            </div>
+                            <h2 class="text-lg font-bold text-gray-900 mb-2">No tienes órdenes recientes</h2>
+                            <p class="text-gray-500 text-sm max-w-sm mx-auto mb-6">Explora nuestra tienda y apoya al campo colombiano.</p>
+                            <a th:href="@{/tienda}" class="text-sm font-bold bg-green-600 text-white px-6 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-600/30">Ir a la Tienda</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function pedirFotoUrl() {
+            Swal.fire({
+                title: 'Actualizar Foto',
+                input: 'url',
+                inputLabel: 'Pega el Link (URL) de tu nueva foto de perfil',
+                inputPlaceholder: 'https://ejemplo.com/mifoto.jpg',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: '<i class="fas fa-check"></i> Aceptar',
+                cancelButtonText: 'Cancelar',
+                background: '#ffffff',
+                customClass: {
+                    title: 'text-lg font-bold text-gray-800'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    document.getElementById('fotoPerfilInput').value = result.value;
+                    document.getElementById('fotoTexto').innerHTML = '<span class="text-green-600 font-bold">¡Enlace listo para guardar!</span>';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Foto Cargada',
+                        text: 'Ahora haz click en el botón verde "Guardar Cambios" para aplicarla a tu cuenta.',
+                        confirmButtonColor: '#16a34a'
+                    });
+                }
+            });
+        }
+
+        function toggleFormTarjeta() {
+            const modal = document.getElementById('seccionFormTarjeta');
+            const modalContent = document.getElementById('modalTarjetaContent');
+            
+            if (modal.classList.contains('hidden')) {
+                // Mostrar Modal
+                modal.classList.remove('hidden');
+                // Forzar Reflow
+                void modal.offsetWidth;
+                
+                // Animar entrada
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            } else {
+                // Animar salida
+                modal.classList.add('opacity-0');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                
+                // Esperar a que termine la transición y ocultar
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function toggleTabPagos(tab) {
+            const vistaBilletera = document.getElementById('vistaBilletera');
+            const vistaHistorial = document.getElementById('vistaHistorial');
+            const tabBilletera = document.getElementById('tabBilletera');
+            const tabHistorial = document.getElementById('tabHistorial');
+
+            if (tab === 'billetera') {
+                vistaHistorial.classList.add('hidden');
+                vistaBilletera.classList.remove('hidden');
+                
+                tabBilletera.classList.add('border-green-500', 'text-green-600');
+                tabBilletera.classList.remove('border-transparent', 'text-gray-400');
+                
+                tabHistorial.classList.remove('border-green-500', 'text-green-600');
+                tabHistorial.classList.add('border-transparent', 'text-gray-400');
+            } else {
+                vistaBilletera.classList.add('hidden');
+                vistaHistorial.classList.remove('hidden');
+                
+                tabHistorial.classList.add('border-green-500', 'text-green-600');
+                tabHistorial.classList.remove('border-transparent', 'text-gray-400');
+                
+                tabBilletera.classList.remove('border-green-500', 'text-green-600');
+                tabBilletera.classList.add('border-transparent', 'text-gray-400');
+            }
+        }
+
+        /* ==============================
+           TARJETA INTERACTIVA 3D
+           ============================== */
+        (function() {
+            const card = document.getElementById('card3d');
+            if (!card) return;
+
+            const numInput    = document.getElementById('inputCardNumber');
+            const expInput    = document.getElementById('inputCardExpiry');
+            const cvcInput    = document.getElementById('inputCardCVC');
+            const nameInput   = document.getElementById('inputCardName');
+            const cardIcon    = document.getElementById('inputCardIcon');
+
+            const dispNum     = document.getElementById('cardDisplayNumber');
+            const dispName    = document.getElementById('cardDisplayName');
+            const dispExp     = document.getElementById('cardDisplayExpiry');
+            const dispCVC     = document.getElementById('cardDisplayCVC');
+            const brandIcon   = document.getElementById('cardBrandIcon');
+            const frontFace   = card.querySelector('.card-front');
+            const backFace    = card.querySelector('.card-back');
+
+            // --- Detectar red de pago ---
+            function detectBrand(num) {
+                const n = num.replace(/\s/g, '');
+                if (/^4/.test(n))                             return 'visa';
+                if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n))   return 'mastercard';
+                if (/^3[47]/.test(n))                          return 'amex';
+                return 'default';
+            }
+
+            function applyBrand(brand) {
+                const themes = ['card-theme-default','card-theme-visa','card-theme-mastercard','card-theme-amex'];
+                themes.forEach(t => { frontFace.classList.remove(t); backFace.classList.remove(t); });
+                frontFace.classList.add('card-theme-' + brand);
+                backFace.classList.add('card-theme-' + brand);
+
+                const icons = { visa: 'fab fa-cc-visa', mastercard: 'fab fa-cc-mastercard', amex: 'fab fa-cc-amex', default: 'fab fa-cc-mastercard' };
+                brandIcon.className = (icons[brand] || icons.default) + ' text-4xl opacity-80 transition-all duration-500';
+                
+                const inputIcons = { visa: 'fab fa-cc-visa', mastercard: 'fab fa-cc-mastercard', amex: 'fab fa-cc-amex', default: 'fas fa-credit-card' };
+                const inputColors = { visa: 'text-blue-600', mastercard: 'text-orange-500', amex: 'text-blue-400', default: 'text-gray-400' };
+                cardIcon.className = (inputIcons[brand] || inputIcons.default) + ' absolute left-4 top-4 text-lg transition-colors ' + (inputColors[brand] || inputColors.default);
+            }
+
+            // --- Formatear número (espacios cada 4) ---
+            function formatCardNumber(value) {
+                const v = value.replace(/\D/g, '').substring(0, 16);
+                return v.replace(/(\d{4})(?=\d)/g, '$1 ');
+            }
+
+            // --- NÚMERO ---
+            numInput.addEventListener('input', function() {
+                const formatted = formatCardNumber(this.value);
+                this.value = formatted;
+                const raw = formatted.replace(/\s/g, '');
+
+                let display = '';
+                for (let i = 0; i < 16; i++) {
+                    if (i > 0 && i % 4 === 0) display += ' ';
+                    display += raw[i] || '•';
+                }
+                dispNum.textContent = display;
+
+                applyBrand(detectBrand(raw));
+            });
+
+            numInput.addEventListener('focus', () => card.classList.remove('flipped'));
+
+            // --- NOMBRE ---
+            nameInput.addEventListener('input', function() {
+                dispName.textContent = this.value.toUpperCase() || 'TU NOMBRE';
+            });
+            nameInput.addEventListener('focus', () => card.classList.remove('flipped'));
+
+            // --- EXPIRACIÓN ---
+            expInput.addEventListener('input', function() {
+                let v = this.value.replace(/\D/g, '').substring(0, 4);
+                if (v.length >= 3) v = v.substring(0,2) + '/' + v.substring(2);
+                this.value = v;
+                dispExp.textContent = v || 'MM/YY';
+            });
+            expInput.addEventListener('focus', () => card.classList.remove('flipped'));
+
+            // --- CVC (FLIP!) ---
+            cvcInput.addEventListener('focus', () => card.classList.add('flipped'));
+            cvcInput.addEventListener('blur',  () => card.classList.remove('flipped'));
+            cvcInput.addEventListener('input', function() {
+                const v = this.value.replace(/\D/g, '').substring(0, 4);
+                this.value = v;
+                dispCVC.textContent = v || '•••';
+            });
+        })();
+    </script>
+</body>
+</html>

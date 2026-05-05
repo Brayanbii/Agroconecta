@@ -155,7 +155,7 @@
                             </div>
                             <!-- Precio Unitario -->
                             <div class="text-right mt-2 sm:mt-0">
-                                <p class="text-sm text-gray-400">Precio unidad</p>
+                                <p class="text-sm text-gray-400" th:text="'Precio por ' + ${#strings.toLowerCase(item.producto.unidad)}">Precio unidad</p>
                                 <p class="text-lg font-bold text-gray-900" th:text="'$' + ${item.producto.precio}">$0</p>
                             </div>
                         </div>
@@ -163,21 +163,24 @@
                         <div class="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-50 gap-4">
                             
                             <!-- Control de Cantidad -->
-                            <form th:action="@{/carrito/actualizar}" method="post" class="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200">
-                                <input type="hidden" name="id" th:value="${item.producto.id}" />
-                                <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown(); this.parentNode.submit();" 
-                                        class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
-                                    <i class="fas fa-minus text-xs"></i>
-                                </button>
-                                
-                                <input type="number" name="cantidad" th:value="${item.cantidad}" min="1" 
-                                       class="w-12 text-center bg-transparent font-bold text-gray-800 text-sm outline-none" 
-                                       onchange="this.form.submit()" />
-                                
-                                <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp(); this.parentNode.submit();" 
-                                        class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
-                                    <i class="fas fa-plus text-xs"></i>
-                                </button>
+                            <form th:action="@{/carrito/actualizar}" method="post" class="flex flex-col items-center gap-1">
+                                <div class="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200">
+                                    <input type="hidden" name="id" th:value="${item.producto.id}" />
+                                    <button type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown(); this.closest('form').submit();" 
+                                            class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
+                                        <i class="fas fa-minus text-xs"></i>
+                                    </button>
+                                    
+                                    <input type="number" name="cantidad" th:value="${item.cantidad}" min="1" th:max="${item.producto.stock}"
+                                           class="w-12 text-center bg-transparent font-bold text-gray-800 text-sm outline-none" 
+                                           onchange="verificarInput(this)" />
+                                    
+                                    <button type="button" onclick="incrementarCantidadBtn(this)" 
+                                            class="w-8 h-8 rounded-md bg-white text-gray-600 hover:text-green-600 shadow-sm transition flex items-center justify-center">
+                                        <i class="fas fa-plus text-xs"></i>
+                                    </button>
+                                </div>
+                                <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">Disponibles: <span th:text="${item.producto.stock} + ' ' + ${item.producto.unidad}"></span></span>
                             </form>
 
                             <!-- Subtotal y Eliminar -->
@@ -286,12 +289,54 @@
         </div>
     </footer>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.getElementById('btn-pagar')?.addEventListener('click', function() {
+        document.getElementById('btn-checkout')?.addEventListener('click', function(e) {
+            // Evitar doble submit visual
             this.style.pointerEvents = 'none';
             this.classList.add('opacity-75');
-            this.innerHTML = '<i class="fas fa-circle-notch fa-spin font-bold text-lg"></i><span class="font-bold">Procesando pago...</span>';
+            this.innerHTML = '<i class="fas fa-circle-notch fa-spin font-bold text-lg"></i><span class="font-bold">Procesando...</span>';
         });
+
+        function verificarInput(input) {
+            const max = parseInt(input.getAttribute('max')) || parseInt(input.max) || 9999;
+            const val = parseInt(input.value);
+            if (val > max) {
+                input.value = max;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock Llevado al Máximo',
+                    text: 'Se han ajustado las unidades a ' + max + ' ya que es todo lo que está disponible del campesino ahora mismo.',
+                    confirmButtonColor: '#16a34a'
+                }).then(() => {
+                    input.closest('form').submit();
+                });
+            } else if (val < 1) {
+                input.value = 1;
+                input.closest('form').submit();
+            } else {
+                input.closest('form').submit();
+            }
+        }
+
+        function incrementarCantidadBtn(btn) {
+            const input = btn.parentNode.querySelector('input[type=number]');
+            const max = parseInt(input.getAttribute('max')) || parseInt(input.max) || 9999;
+            const actual = parseInt(input.value);
+            
+            if (actual >= max) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Límite Obtenido',
+                    text: 'Ya no hay más unidades disponibles de este producto.',
+                    confirmButtonColor: '#eab308'
+                });
+            } else {
+                input.stepUp();
+                btn.closest('form').submit();
+            }
+        }
     </script>
 </body>
 </html>
