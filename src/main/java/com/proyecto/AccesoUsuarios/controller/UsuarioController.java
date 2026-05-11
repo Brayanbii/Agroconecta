@@ -92,6 +92,9 @@ public class UsuarioController {
 
         if (!"CAMPESINO".equals(usuario.getRol())) {
             usuario.setRol("CLIENTE");
+        } else {
+            // Es Campesino: Requiere verificación
+            usuario.setEstadoVerificacion("PENDIENTE_DATOS");
         }
         
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));

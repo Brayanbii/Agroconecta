@@ -117,7 +117,7 @@
     <div class="ambient-bg"></div>
     <!-- NAVBAR (Sticky y Limpio) -->
     <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <!-- Logo y Location -->
                 <div class="flex items-center gap-4 md:gap-8">
@@ -143,7 +143,7 @@
                 </div>
 
                 <!-- Buscador Central (Desktop) - FUNCIONAL -->
-                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 max-w-lg mx-8 relative" id="search-form" onsubmit="return false;">
+                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 mx-4 lg:mx-8 relative" id="search-form" onsubmit="return false;">
                     <div class="relative w-full">
                         <input type="text" name="buscar" id="search-input" th:value="${busqueda}" autocomplete="off"
                                placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
@@ -157,12 +157,18 @@
                         </button>
                     </div>
                     
-                    <!-- Búsqueda Predictiva (Dropdown) -->
-                    <div id="search-suggestions" class="absolute top-[110%] left-0 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden hidden z-50 max-h-80 overflow-y-auto">
-                        <div class="px-4 py-3 text-[10px] text-gray-400 font-extrabold uppercase tracking-widest bg-gray-50/80 backdrop-blur sticky top-0 border-b border-gray-100 hidden z-10" id="sug-header">Sugerencias encontradas</div>
-                        <ul id="suggestions-list" class="py-1">
+                    <!-- Búsqueda Predictiva Mágica (Estilo Raycast/Spotlight) -->
+                    <div id="search-suggestions" class="absolute top-[110%] left-0 right-0 bg-white/95 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden hidden z-50 flex-col transform transition-all duration-300">
+                        <ul id="suggestions-list" class="py-2 px-2 space-y-1 max-h-[350px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
                             <!-- JS injects items here -->
                         </ul>
+                        <!-- Smart Footer -->
+                        <div id="sug-footer" class="hidden px-5 py-3.5 bg-gray-50/90 border-t border-gray-100/80 justify-between items-center backdrop-blur-md cursor-pointer hover:bg-gray-100 transition-colors shrink-0" onclick="document.getElementById('search-input').dispatchEvent(new Event('input')); document.getElementById('search-suggestions').classList.add('hidden');">
+                            <span class="text-xs font-bold text-gray-600" id="sug-footer-text">Ver todos los resultados</span>
+                            <div class="flex items-center gap-1 text-[10px] font-bold text-gray-400 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
+                                <span>Enter</span> <i class="fas fa-level-down-alt rotate-90 ml-1"></i>
+                            </div>
+                        </div>
                     </div>
                 </form>
 
@@ -343,8 +349,40 @@
                     </div>
                 </div>
 
-                <!-- Grid Full Width -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 relative" id="products-grid">
+                <!-- SKELETON LOADER (Estilo Silicon Valley SPA) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 relative" id="skeleton-grid">
+                    <!-- Esqueletos (10 elementos) -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px] animate-pulse" th:each="i : ${#numbers.sequence(1, 10)}">
+                        <!-- Imagen skeleton -->
+                        <div class="h-48 bg-gray-200"></div>
+                        <!-- Cuerpo skeleton -->
+                        <div class="p-5 flex-1 flex flex-col gap-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-gray-200"></div>
+                                <div class="h-3 bg-gray-200 rounded-full w-1/3"></div>
+                            </div>
+                            <div class="h-5 bg-gray-300 rounded-full w-3/4 mb-1"></div>
+                            <div class="h-3 bg-gray-200 rounded-full w-1/4 mb-2"></div>
+                            
+                            <div class="h-3 bg-gray-200 rounded-full w-full mt-2"></div>
+                            <div class="h-3 bg-gray-200 rounded-full w-5/6 mb-4"></div>
+                            
+                            <div class="mt-auto flex items-end justify-between">
+                                <div>
+                                    <div class="h-2 bg-gray-200 rounded-full w-10 mb-2"></div>
+                                    <div class="h-6 bg-gray-300 rounded-full w-20"></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <div class="w-10 h-10 rounded-full bg-gray-200"></div>
+                                    <div class="w-10 h-10 rounded-full bg-gray-200"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Full Width (Oculto inicialmente para transición SPA) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 relative hidden opacity-0 transition-opacity duration-700 ease-out" id="products-grid">
             
             <!-- Tarjeta Producto -->
             <div th:each="p : ${productos}" 
@@ -999,56 +1037,180 @@
                 applyFiltersAndSort();
             });
 
-            // Listener Búsqueda Predictiva
+            // Variables Locales para la Búsqueda Mágica
+            const suggestionsDiv = document.getElementById('search-suggestions');
+            const suggestionsList = document.getElementById('suggestions-list');
+            const sugFooter = document.getElementById('sug-footer');
+            const sugFooterText = document.getElementById('sug-footer-text');
+
+            // --- Sistema de LocalStorage para Búsquedas ---
+            window.saveSearch = function(q) {
+                if(!q || q.trim().length === 0) return;
+                try {
+                    let recents = JSON.parse(localStorage.getItem('recent_searches')) || [];
+                    recents = recents.filter(item => item.toLowerCase() !== q.toLowerCase());
+                    recents.unshift(q);
+                    if(recents.length > 5) recents.pop();
+                    localStorage.setItem('recent_searches', JSON.stringify(recents));
+                } catch(e) {}
+            };
+
+            function getRecentSearches() {
+                try {
+                    return JSON.parse(localStorage.getItem('recent_searches')) || [];
+                } catch(e) {
+                    return [];
+                }
+            }
+
+            // Función para mostrar sugerencias por defecto dinámicas (Rappi Style)
+            function showDefaultSuggestions() {
+                // Generar 'Los más buscados' dinámicamente usando 4 productos reales
+                const shuffled = [...productNodes].sort(() => 0.5 - Math.random());
+                const topSearched = shuffled.slice(0, 4);
+                let topHtml = '';
+                
+                const colors = [
+                    {bg: '#fdeede', border: '#fadab2'},
+                    {bg: '#fee2e2', border: '#fca5a5'},
+                    {bg: '#f3e8ff', border: '#d8b4fe'},
+                    {bg: '#e0f2fe', border: '#7dd3fc'}
+                ];
+
+                topSearched.forEach((n, i) => {
+                    const nombre = n.getAttribute('data-nombre');
+                    const imgUrl = n.querySelector('img').src;
+                    const c = colors[i % colors.length];
+                    
+                    topHtml += `
+                        <div class="flex flex-col items-center gap-2 cursor-pointer group min-w-[85px]" onclick="document.getElementById('search-input').value='${nombre}'; window.saveSearch('${nombre}'); document.getElementById('search-input').dispatchEvent(new Event('input'));">
+                            <div class="w-16 h-16 md:w-[72px] md:h-[72px] rounded-full p-1.5 shadow-sm group-hover:scale-105 transition-all flex items-center justify-center border-2" style="background-color: ${c.bg}; border-color: ${c.border};">
+                                <img src="${imgUrl}" class="w-full h-full object-cover rounded-full drop-shadow-sm bg-white" onerror="this.onerror=null; this.src=window.fallbackImg">
+                            </div>
+                            <span class="text-[11px] md:text-xs font-bold text-gray-700 group-hover:text-green-600 truncate w-full text-center px-1 capitalize">${nombre.split(' ')[0]}</span>
+                        </div>
+                    `;
+                });
+
+                // Cargar Búsquedas Recientes desde LocalStorage
+                const recents = getRecentSearches();
+                let recentHtml = '';
+                if(recents.length > 0) {
+                    recentHtml = `
+                        <div class="border-t border-gray-100/80 my-1 mx-3"></div>
+                        <div class="px-3 py-3">
+                            <h4 class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">Búsquedas recientes</h4>
+                            <ul class="space-y-1">
+                                ${recents.map(r => `
+                                    <li class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 rounded-xl cursor-pointer text-sm font-bold text-gray-600 transition-colors capitalize" onclick="document.getElementById('search-input').value='${r}'; window.saveSearch('${r}'); document.getElementById('search-input').dispatchEvent(new Event('input'));">
+                                        <i class="fas fa-history text-gray-300"></i> <span class="truncate">${r}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                suggestionsList.innerHTML = `
+                    <div class="px-4 py-4">
+                        <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-4">Los más buscados 🔥</h4>
+                        <div class="flex gap-5 overflow-x-auto pb-3 scrollbar-hide">
+                            ${topHtml}
+                        </div>
+                    </div>
+                    ${recentHtml}
+                `;
+                sugFooter.classList.remove('flex');
+                sugFooter.classList.add('hidden');
+                suggestionsDiv.classList.remove('hidden');
+                suggestionsDiv.classList.add('flex');
+            }
+
+            // Mostrar sugerencias por defecto al hacer clic
+            searchInput.addEventListener('focus', (e) => {
+                if (e.target.value.trim().length === 0) {
+                    showDefaultSuggestions();
+                } else {
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            });
+
+            // Listener Búsqueda Predictiva Mágica
             searchInput.addEventListener('input', (e) => {
                 const q = e.target.value.toLowerCase().trim();
                 
                 if (q.length > 0) {
                     clearSearchBtn.classList.remove('hidden');
-                    const matches = productNodes.filter(n => n.getAttribute('data-nombre').includes(q)).slice(0, 5);
+                    // Buscar coincidencias y hacer slice de las 5 mejores
+                    const matches = productNodes.filter(n => n.getAttribute('data-nombre').toLowerCase().includes(q)).slice(0, 5);
                     
                     suggestionsList.innerHTML = '';
                     if (matches.length > 0) {
-                        sugHeader.classList.remove('hidden');
+                        sugFooter.classList.remove('hidden');
+                        sugFooter.classList.add('flex');
+                        sugFooterText.innerHTML = `Ver resultados para "<span class="text-gray-900">${e.target.value}</span>"`;
+                        
                         matches.forEach(m => {
                             const valNombre = m.querySelector('h3').textContent;
                             const precio = m.getAttribute('data-precio');
                             const imgUrl = m.querySelector('img').src;
                             const cat = m.getAttribute('data-cat');
+                            const productId = m.getAttribute('data-id');
+                            const stock = m.getAttribute('data-stock');
+                            
                             const regex = new RegExp(`(${q})`, "gi");
-                            const highlighted = valNombre.replace(regex, "<span class='text-green-600 font-extrabold'>$1</span>");
+                            const highlighted = valNombre.replace(regex, "<span class='text-green-600 font-extrabold bg-green-50 px-0.5 rounded'>$1</span>");
 
                             const li = document.createElement('li');
                             li.innerHTML = `
-                                <a href="javascript:void(0)" class="flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition border-b border-gray-50 last:border-0" data-val="${valNombre}">
-                                    <img src="${imgUrl}" class="w-10 h-10 object-cover rounded-lg shadow-sm" onerror="this.onerror=null; this.src=window.fallbackImg">
-                                    <div class="flex-1 text-left">
-                                        <h4 class="text-sm font-bold text-gray-800">${highlighted}</h4>
-                                        <p class="text-[10px] uppercase font-bold text-gray-400">${cat} · $${precio}</p>
+                                <div class="flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100 group cursor-pointer" onclick="document.getElementById('search-input').value='${valNombre}'; window.saveSearch('${valNombre}'); document.getElementById('search-suggestions').classList.add('hidden'); document.getElementById('search-input').dispatchEvent(new Event('input'));">
+                                    <div class="flex items-center gap-4 flex-1">
+                                        <div class="relative">
+                                            <img src="${imgUrl}" class="w-12 h-12 object-cover rounded-xl shadow-sm group-hover:scale-105 transition-transform" onerror="this.onerror=null; this.src=window.fallbackImg">
+                                            <div class="absolute -top-1.5 -left-1.5 bg-white/90 backdrop-blur text-[8px] font-extrabold text-green-700 px-1.5 py-0.5 rounded shadow border border-gray-100 uppercase z-10">${cat.substring(0,3)}</div>
+                                        </div>
+                                        <div class="text-left">
+                                            <h4 class="text-sm font-bold text-gray-800 leading-tight group-hover:text-green-700 transition-colors">${highlighted}</h4>
+                                            <div class="flex items-center gap-1.5 mt-1">
+                                                <span class="text-xs font-extrabold text-gray-900">$${precio}</span>
+                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}">Disp: ${stock}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <i class="fas fa-search text-gray-300 text-xs"></i>
-                                </a>
+                                    <button type="button" onclick="event.stopPropagation(); añadirCarrito(event, this)" data-id="${productId}" data-nombre="${valNombre}" data-stock="${stock}" class="ml-3 bg-gray-50 border border-gray-200 hover:border-green-500 hover:bg-green-500 text-gray-500 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 z-20 shrink-0" title="Añadir al carrito">
+                                        <i class="fas fa-plus text-xs"></i>
+                                    </button>
+                                </div>
                             `;
-                            // Click handler
-                            li.querySelector('a').addEventListener('click', () => {
-                                searchInput.value = valNombre;
-                                suggestionsDiv.classList.add('hidden');
-                                searchInput.dispatchEvent(new Event('input')); // Re-trigger filtering
-                            });
                             suggestionsList.appendChild(li);
                         });
                         suggestionsDiv.classList.remove('hidden');
+                        suggestionsDiv.classList.add('flex');
                     } else {
-                        sugHeader.classList.add('hidden');
-                        suggestionsList.innerHTML = `<li class="px-4 py-3 text-sm text-gray-500 text-center">No hay productos que coincidan.</li>`;
+                        sugFooter.classList.remove('flex');
+                        sugFooter.classList.add('hidden');
+                        suggestionsList.innerHTML = `<li class="px-4 py-8 text-center"><div class="text-3xl mb-2">🤔</div><p class="text-sm font-bold text-gray-500">No encontramos "${q}"</p><p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Intenta con otra palabra</p></li>`;
                         suggestionsDiv.classList.remove('hidden');
+                        suggestionsDiv.classList.add('flex');
                     }
                 } else {
                     clearSearchBtn.classList.add('hidden');
-                    suggestionsDiv.classList.add('hidden');
+                    showDefaultSuggestions();
                 }
                 applyFiltersAndSort();
             });
+
+            // Manejo de la tecla Enter para el input de búsqueda
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    window.saveSearch(e.target.value);
+                    suggestionsDiv.classList.add('hidden');
+                    suggestionsDiv.classList.remove('flex');
+                    applyFiltersAndSort();
+                }
+            });
+
 
             // Cerrar sugerencias al hacer clic fuera
             document.addEventListener('click', (e) => {
@@ -1586,6 +1748,23 @@
                         </div>
                     </div>
                 `}).join('');
+            }
+        });
+        // --- SKELETON LOADER (Efecto SPA) ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const skeletonGrid = document.getElementById('skeleton-grid');
+            const productsGrid = document.getElementById('products-grid');
+            
+            if (skeletonGrid && productsGrid) {
+                // Simular latencia de red para dar la sensación de Single Page Application
+                setTimeout(() => {
+                    skeletonGrid.classList.add('hidden');
+                    productsGrid.classList.remove('hidden');
+                    // Pequeño retardo para que el display block actúe antes del fade
+                    requestAnimationFrame(() => {
+                        productsGrid.classList.remove('opacity-0');
+                    });
+                }, 500); // 500ms de esqueleto
             }
         });
     </script>

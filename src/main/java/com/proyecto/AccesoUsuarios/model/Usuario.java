@@ -57,6 +57,17 @@ public class Usuario {
     @Column(columnDefinition = "numeric(10,2) default 0.0")
     private Double creditos = 0.0; // AgroCréditos
 
+    // --- VERIFICACIÓN DE IDENTIDAD Y SEGURIDAD (KYC) ---
+    // Valores posibles: "PENDIENTE_DATOS", "EN_REVISION", "APROBADO", "RECHAZADO"
+    @Column(columnDefinition = "varchar(20) default 'APROBADO'")
+    private String estadoVerificacion = "APROBADO"; // Default para usuarios viejos
+    
+    @Column(length = 500)
+    private String fotoCedulaUrl;
+    
+    @Column(length = 500)
+    private String fotoFincaUrl;
+
     // --- CAMPOS EXCLUSIVOS PARA CAMPESINOS (Vendedores) ---
     private String nombreFinca;
     

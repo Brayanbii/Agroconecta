@@ -61,7 +61,7 @@
         <div class="bg-white w-full max-w-3xl rounded-2xl shadow-xl border border-gray-100 overflow-hidden fade-in">
             
             <!-- Header del Formulario -->
-            <div class="relative overflow-hidden bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 px-8 py-8">
+            <div class="relative overflow-hidden bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-8 py-8">
                 <!-- Fondo animado/decorativo -->
                 <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8cGF0aCBkPSJNMCAwTDggOFpNOCAwTDAgOFoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] opacity-30"></div>
                 <div class="absolute -top-24 -right-24 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl mix-blend-overlay"></div>
@@ -70,13 +70,13 @@
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <div class="bg-white/20 backdrop-blur-md p-2.5 rounded-xl shadow-inner border border-white/30">
-                                <i class="fas fa-carrot text-white text-xl"></i>
+                                <i class="fas fa-magic text-white text-xl"></i>
                             </div>
-                            <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md" th:text="${producto.id} ? 'Editar Producto' : 'Publicar Nuevo'">Publicar Producto</h2>
-                            <span class="bg-white text-green-600 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-black/10">Ventas Reales</span>
+                            <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Modo Simulador</h2>
+                            <span class="bg-white text-blue-600 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-black/10 animate-pulse">Práctica Segura</span>
                         </div>
-                        <p class="text-green-50 font-medium text-sm md:text-base max-w-xl leading-relaxed mt-3">
-                            Llena este formulario para que miles de clientes puedan ver y comprar tu cosecha directamente en la plataforma.
+                        <p class="text-blue-50 font-medium text-sm md:text-base max-w-xl leading-relaxed mt-3">
+                            Estás en un entorno de prueba. Siente la libertad de equivocarte y explorar. <b>Nada de lo que hagas aquí será visible para tus clientes.</b>
                         </p>
                     </div>
                 </div>
@@ -99,15 +99,15 @@
             <div class="px-8 pt-8 pb-2">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-widest" id="stepIndicator">Paso 1 de 3</span>
-                    <span class="text-xs font-black text-green-600 bg-green-50 px-3 py-1 rounded-full" id="stepTitle">¿Qué vas a vender?</span>
+                    <span class="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full" id="stepTitle">¿Qué vas a vender?</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-3 shadow-inner">
-                    <div id="progressBar" class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-700 ease-out" style="width: 33%"></div>
+                    <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out" style="width: 33%"></div>
                 </div>
             </div>
 
-            <!-- Formulario Real -->
-            <form th:action="@{/campesino/productos/guardar}" th:object="${producto}" method="post" enctype="multipart/form-data" class="p-8 space-y-8" id="productForm" onsubmit="return validateSubmit(event)">
+            <!-- Formulario Simulado -->
+            <div class="p-8 space-y-8" th:object="${producto}">
                 
                 <input type="hidden" th:field="*{id}" />
                 <input type="hidden" th:field="*{latitudOrigen}" id="latField" />
@@ -369,14 +369,14 @@
                         <i class="fas fa-arrow-right"></i>
                     </button>
                     
-                    <!-- Botón Publicar (Real) -->
-                    <button type="submit" id="btnSubmit" class="hidden px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 transition transform hover:scale-105 items-center gap-3 ml-auto text-lg">
-                        <i class="fas fa-save"></i>
-                        <span>Guardar Producto</span>
+                    <!-- Botón Publicar (Simulador) -->
+                    <button type="button" id="btnSubmit" onclick="mostrarExitoSimulador()" class="hidden px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 transition transform hover:scale-105 items-center gap-3 ml-auto text-lg">
+                        <i class="fas fa-magic"></i>
+                        <span>Completar Prueba</span>
                     </button>
                 </div>
 
-            </form>
+            </div>
         </div>
 
     </div>
@@ -564,32 +564,6 @@
                 updateWizard();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        }
-
-        // Validación del Formulario completo (Paso 3)
-        function validateSubmit(event) {
-            const precio = document.getElementById('precio').value;
-            const stock = document.getElementById('stock').value;
-            const desc = document.getElementById('descripcionProducto').value.trim();
-            const lat = document.getElementById('latField').value;
-            
-            if (!precio || precio <= 0) {
-                Swal.fire({ icon: 'warning', title: 'Falta el Precio', text: 'Ingresa un precio válido mayor a 0.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
-                event.preventDefault(); return false;
-            }
-            if (!stock || stock <= 0) {
-                Swal.fire({ icon: 'warning', title: 'Falta la Cantidad', text: 'Ingresa la cantidad disponible de tu producto.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
-                event.preventDefault(); return false;
-            }
-            if (!desc) {
-                Swal.fire({ icon: 'warning', title: 'Falta la Descripción', text: 'Escribe una descripción o usa el botón "Generar con IA" para tener una descripción vendedora.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
-                event.preventDefault(); return false;
-            }
-            if (!lat) {
-                Swal.fire({ icon: 'warning', title: 'Falta la Ubicación', text: 'Por favor, busca tu municipio en el mapa o usa el botón de "Mi Ubicación".', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
-                event.preventDefault(); return false;
-            }
-            return true;
         }
 
         // --- BOTONES GRANDES PARA NÚMEROS (+ y -) ---
@@ -907,6 +881,28 @@
         
         // --- LÓGICA DEL MODO SIMULADOR ---
         function mostrarExitoSimulador() {
+            const precio = document.getElementById('precio').value;
+            const stock = document.getElementById('stock').value;
+            const desc = document.getElementById('descripcionProducto').value.trim();
+            const lat = document.getElementById('latField').value;
+            
+            if (!precio || precio <= 0) {
+                Swal.fire({ icon: 'warning', title: 'Falta el Precio', text: 'Ingresa un precio válido mayor a 0.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
+                return;
+            }
+            if (!stock || stock <= 0) {
+                Swal.fire({ icon: 'warning', title: 'Falta la Cantidad', text: 'Ingresa la cantidad disponible de tu producto.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
+                return;
+            }
+            if (!desc) {
+                Swal.fire({ icon: 'warning', title: 'Falta la Descripción', text: 'Escribe una descripción o usa el botón "Generar con IA" para tener una descripción vendedora.', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
+                return;
+            }
+            if (!lat) {
+                Swal.fire({ icon: 'warning', title: 'Falta la Ubicación', text: 'Por favor, busca tu municipio en el mapa o usa el botón de "Mi Ubicación".', confirmButtonColor: '#3b82f6', customClass: { popup: 'rounded-3xl shadow-xl' } });
+                return;
+            }
+
             Swal.fire({
                 html: `
                     <div class="text-center md:flex md:flex-col md:items-center">

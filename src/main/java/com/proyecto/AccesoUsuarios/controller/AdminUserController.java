@@ -9,6 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/usuarios")
@@ -98,5 +102,38 @@ public class AdminUserController {
     public String eliminarUsuario(@PathVariable Long id) {
         usuarioRepo.deleteById(id);
         return "redirect:/admin/usuarios";
+    }
+
+    // --- ECOSISTEMA DE VERIFICACIÓN (KYC) ---
+    
+    @GetMapping("/verificaciones")
+    public String listarVerificaciones(Model model) {
+        List<Usuario> campesinos = usuarioRepo.findAll().stream()
+            .filter(u -> "CAMPESINO".equals(u.getRol()))
+            .toList();
+            
+        long pendientesCount = campesinos.stream()
+            .filter(u -> "EN_REVISION".equals(u.getEstadoVerificacion()))
+            .count();
+            
+        model.addAttribute("campesinos", campesinos);
+        model.addAttribute("pendientesCount", pendientesCount);
+        return "admin_verificaciones";
+    }
+
+    @PostMapping("/verificaciones/aprobar/{id}")
+    public String aprobarCampesino(@PathVariable Long id) {
+        Usuario campesino = usuarioRepo.findById(id).orElseThrow();
+        campesino.setEstadoVerificacion("APROBADO");
+        usuarioRepo.save(campesino);
+        return "redirect:/admin/usuarios/verificaciones?aprobado=true";
+    }
+
+    @PostMapping("/verificaciones/rechazar/{id}")
+    public String rechazarCampesino(@PathVariable Long id) {
+        Usuario campesino = usuarioRepo.findById(id).orElseThrow();
+        campesino.setEstadoVerificacion("RECHAZADO");
+        usuarioRepo.save(campesino);
+        return "redirect:/admin/usuarios/verificaciones?rechazado=true";
     }
 }

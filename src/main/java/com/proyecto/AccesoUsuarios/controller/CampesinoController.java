@@ -50,6 +50,11 @@ public class CampesinoController {
         String email = auth.getName();
         Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
 
+        // --- VALIDACIÓN KYC ---
+        if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
+            return "redirect:/campesino/verificacion";
+        }
+
         Producto p = new Producto();
         // Cargar ubicación por defecto del campesino (si la tiene)
         if (campesino.getLatitud() != null && campesino.getLongitud() != null) {
@@ -69,6 +74,29 @@ public class CampesinoController {
         // --------------------------------------------------
 
         return "campesino_producto_form";
+    }
+
+    @GetMapping("/prueba")
+    public String modoPrueba(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+
+        // --- VALIDACIÓN KYC ---
+        if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
+            return "redirect:/campesino/verificacion";
+        }
+
+        Producto p = new Producto();
+        model.addAttribute("producto", p);
+
+        // --- CONEXIÓN CON SERVICIO DE PRECIOS ---
+        Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
+        if (respuesta != null) {
+            model.addAttribute("preciosReferencia", respuesta.get("data"));
+            model.addAttribute("fuentePrecios", respuesta.get("fuente"));
+        }
+
+        return "campesino_producto_prueba";
     }
 
     @PostMapping("/guardar")

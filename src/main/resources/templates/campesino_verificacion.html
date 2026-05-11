@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroConecta | Verificación KYC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .gradient-text { background: linear-gradient(135deg, #10b981 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #map { height: 350px; width: 100%; z-index: 1; border-radius: 1rem; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen pb-10">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-green-500/30">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <span class="font-black text-2xl tracking-tight text-gray-800">Agro<span class="text-green-500">Conecta</span></span>
+            </div>
+            
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="text-gray-500 hover:text-red-500 font-bold transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 mt-10">
+        
+        <!-- ESTADO: EN_REVISION -->
+        <div th:if="${campesino.estadoVerificacion == 'EN_REVISION'}" class="bg-white rounded-3xl p-10 text-center shadow-xl border border-blue-100 max-w-2xl mx-auto animate-fade-in mt-10">
+            <div class="w-24 h-24 bg-blue-50 text-blue-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner relative">
+                <i class="fas fa-user-clock text-5xl"></i>
+                <div class="absolute -top-2 -right-2 bg-yellow-400 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg animate-pulse border-2 border-white">
+                    <i class="fas fa-hourglass-half text-sm"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-black text-gray-800 mb-4 tracking-tight">¡Tus datos están en revisión!</h2>
+            <p class="text-gray-500 text-lg leading-relaxed mb-6">
+                Nuestro equipo está verificando tu identidad y la ubicación de tu finca para garantizar la seguridad de la comunidad AgroConecta. <br><br>
+                Este proceso suele tardar menos de 24 horas. Te notificaremos pronto.
+            </p>
+            <div class="bg-blue-50 text-blue-800 px-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 w-fit mx-auto">
+                <i class="fas fa-shield-alt"></i> Seguridad Garantizada
+            </div>
+        </div>
+
+        <!-- ESTADO: RECHAZADO -->
+        <div th:if="${campesino.estadoVerificacion == 'RECHAZADO'}" class="bg-white rounded-3xl p-10 text-center shadow-xl border border-red-100 max-w-2xl mx-auto animate-fade-in mt-10">
+            <div class="w-24 h-24 bg-red-50 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i class="fas fa-times-circle text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-black text-gray-800 mb-4 tracking-tight">Verificación Rechazada</h2>
+            <p class="text-gray-500 text-lg leading-relaxed mb-6">
+                Lamentablemente, no pudimos verificar tus datos. Puede ser que la foto de tu documento no sea clara o los datos no coincidan.
+            </p>
+            <a href="/campesino/verificacion" class="inline-block px-8 py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition shadow-xl">
+                Volver a intentarlo
+            </a>
+        </div>
+
+        <!-- ESTADO: PENDIENTE (Formulario) -->
+        <div th:if="${campesino.estadoVerificacion == 'PENDIENTE_DATOS'}">
+            
+            <div class="text-center mb-10">
+                <div class="inline-block bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-4">
+                    <i class="fas fa-shield-check mr-1"></i> Verificación Requerida
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+                    Únete a la red <span class="gradient-text">AgroConecta</span>
+                </h1>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+                    Para mantener nuestra comunidad segura y generar confianza con los compradores, necesitamos verificar tu identidad y la ubicación de tu finca.
+                </p>
+            </div>
+
+            <!-- Formulario Wizard -->
+            <form th:action="@{/campesino/verificacion/guardar}" method="POST" enctype="multipart/form-data" class="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden relative">
+                
+                <!-- Barra de Progreso -->
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gray-100">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500 w-1/2"></div>
+                </div>
+
+                <!-- Cabecera del Wizard -->
+                <div class="p-6 md:p-8 border-b border-gray-100 flex items-center justify-between mt-2">
+                    <div>
+                        <span class="text-green-600 font-bold tracking-wider text-sm uppercase mb-1 block" id="stepIndicator">Paso 1 de 2</span>
+                        <h2 class="text-2xl font-black text-gray-800" id="stepTitle">Verificación de Identidad</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-xl">
+                        <i id="stepIcon" class="fas fa-id-card"></i>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-10 min-h-[400px]">
+                    
+                    <!-- PASO 1: Identidad -->
+                    <div id="step-1" class="wizard-step animate-fade-in block">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Número de Documento (Cédula)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                        <i class="fas fa-fingerprint text-lg"></i>
+                                    </div>
+                                    <input type="text" id="numeroIdentidad" name="numeroIdentidad" placeholder="Ej: 1010101010" class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 bg-gray-50 focus:bg-white focus:ring-4 focus:ring-green-100 transition font-black text-lg" />
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Foto de tu Cédula (Frente)</label>
+                                <div class="border-2 border-dashed border-blue-200 bg-blue-50 rounded-2xl p-8 text-center hover:bg-blue-100 transition cursor-pointer relative" onclick="document.getElementById('fotoCedula').click()">
+                                    <i class="fas fa-camera text-4xl text-blue-400 mb-3"></i>
+                                    <p class="text-blue-800 font-bold text-lg">Toca aquí para tomar una foto</p>
+                                    <p class="text-blue-600/70 text-sm mt-1">Sube la foto de la parte frontal de tu documento</p>
+                                    <input type="file" id="fotoCedula" name="fotoCedula" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewFile(this, 'previewCedula')" />
+                                </div>
+                                <div id="previewCedula" class="hidden mt-4 text-green-600 font-bold text-sm flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i> Archivo seleccionado correctamente.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASO 2: Finca y Ubicación -->
+                    <div id="step-2" class="wizard-step animate-fade-in hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Nombre de la Finca / Parcela</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                        <i class="fas fa-tractor text-lg"></i>
+                                    </div>
+                                    <input type="text" id="nombreFinca" name="nombreFinca" placeholder="Ej: Finca La Esperanza" class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 bg-gray-50 focus:bg-white focus:ring-4 focus:ring-green-100 transition font-black text-lg" />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Foto de la Finca o Cultivo</label>
+                                <div class="border-2 border-dashed border-green-200 bg-green-50 rounded-2xl p-6 text-center hover:bg-green-100 transition cursor-pointer relative" onclick="document.getElementById('fotoFinca').click()">
+                                    <i class="fas fa-image text-3xl text-green-400 mb-2"></i>
+                                    <p class="text-green-800 font-bold">Subir foto de tu terreno</p>
+                                    <input type="file" id="fotoFinca" name="fotoFinca" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewFile(this, 'previewFinca')" />
+                                </div>
+                                <div id="previewFinca" class="hidden mt-2 text-green-600 font-bold text-sm flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i> Archivo seleccionado correctamente.
+                                </div>
+                            </div>
+
+                            <!-- MAPA CON REVERSE GEOCODING -->
+                            <div class="mt-6">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Ubicación Exacta en el Mapa</label>
+                                <p class="text-xs text-gray-500 mb-4">Mueve el pin rojo hasta tu terreno. Detectaremos automáticamente la dirección.</p>
+                                
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" id="citySearch" placeholder="Ej: Duitama, Boyacá..." class="flex-1 px-4 py-4 border border-gray-300 rounded-xl bg-white focus:ring-4 focus:ring-green-100 text-sm font-bold">
+                                    <button type="button" onclick="searchLocation()" class="px-6 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition"><i class="fas fa-search"></i></button>
+                                    <button type="button" onclick="useMyLocation()" class="px-6 py-4 bg-blue-100 text-blue-700 font-bold rounded-xl hover:bg-blue-200 transition"><i class="fas fa-location-crosshairs text-lg"></i></button>
+                                </div>
+                                
+                                <div id="map" class="shadow-inner border border-gray-200"></div>
+                                
+                                <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm font-semibold flex items-start gap-3">
+                                    <i class="fas fa-map-pin mt-1 text-green-600"></i>
+                                    <div>
+                                        <span class="block text-[10px] text-green-600 uppercase tracking-wide font-black mb-1">Dirección Detectada</span>
+                                        <span id="detectedAddress">Esperando ubicación...</span>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" name="direccionFinca" id="direccionField">
+                                <input type="hidden" name="latitudFinca" id="latField">
+                                <input type="hidden" name="longitudFinca" id="lonField">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer del Wizard (Botones de Navegación) -->
+                <div class="bg-gray-50 p-6 border-t border-gray-100 flex items-center justify-between">
+                    <button type="button" id="btnPrev" onclick="prevStep()" class="hidden px-6 py-4 text-gray-600 font-bold hover:bg-gray-200 rounded-xl transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Atrás
+                    </button>
+                    <div id="btnSpacer" class="flex-1"></div>
+                    
+                    <button type="button" id="btnNext" onclick="nextStep()" class="px-8 py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2 ml-auto">
+                        Siguiente <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                    <button type="submit" id="btnSubmit" class="hidden px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 text-white font-black rounded-xl shadow-xl shadow-green-500/30 transition flex items-center gap-2 ml-auto">
+                        <i class="fas fa-shield-check"></i> Enviar a Revisión
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // --- LÓGICA DEL WIZARD ---
+        let currentStep = 1;
+        const totalSteps = 2;
+
+        function updateWizard() {
+            document.getElementById('progressBar').style.width = ((currentStep / totalSteps) * 100) + '%';
+            document.getElementById('stepIndicator').innerText = 'Paso ' + currentStep + ' de ' + totalSteps;
+            
+            if(currentStep === 1) {
+                document.getElementById('stepTitle').innerText = 'Verificación de Identidad';
+                document.getElementById('stepIcon').className = 'fas fa-id-card';
+                document.getElementById('btnPrev').classList.add('hidden');
+                document.getElementById('btnNext').classList.remove('hidden');
+                document.getElementById('btnSubmit').classList.add('hidden');
+            } else {
+                document.getElementById('stepTitle').innerText = 'Detalles de tu Finca';
+                document.getElementById('stepIcon').className = 'fas fa-map-marked-alt';
+                document.getElementById('btnPrev').classList.remove('hidden');
+                document.getElementById('btnNext').classList.add('hidden');
+                document.getElementById('btnSubmit').classList.remove('hidden');
+                
+                // Cargar mapa
+                if(!map) {
+                    setTimeout(() => initMap(), 300);
+                }
+            }
+
+            for(let i=1; i<=totalSteps; i++) {
+                if(i === currentStep) {
+                    document.getElementById('step-'+i).classList.remove('hidden');
+                } else {
+                    document.getElementById('step-'+i).classList.add('hidden');
+                }
+            }
+        }
+
+        function nextStep() {
+            if(currentStep === 1) {
+                if(!document.getElementById('numeroIdentidad').value.trim() || document.getElementById('fotoCedula').files.length === 0) {
+                    Swal.fire('Faltan Datos', 'Por favor, ingresa tu cédula y sube la foto para continuar.', 'warning');
+                    return;
+                }
+            }
+            if(currentStep < totalSteps) {
+                currentStep++;
+                updateWizard();
+            }
+        }
+
+        function prevStep() {
+            if(currentStep > 1) {
+                currentStep--;
+                updateWizard();
+            }
+        }
+
+        function previewFile(input, textId) {
+            if (input.files && input.files[0]) {
+                document.getElementById(textId).classList.remove('hidden');
+            }
+        }
+
+        // --- MAPA Y REVERSE GEOCODING ---
+        let map, marker;
+
+        function initMap() {
+            let defaultLat = 4.5709;
+            let defaultLon = -74.2973;
+
+            map = L.map('map').setView([defaultLat, defaultLon], 5);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            marker = L.marker([defaultLat, defaultLon], {draggable: true}).addTo(map);
+
+            marker.on('dragend', function (e) {
+                updateLocation(marker.getLatLng().lat, marker.getLatLng().lng);
+            });
+            
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateLocation(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Intentar auto-geolocalizar al cargar
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    updateLocation(pos.coords.latitude, pos.coords.longitude, true);
+                });
+            }
+        }
+
+        function updateLocation(lat, lon, zoom = false) {
+            if(zoom) {
+                map.setView([lat, lon], 15);
+                marker.setLatLng([lat, lon]);
+            }
+            document.getElementById('latField').value = lat;
+            document.getElementById('lonField').value = lon;
+            reverseGeocode(lat, lon);
+        }
+
+        function searchLocation() {
+            const query = document.getElementById('citySearch').value;
+            if(!query) return;
+            Swal.fire({ title: 'Buscando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Colombia')}&limit=1`)
+                .then(res => res.json())
+                .then(data => {
+                    Swal.close();
+                    if(data && data.length > 0) {
+                        updateLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), true);
+                    } else {
+                        Swal.fire('No encontrado', 'Intenta con otro municipio.', 'warning');
+                    }
+                }).catch(() => Swal.close());
+        }
+
+        function useMyLocation() {
+            if (navigator.geolocation) {
+                Swal.fire({ title: 'Obteniendo ubicación...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                navigator.geolocation.getCurrentPosition(pos => {
+                    Swal.close();
+                    updateLocation(pos.coords.latitude, pos.coords.longitude, true);
+                }, err => {
+                    Swal.close();
+                    Swal.fire('Error', 'No se pudo acceder a tu ubicación. Verifica los permisos de tu navegador.', 'warning');
+                });
+            }
+        }
+
+        function reverseGeocode(lat, lon) {
+            document.getElementById('detectedAddress').innerText = 'Detectando dirección real...';
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        // Limpiar dirección
+                        let partes = data.display_name.split(',');
+                        let corta = partes.slice(0, 3).join(',');
+                        document.getElementById('detectedAddress').innerText = corta;
+                        document.getElementById('direccionField').value = corta;
+                    } else {
+                        document.getElementById('detectedAddress').innerText = 'Ubicación seleccionada en coordenadas.';
+                        document.getElementById('direccionField').value = 'Coordenadas: ' + lat + ', ' + lon;
+                    }
+                }).catch(() => {
+                    document.getElementById('detectedAddress').innerText = 'No se pudo obtener el nombre del lugar.';
+                });
+        }
+    </script>
+</body>
+</html>

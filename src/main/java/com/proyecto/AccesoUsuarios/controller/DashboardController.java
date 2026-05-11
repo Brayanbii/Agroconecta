@@ -126,6 +126,12 @@ public class DashboardController {
     public String dashboardCampesino(Model model, Authentication auth) {
         String email = auth.getName();
         Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        
+        // --- VALIDACIÓN DE IDENTIDAD (KYC) ---
+        if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
+            return "redirect:/campesino/verificacion";
+        }
+        
         model.addAttribute("productos", productoRepo.findByUsuario(campesino)); 
         return "mis_productos";
     }
