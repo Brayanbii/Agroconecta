@@ -144,7 +144,7 @@
             opacity: 1;
             animation: colombia-aurora 4s ease-in-out infinite;
         }
-        .premium-cafe-anim:hover *, .premium-cafe-anim:hover span, .premium-cafe-anim:hover i {
+        .premium-cafe-anim:hover, .premium-cafe-anim:hover *, .premium-cafe-anim:hover span, .premium-cafe-anim:hover i {
             color: white !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
@@ -159,6 +159,7 @@
         /* Carruseles sin scrollbar visible */
         .scroller-visible {
             scrollbar-width: none;
+            scroll-behavior: smooth;
         }
         .scroller-visible::-webkit-scrollbar {
             display: none;
@@ -368,8 +369,8 @@
             </div>
             <div class="relative">
                 <button class="carousel-arrow left hidden-arrow" data-target="car-dest"><i class="fas fa-chevron-left text-sm"></i></button>
-                <div id="car-dest" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
-                <div th:each="p : ${productosDestacados}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                <div id="car-dest" class="flex overflow-x-auto gap-6 scroller-visible">
+                <div th:each="p : ${productosDestacados}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
                     <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
@@ -394,7 +395,7 @@
                     </div>
                 </div>
                 <!-- Burbuja Ver Todo -->
-                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                <div class="min-w-[130px] shrink-0 flex items-center justify-center">
                     <a th:href="@{/tienda/coleccion/destacados}" class="flex flex-col items-center justify-center group gap-3">
                         <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
                             <i class="fas fa-arrow-right text-xl"></i>
@@ -422,8 +423,8 @@
             </div>
             <div class="relative">
                 <button class="carousel-arrow left hidden-arrow" data-target="car-new"><i class="fas fa-chevron-left text-sm"></i></button>
-                <div id="car-new" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
-                <div th:each="p, iterStat : ${productos}" th:if="${iterStat.index < 12}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                <div id="car-new" class="flex overflow-x-auto gap-6 scroller-visible">
+                <div th:each="p, iterStat : ${productos}" th:if="${iterStat.index < 12}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
                     <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-green-500 shadow-sm"><i class="fas fa-clock mr-1"></i>Nuevo</span>
@@ -446,7 +447,7 @@
                     </div>
                 </div>
                 <!-- Burbuja Ver Todo -->
-                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                <div class="min-w-[130px] shrink-0 flex items-center justify-center">
                     <a th:href="@{/tienda/coleccion/nuevos}" class="flex flex-col items-center justify-center group gap-3">
                         <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
                             <i class="fas fa-arrow-right text-xl"></i>
@@ -474,8 +475,8 @@
             </div>
             <div class="relative">
                 <button class="carousel-arrow left hidden-arrow" data-target="car-ofer"><i class="fas fa-chevron-left text-sm"></i></button>
-                <div id="car-ofer" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
-                <div th:each="p : ${productos}" th:if="${p.id % 3 == 0}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border-2 border-red-100 hover:border-red-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                <div id="car-ofer" class="flex overflow-x-auto gap-6 scroller-visible">
+                <div th:each="p : ${productos}" th:if="${p.id % 3 == 0}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border-2 border-red-100 hover:border-red-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
                     <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-md"><i class="fas fa-bolt mr-1"></i>Oferta Flash</span>
@@ -503,7 +504,7 @@
                     </div>
                 </div>
                 <!-- Burbuja Ver Todo -->
-                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                <div class="min-w-[130px] shrink-0 flex items-center justify-center">
                     <a th:href="@{/tienda/coleccion/ofertas}" class="flex flex-col items-center justify-center group gap-3">
                         <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
                             <i class="fas fa-arrow-right text-xl"></i>
@@ -532,8 +533,8 @@
             </div>
             <div class="relative">
                 <button class="carousel-arrow left hidden-arrow" data-target="car-reco"><i class="fas fa-chevron-left text-sm"></i></button>
-                <div id="car-reco" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
-                <div th:each="p : ${productosRecomendados}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                <div id="car-reco" class="flex overflow-x-auto gap-6 scroller-visible">
+                <div th:each="p : ${productosRecomendados}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
                     <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-sm"><i class="fas fa-star mr-1"></i>Para ti</span>
@@ -556,7 +557,7 @@
                     </div>
                 </div>
                 <!-- Burbuja Ver Todo -->
-                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                <div class="min-w-[130px] shrink-0 flex items-center justify-center">
                     <a th:href="@{/tienda/coleccion/recomendados}" class="flex flex-col items-center justify-center group gap-3">
                         <div class="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
                             <i class="fas fa-arrow-right text-xl"></i>
@@ -580,15 +581,20 @@
                         Cerca de Ti
                     </h2>
                 </div>
+                <div class="flex items-center gap-1.5 carousel-dots" data-for="car-cerca"></div>
             </div>
             
-            <div id="cerca-de-ti-carousel" class="flex overflow-x-auto gap-6 scroller-visible snap-x scroll-smooth">
-                <!-- Estado Inicial: Botón para pedir ubicación -->
-                <div class="flex flex-col items-center justify-center p-8 bg-blue-50/50 rounded-3xl border border-blue-100 border-dashed text-center min-w-[300px] w-full max-w-lg mx-auto">
-                    <i class="fas fa-location-arrow text-3xl text-blue-400 mb-3 animate-pulse"></i>
-                    <p class="text-sm font-bold text-gray-700 mb-4">Descubre productos de granjas y campesinos locales a tu alrededor.</p>
-                    <button type="button" onclick="loadCercaDeMi()" class="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform active:scale-95">Ver Productos Cercanos</button>
+            <div class="relative">
+                <button class="carousel-arrow left hidden-arrow" data-target="car-cerca"><i class="fas fa-chevron-left text-sm"></i></button>
+                <div id="car-cerca" class="flex overflow-x-auto gap-6 scroller-visible">
+                    <!-- Estado Inicial: Botón para pedir ubicación -->
+                    <div class="flex flex-col items-center justify-center p-8 bg-blue-50/50 rounded-3xl border border-blue-100 border-dashed text-center min-w-[300px] w-full max-w-lg mx-auto shrink-0">
+                        <i class="fas fa-location-arrow text-3xl text-blue-400 mb-3 animate-pulse"></i>
+                        <p class="text-sm font-bold text-gray-700 mb-4">Descubre productos de granjas y campesinos locales a tu alrededor.</p>
+                        <button type="button" onclick="loadCercaDeMi()" class="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform active:scale-95">Ver Productos Cercanos</button>
+                    </div>
                 </div>
+                <button class="carousel-arrow right hidden-arrow" data-target="car-cerca"><i class="fas fa-chevron-right text-sm"></i></button>
             </div>
         </div>
 
@@ -1344,7 +1350,10 @@
                 'VERDURAS': 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=1374&auto=format&fit=crop',
                 'FRUTAS': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1374&auto=format&fit=crop',
                 'TUBÉRCULOS': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?q=80&w=1374&auto=format&fit=crop',
-                'LÁCTEOS': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=1374&auto=format&fit=crop'
+                'LÁCTEOS': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=1374&auto=format&fit=crop',
+                'GRANOS': 'https://images.unsplash.com/photo-1586201375761-83865001e8ac?q=80&w=1374&auto=format&fit=crop',
+                'CAFÉ': 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1374&auto=format&fit=crop',
+                'HUEVOS': 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?q=80&w=1374&auto=format&fit=crop'
             };
 
             // Listeners Categoría
@@ -1688,19 +1697,20 @@
                 
                 conDistancia.sort((a,b) => a.dist - b.dist);
                 
-                const carousel = document.getElementById('cerca-de-ti-carousel');
+                const carousel = document.getElementById('car-cerca');
                 carousel.innerHTML = '';
                 
                 const cercanos = conDistancia.filter(item => item.dist < 150).slice(0, 8);
                 if(cercanos.length === 0) {
-                    carousel.innerHTML = '<div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-3xl text-center w-full max-w-lg mx-auto"><i class="fas fa-sad-tear text-4xl text-gray-300 mb-3"></i><p class="text-sm font-bold text-gray-500">No hay productos cerca de tu ubicación actual.</p></div>';
+                    carousel.innerHTML = '<div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-3xl text-center w-full max-w-lg mx-auto shrink-0"><i class="fas fa-sad-tear text-4xl text-gray-300 mb-3"></i><p class="text-sm font-bold text-gray-500">No hay productos cerca de tu ubicación actual.</p></div>';
+                    window.dispatchEvent(new Event('resize'));
                     return;
                 }
                 
                 cercanos.forEach(item => {
                     const clone = item.node.cloneNode(true);
-                    clone.classList.remove('js-product-card', 'h-full', 'hidden');
-                    clone.classList.add('min-w-[280px]', 'max-w-[280px]', 'snap-start', 'shrink-0');
+                    clone.classList.remove('js-product-card', 'h-full', 'hidden', 'snap-start');
+                    clone.classList.add('min-w-[280px]', 'max-w-[280px]', 'shrink-0');
                     clone.style.display = 'flex';
                     
                     const anchor = clone.querySelector('a');
@@ -1712,6 +1722,9 @@
                     }
                     carousel.appendChild(clone);
                 });
+                
+                // Disparar evento resize para que el script del carrusel re-calcule los dots y las flechas para los nuevos items
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
                 
             }, err => {
                 btnContainer.innerHTML = '<i class="fas fa-exclamation-triangle text-3xl text-red-400 mb-3"></i><p class="text-sm font-bold text-gray-700 mb-4">Permiso denegado. No pudimos obtener tu ubicación.</p><button type="button" onclick="loadCercaDeMi()" class="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm">Reintentar</button>';
@@ -2358,7 +2371,7 @@
 
             // --- CAROUSEL ARROWS + DOTS SYSTEM ---
             const CARD_W = 280 + 24; // card width + gap
-            ['car-dest','car-new','car-ofer','car-reco'].forEach(id => {
+            ['car-dest','car-new','car-ofer','car-reco','car-cerca'].forEach(id => {
                 const track = document.getElementById(id);
                 if (!track) return;
                 const dotsBox = document.querySelector(`.carousel-dots[data-for="${id}"]`);
@@ -2373,24 +2386,42 @@
                 }
                 function getCurrentPage() {
                     const visible = Math.floor(track.clientWidth / CARD_W) || 1;
-                    return Math.floor(track.scrollLeft / (CARD_W * visible));
+                    const maxScroll = track.scrollWidth - track.clientWidth;
+                    // Si el usuario llegó al final del carrusel, activar el último dot forzosamente
+                    if (track.scrollLeft >= maxScroll - 10) {
+                        return getPages() - 1;
+                    }
+                    // Usar Math.round para que el dot cambie a la mitad del camino
+                    return Math.round(track.scrollLeft / (CARD_W * visible));
                 }
 
-                // Crear dots
-                function renderDots() {
+                // Inicializar dots una vez
+                function initDots() {
                     if (!dotsBox) return;
                     const pages = getPages();
-                    const current = getCurrentPage();
                     dotsBox.innerHTML = '';
                     for (let i = 0; i < pages; i++) {
                         const dot = document.createElement('div');
-                        dot.className = 'c-dot' + (i === current ? ' active bg-green-500' : '');
+                        dot.className = 'c-dot';
                         dot.onclick = () => {
                             const visible = Math.floor(track.clientWidth / CARD_W) || 1;
                             track.scrollTo({ left: i * CARD_W * visible, behavior: 'smooth' });
                         };
                         dotsBox.appendChild(dot);
                     }
+                }
+
+                // Actualizar solo las clases de los dots (evita matar la animación CSS al no recrear el DOM)
+                function updateDots() {
+                    if (!dotsBox) return;
+                    const current = getCurrentPage();
+                    Array.from(dotsBox.children).forEach((dot, index) => {
+                        if (index === current) {
+                            dot.classList.add('active', 'bg-green-500');
+                        } else {
+                            dot.classList.remove('active', 'bg-green-500');
+                        }
+                    });
                 }
 
                 // Actualizar flechas
@@ -2400,51 +2431,30 @@
                         else leftBtn.classList.remove('hidden-arrow');
                     }
                     if (rightBtn) {
+                        // Tolerancia de 10px por posibles redondeos del navegador
                         const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
                         if (atEnd) rightBtn.classList.add('hidden-arrow');
                         else rightBtn.classList.remove('hidden-arrow');
                     }
                 }
 
-                // Scroll Ultra-Suave con Easing de Cuarta Potencia (Sutil y Lindo)
-                function smoothScroll(el, delta) {
-                    const start = el.scrollLeft;
-                    const target = Math.max(0, Math.min(start + delta, el.scrollWidth - el.clientWidth));
-                    const duration = 750; // Un poco más largo para mayor suavidad
-                    let startTime = null;
-                    
-                    // Cubic Bezier-like Easing (easeInOutQuart) - Muy suave al inicio y final
-                    function ease(t) {
-                        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
-                    }
-                    
-                    function step(ts) {
-                        if (!startTime) startTime = ts;
-                        const progress = Math.min((ts - startTime) / duration, 1);
-                        el.scrollLeft = start + (target - start) * ease(progress);
-                        if (progress < 1) {
-                            requestAnimationFrame(step);
-                        }
-                    }
-                    requestAnimationFrame(step);
-                }
-
-                // Eventos de click en flechas
+                // Eventos de click en flechas (Native Smooth Scroll)
                 if (leftBtn) leftBtn.onclick = () => {
                     const visible = Math.floor(track.clientWidth / CARD_W) || 1;
-                    smoothScroll(track, -(CARD_W * visible));
+                    track.scrollBy({ left: -(CARD_W * visible), behavior: 'smooth' });
                 };
                 if (rightBtn) rightBtn.onclick = () => {
                     const visible = Math.floor(track.clientWidth / CARD_W) || 1;
-                    smoothScroll(track, CARD_W * visible);
+                    track.scrollBy({ left: CARD_W * visible, behavior: 'smooth' });
                 };
 
-                // Listeners
-                track.addEventListener('scroll', () => { renderDots(); updateArrows(); });
-                window.addEventListener('resize', () => { renderDots(); updateArrows(); });
+                // Listeners eficientes
+                track.addEventListener('scroll', () => { updateDots(); updateArrows(); });
+                window.addEventListener('resize', () => { initDots(); updateDots(); updateArrows(); });
                 
                 // Init
-                renderDots();
+                initDots();
+                updateDots();
                 updateArrows();
             });
         });
