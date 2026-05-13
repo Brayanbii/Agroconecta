@@ -26,6 +26,10 @@ public class DetalleOrden {
     private Double precio;
     private Integer cantidad;
     private Double total;
+    
+    // Estado individual del producto en el pedido (NUEVO, PREPARADO, ENVIADO, ENTREGADO, CANCELADO)
+    @Column(length = 20)
+    private String estado = "NUEVO";
 
     @ManyToOne
     @JoinColumn(name = "orden_id")

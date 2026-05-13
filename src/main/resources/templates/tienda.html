@@ -111,6 +111,85 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Animación Premium Café Colombiano (Efecto Aurora) */
+        @keyframes colombia-aurora {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .premium-cafe-anim {
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #fef3c7;
+        }
+        .premium-cafe-anim::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, #FFCD00 0%, #FFCD00 35%, #003087 65%, #C8102E 100%);
+            background-size: 200% 200%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.6s ease;
+        }
+        .premium-cafe-anim:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 35px -10px rgba(0, 48, 135, 0.4);
+            border-color: transparent;
+        }
+        .premium-cafe-anim:hover::before {
+            opacity: 1;
+            animation: colombia-aurora 4s ease-in-out infinite;
+        }
+        .premium-cafe-anim:hover *, .premium-cafe-anim:hover span, .premium-cafe-anim:hover i {
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Scroll horizontal fluido */
+        .scroller {
+            scrollbar-width: none; /* Firefox */
+        }
+        .scroller::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+        /* Carruseles sin scrollbar visible */
+        .scroller-visible {
+            scrollbar-width: none;
+        }
+        .scroller-visible::-webkit-scrollbar {
+            display: none;
+        }
+        /* Flechas de carrusel — Diseño Sutil y Lindo */
+        .carousel-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 48px; height: 48px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 20;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #16a34a;
+        }
+        .carousel-arrow:hover {
+            background: #ffffff;
+            border-color: #22c55e;
+            box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.1), 0 10px 10px -5px rgba(34, 197, 94, 0.04);
+            transform: translateY(-50%) scale(1.1);
+            color: #15803d;
+        }
+        .carousel-arrow:active { transform: translateY(-50%) scale(0.95); }
+        .carousel-arrow.left { left: -12px; }
+        .carousel-arrow.right { right: -12px; }
+        .carousel-arrow.hidden-arrow { opacity: 0; pointer-events: none; transform: translateY(-50%) scale(0.8); }
+        /* Dots — Estilo Apple/SaaS Moderno */
+        .c-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5e7eb; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .c-dot.active { width: 18px; background: #22c55e; border-radius: 3px; }
     </style>
 </head>
 <body class="text-gray-800 relative bg-surface-50">
@@ -211,33 +290,10 @@
                 </div>
             </div>
         </div>
-        <!-- Menú Horizontal Sticky Categories -->
-        <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-            <div class="flex items-center gap-3 overflow-x-auto scrollbar-thin pb-1">
-                <button class="js-filter-btn flex-shrink-0 active flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 shadow-sm transition-all font-bold text-sm bg-gray-900 text-white" data-val="">
-                   <i class="fas fa-border-all text-green-400"></i> Explorar Todo
-                </button>
-                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="VERDURAS">
-                   🥦 Verduras
-                </button>
-                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="FRUTAS">
-                   🍎 Frutas
-                </button>
-                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="TUBÉRCULOS">
-                   🥔 Tubérculos
-                </button>
-                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="LÁCTEOS">
-                   🧀 Lácteos
-                </button>
-                <button class="js-filter-btn flex-shrink-0 flex items-center gap-2 px-5 py-2 rounded-full border border-transparent hover:bg-green-50 hover:text-green-700 transition-all font-bold text-sm text-gray-600 bg-gray-50" data-val="GRANOS">
-                   🌾 Granos
-                </button>
-            </div>
-        </div>
     </nav>
 
     <!-- HERO BANNER -->
-    <div class="relative bg-brand-900 overflow-hidden rounded-b-[2.5rem] shadow-glass mx-2 mb-4">
+    <div id="hero-section" class="relative bg-brand-900 overflow-hidden rounded-b-[2.5rem] shadow-glass mx-2 mb-4 transition-all duration-500">
         <!-- Imagen de fondo -->
         <div class="absolute inset-0 z-0">
             <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1374&auto=format&fit=crop" 
@@ -255,8 +311,291 @@
         </div>
     </div>
 
-    <!-- GRID DE PRODUCTOS FULL-WIDTH -->
-    <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- CATEGORÍAS (Barra Horizontal Elegante) -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-10 mb-12">
+        <div class="bg-white/90 backdrop-blur-xl border border-white p-2 md:p-3 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] flex items-center gap-2 md:gap-4 overflow-x-auto scroller hide-scrollbar">
+            
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm bg-green-600 text-white shadow-md transition-all shrink-0 hover:scale-105" data-val="">
+                <i class="fas fa-border-all"></i> <span class="hidden md:inline">Todos</span>
+            </button>
+            
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-green-50 hover:text-green-600 transition-all shrink-0 border border-transparent hover:border-green-100" data-val="VERDURAS">
+                <i class="fas fa-leaf text-green-500"></i> Verduras
+            </button>
+
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-red-50 hover:text-red-500 transition-all shrink-0 border border-transparent hover:border-red-100" data-val="FRUTAS">
+                <i class="fas fa-apple-whole text-red-500"></i> Frutas
+            </button>
+
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-all shrink-0 border border-transparent hover:border-orange-100" data-val="TUBÉRCULOS">
+                <i class="fas fa-seedling text-amber-600"></i> Tubérculos
+            </button>
+
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-yellow-50 hover:text-yellow-600 transition-all shrink-0 border border-transparent hover:border-yellow-100" data-val="LÁCTEOS">
+                <i class="fas fa-cheese text-yellow-500"></i> Lácteos
+            </button>
+
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-amber-50 hover:text-amber-700 transition-all shrink-0 border border-transparent hover:border-amber-100" data-val="GRANOS">
+                <i class="fas fa-wheat-awn text-amber-700"></i> Granos
+            </button>
+
+            <button class="js-filter-btn premium-cafe-anim flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-amber-900 border border-amber-100 bg-amber-50 transition-all shrink-0" data-val="CAFÉ">
+                <i class="fas fa-mug-hot text-amber-700 icon-box"></i> Café Colombiano
+            </button>
+
+            <button class="js-filter-btn flex items-center gap-2 px-5 py-3 md:py-4 rounded-xl font-bold text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-all shrink-0 border border-transparent hover:border-orange-100" data-val="HUEVOS">
+                <i class="fas fa-egg text-orange-500"></i> Huevos
+            </button>
+            
+        </div>
+    </div>
+
+    <!-- SECCIONES DE DESCUBRIMIENTO (Scroll Horizontal) -->
+    <div id="secciones-descubrimiento" class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 mb-16 flex flex-col gap-12 transition-all duration-500">
+        
+        <!-- Productos Destacados -->
+        <div th:if="${not #lists.isEmpty(productos)}">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shadow-inner">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        Productos Más Destacados
+                    </h2>
+                </div>
+                <div class="flex items-center gap-1.5 carousel-dots" data-for="car-dest"></div>
+            </div>
+            <div class="relative">
+                <button class="carousel-arrow left hidden-arrow" data-target="car-dest"><i class="fas fa-chevron-left text-sm"></i></button>
+                <div id="car-dest" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
+                <div th:each="p : ${productosDestacados}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
+                             alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                        <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-orange-600 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-orange-100"><i class="fas fa-fire mr-1"></i>TOP VENTAS</span>
+                    </a>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                        </a>
+                        <div class="mt-auto flex items-end justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                </div>
+                            </div>
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
+                                <i class="fas fa-cart-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Burbuja Ver Todo -->
+                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                    <a th:href="@{/tienda/coleccion/destacados}" class="flex flex-col items-center justify-center group gap-3">
+                        <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
+                            <i class="fas fa-arrow-right text-xl"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500 group-hover:text-orange-600 transition-colors">Ver todo</span>
+                    </a>
+                </div>
+            </div>
+                <button class="carousel-arrow right" data-target="car-dest"><i class="fas fa-chevron-right text-sm"></i></button>
+            </div>
+        </div>
+
+        <!-- Recién Cosechados -->
+        <div th:if="${not #lists.isEmpty(productos)}">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        Recién Cosechados
+                    </h2>
+                </div>
+                <div class="flex items-center gap-1.5 carousel-dots" data-for="car-new"></div>
+            </div>
+            <div class="relative">
+                <button class="carousel-arrow left hidden-arrow" data-target="car-new"><i class="fas fa-chevron-left text-sm"></i></button>
+                <div id="car-new" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
+                <div th:each="p, iterStat : ${productos}" th:if="${iterStat.index < 12}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                        <span class="absolute top-3 left-3 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-green-500 shadow-sm"><i class="fas fa-clock mr-1"></i>Nuevo</span>
+                    </a>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                        </a>
+                        <div class="mt-auto flex items-end justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                </div>
+                            </div>
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
+                                <i class="fas fa-cart-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Burbuja Ver Todo -->
+                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                    <a th:href="@{/tienda/coleccion/nuevos}" class="flex flex-col items-center justify-center group gap-3">
+                        <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
+                            <i class="fas fa-arrow-right text-xl"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500 group-hover:text-green-600 transition-colors">Ver todo</span>
+                    </a>
+                </div>
+            </div>
+                <button class="carousel-arrow right" data-target="car-new"><i class="fas fa-chevron-right text-sm"></i></button>
+            </div>
+        </div>
+
+        <!-- Ofertas Especiales -->
+        <div th:if="${not #lists.isEmpty(productos)}">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 shadow-inner">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        Ofertas Especiales
+                    </h2>
+                </div>
+                <div class="flex items-center gap-1.5 carousel-dots" data-for="car-ofer"></div>
+            </div>
+            <div class="relative">
+                <button class="carousel-arrow left hidden-arrow" data-target="car-ofer"><i class="fas fa-chevron-left text-sm"></i></button>
+                <div id="car-ofer" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
+                <div th:each="p : ${productos}" th:if="${p.id % 3 == 0}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border-2 border-red-100 hover:border-red-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                        <span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-md"><i class="fas fa-bolt mr-1"></i>Oferta Flash</span>
+                    </a>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-red-600 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                        </a>
+                        <div class="mt-auto flex items-end justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <!-- Simulador visual de descuento: Precio original era 15% más caro -->
+                                    <span class="text-xs text-gray-400 line-through font-medium" th:text="'$' + ${#numbers.formatDecimal(p.precio * 1.15, 0, 0)}">$0</span>
+                                    <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-2xl font-extrabold text-red-600" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-[9px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded ml-1 tracking-wide uppercase">¡Bajó!</span>
+                                </div>
+                            </div>
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-sm">
+                                <i class="fas fa-cart-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Burbuja Ver Todo -->
+                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                    <a th:href="@{/tienda/coleccion/ofertas}" class="flex flex-col items-center justify-center group gap-3">
+                        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
+                            <i class="fas fa-arrow-right text-xl"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500 group-hover:text-red-600 transition-colors">Ver todo</span>
+                    </a>
+                </div>
+            </div>
+                <button class="carousel-arrow right" data-target="car-ofer"><i class="fas fa-chevron-right text-sm"></i></button>
+            </div>
+        </div>
+
+        <!-- Recomendados para ti -->
+        <div th:if="${not #lists.isEmpty(productos)}">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 shadow-inner">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        Recomendados para ti
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1 font-medium">Basado en tus preferencias y navegación.</p>
+                </div>
+                <div class="flex items-center gap-1.5 carousel-dots" data-for="car-reco"></div>
+            </div>
+            <div class="relative">
+                <button class="carousel-arrow left hidden-arrow" data-target="car-reco"><i class="fas fa-chevron-left text-sm"></i></button>
+                <div id="car-reco" class="flex overflow-x-auto gap-6 scroller-visible snap-x">
+                <div th:each="p : ${productosRecomendados}" class="min-w-[280px] max-w-[280px] snap-start shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                        <span class="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-sm"><i class="fas fa-star mr-1"></i>Para ti</span>
+                    </a>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-purple-600 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                        </a>
+                        <div class="mt-auto flex items-end justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                </div>
+                            </div>
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
+                                <i class="fas fa-cart-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Burbuja Ver Todo -->
+                <div class="min-w-[130px] snap-start shrink-0 flex items-center justify-center">
+                    <a th:href="@{/tienda/coleccion/recomendados}" class="flex flex-col items-center justify-center group gap-3">
+                        <div class="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-110">
+                            <i class="fas fa-arrow-right text-xl"></i>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500 group-hover:text-purple-600 transition-colors">Ver todo</span>
+                    </a>
+                </div>
+            </div>
+                <button class="carousel-arrow right" data-target="car-reco"><i class="fas fa-chevron-right text-sm"></i></button>
+            </div>
+        </div>
+
+        <!-- Cerca de Ti -->
+        <div th:if="${not #lists.isEmpty(productos)}">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 shadow-inner">
+                            <i class="fas fa-location-dot"></i>
+                        </div>
+                        Cerca de Ti
+                    </h2>
+                </div>
+            </div>
+            
+            <div id="cerca-de-ti-carousel" class="flex overflow-x-auto gap-6 scroller-visible snap-x scroll-smooth">
+                <!-- Estado Inicial: Botón para pedir ubicación -->
+                <div class="flex flex-col items-center justify-center p-8 bg-blue-50/50 rounded-3xl border border-blue-100 border-dashed text-center min-w-[300px] w-full max-w-lg mx-auto">
+                    <i class="fas fa-location-arrow text-3xl text-blue-400 mb-3 animate-pulse"></i>
+                    <p class="text-sm font-bold text-gray-700 mb-4">Descubre productos de granjas y campesinos locales a tu alrededor.</p>
+                    <button type="button" onclick="loadCercaDeMi()" class="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform active:scale-95">Ver Productos Cercanos</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GRID DE PRODUCTOS FULL-WIDTH (CATÁLOGO PRINCIPAL - Oculto por defecto) -->
+    <div id="catalogo" class="hidden max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-100 bg-surface-50 min-h-screen">
         
         <div>
             
@@ -267,6 +606,9 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
                     <div>
                         <h2 class="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+                            <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-green-600 transition-colors mr-2 hidden sm:block" title="Volver al inicio">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
                             Catálogo
                             <button onclick="buscarCercaDeMi()" class="text-[11px] bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white transition px-3 py-1.5 rounded-full font-bold tracking-wide uppercase shadow-sm flex items-center gap-1">
                                 <i class="fas fa-location-arrow"></i> Cerca de Mí
@@ -394,6 +736,8 @@
                  th:data-stock="${p.stock}"
                  th:data-calificacion="${p.promedioCalificacion}"
                  th:data-distanciac="${p.distanciaKm != null ? p.distanciaKm : 9999}"
+                 th:data-lat="${p.latitudOrigen != null ? p.latitudOrigen : ''}"
+                 th:data-lon="${p.longitudOrigen != null ? p.longitudOrigen : ''}"
                  class="product-card js-product-card bg-white rounded-3xl shadow-bento border border-gray-100 overflow-hidden flex flex-col h-full group relative transition-all duration-300">
                 
                 <!-- Badge Flotante -->
@@ -401,7 +745,7 @@
                       th:text="${p.categoria}">CAT</span>
 
                 <!-- Imagen -->
-                <div class="relative h-64 overflow-hidden bg-gray-100">
+                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-64 overflow-hidden bg-gray-100 block">
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition duration-700 ease-out" 
                          alt="Producto"
@@ -409,39 +753,50 @@
                     
                     <!-- Overlay Oscuro al Hover -->
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
-                </div>
+                </a>
 
                 <!-- Cuerpo de la Tarjeta -->
                 <div class="p-5 flex-1 flex flex-col relative">
                     
-                    <!-- Vendedor (Avatar pequeño) -->
+                    <!-- Vendedor (Avatar y Verificado) -->
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
                             <i class="fas fa-tractor"></i>
                         </div>
-                        <span class="text-xs text-gray-500 font-bold truncate flex-1" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                            <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                        </div>
                     </div>
 
-                    <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors" th:text="${p.nombre}">Nombre</h3>
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors" th:text="${p.nombre}">Nombre</h3>
+                    </a>
                     
                     <!-- Ubicación y Distancia -->
                     <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
-                        <i class="fas fa-map-marker-alt text-red-500 text-[10px]"></i>
-                        <span class="text-[9px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[120px]" th:text="${p.municipioOrigen}">Lugar</span>
+                        <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                        <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
                         
                         <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
-                              class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                              class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
                               A <span th:text="${p.distanciaKm}"></span> km
                         </span>
                     </div>
 
-                    <div class="flex items-center gap-1 mb-3">
+                    <!-- Cosechado Hace... -->
+                    <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                        <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                        <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                    </div>
+
+                    <!-- Estrellas y Stock -->
+                    <div class="flex items-center gap-1 mb-4 mt-1">
                         <i class="fas fa-star text-amber-400 text-[10px]"></i>
                         <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
                         <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
-                        <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                        <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
                     </div>
-                    <p class="text-xs text-gray-400 mb-4 line-clamp-2" th:text="${p.descripcion}">Desc...</p>
                     
                     <div class="mt-auto flex items-end justify-between">
                         <div>
@@ -453,10 +808,10 @@
                         </div>
                         
                         <div class="flex gap-2">
-                            <!-- Botón Vista Rápida -->
-                            <button type="button" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-precio="${p.precio}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}" th:data-cat="${p.categoria}" th:data-id="${p.id}" th:data-stock="${p.stock}" th:data-unidad="${p.unidad}" th:data-unidadplural="${p.getUnidadPlural()}" onclick="abrirModal(this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
+                            <!-- Botón Vista Rápida convertido a Link -->
+                            <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
                                 <i class="far fa-eye"></i>
-                            </button>
+                            </a>
                             <!-- Botón Añadir (Con efecto visual) -->
                             <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
                                 <i class="fas fa-plus transition-all text-sm"></i>
@@ -992,20 +1347,77 @@
                 'LÁCTEOS': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=1374&auto=format&fit=crop'
             };
 
-            // Listeners Categoría (Sticky Bar)
+            // Listeners Categoría
             categoryBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     const val = btn.getAttribute('data-val');
                     
                     // Actualiza UI Botones
                     categoryBtns.forEach(b => {
-                        b.classList.remove('bg-gray-900', 'text-white', 'shadow-sm', 'border-gray-200');
-                        b.classList.add('bg-gray-50', 'text-gray-600', 'border-transparent');
+                        b.classList.remove('ring-4', 'ring-green-500', 'ring-offset-2', 'border-green-500', 'active', 'bg-green-600', 'text-white', 'shadow-md');
+                        // Restaurar estilos inactivos para Todos
+                        if (b.getAttribute('data-val') === '') {
+                            b.classList.add('text-gray-600', 'hover:bg-green-50', 'hover:text-green-600');
+                        }
                     });
-                    btn.classList.add('bg-gray-900', 'text-white', 'shadow-sm', 'border-gray-200');
-                    btn.classList.remove('bg-gray-50', 'text-gray-600', 'border-transparent');
+                    
+                    if (val === '') {
+                        btn.classList.add('active', 'bg-green-600', 'text-white', 'shadow-md');
+                        btn.classList.remove('text-gray-600', 'hover:bg-green-50', 'hover:text-green-600');
+                    } else {
+                        btn.classList.add('ring-4', 'ring-green-500', 'ring-offset-2', 'border-green-500', 'active');
+                    }
+                    
+                    // Lógica para mostrar la vista del Catálogo con transición suave
+                    const desc = document.getElementById('secciones-descubrimiento');
+                    const catView = document.getElementById('catalogo');
                     
                     selectedCategory = val;
+                    
+                    if (catView && catView.classList.contains('hidden')) {
+                        if (desc) {
+                            desc.style.transition = 'opacity 0.3s ease';
+                            desc.style.opacity = '0';
+                            
+                            setTimeout(() => {
+                                desc.classList.add('hidden');
+                                desc.style.opacity = '1'; // reset
+                                
+                                applyFiltersAndSort(); // Filtrar mientras está oculto
+                                
+                                catView.style.opacity = '0';
+                                catView.classList.remove('hidden');
+                                catView.style.transform = 'translateY(30px)';
+                                
+                                setTimeout(() => {
+                                    catView.style.transition = 'all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                                    catView.style.opacity = '1';
+                                    catView.style.transform = 'translateY(0)';
+                                    
+                                    const y = catView.getBoundingClientRect().top + window.scrollY - 100;
+                                    window.scrollTo({ top: y, behavior: 'smooth' });
+                                }, 30);
+                            }, 300);
+                        }
+                    } else if (catView && !catView.classList.contains('hidden')) {
+                        // Ya estamos en la vista de catálogo, animar el cambio entre categorías
+                        catView.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                        catView.style.opacity = '0';
+                        catView.style.transform = 'translateY(15px)';
+                        
+                        setTimeout(() => {
+                            applyFiltersAndSort();
+                            
+                            setTimeout(() => {
+                                catView.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                                catView.style.opacity = '1';
+                                catView.style.transform = 'translateY(0)';
+                                
+                                const y = catView.getBoundingClientRect().top + window.scrollY - 100;
+                                window.scrollTo({ top: y, behavior: 'smooth' });
+                            }, 50);
+                        }, 200);
+                    }
                     
                     // Efecto inmersivo Hero
                     const heroImg = document.getElementById('hero-bg');
@@ -1018,9 +1430,8 @@
                     }
 
                     // Cerrar dropdown si estuviera abierto
-                    document.getElementById('dropdown-filtros').classList.add('hidden');
-                    
-                    applyFiltersAndSort();
+                    const drop = document.getElementById('dropdown-filtros');
+                    if (drop) drop.classList.add('hidden');
                 });
             });
             
@@ -1240,6 +1651,72 @@
 
             applyFiltersAndSort();
         });
+
+        // --- Lógica Cerca de Mí (Geolocalización en Tiempo Real) ---
+        window.loadCercaDeMi = function() {
+            if (!navigator.geolocation) {
+                Swal.fire('Error', 'Tu navegador no soporta geolocalización', 'error');
+                return;
+            }
+            
+            const btnContainer = event.currentTarget.parentElement;
+            btnContainer.innerHTML = '<i class="fas fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-bold text-gray-700">Buscando productos cercanos...</p>';
+            
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                
+                const grid = document.getElementById('products-grid');
+                if(!grid) return;
+                
+                const allNodes = Array.from(grid.getElementsByClassName('js-product-card'));
+                const conDistancia = allNodes.map(node => {
+                    const pLat = parseFloat(node.getAttribute('data-lat'));
+                    const pLon = parseFloat(node.getAttribute('data-lon'));
+                    let dist = 9999;
+                    if(!isNaN(pLat) && !isNaN(pLon)) {
+                        // Haversine
+                        const R = 6371; 
+                        const dLat = (pLat-lat) * Math.PI / 180;
+                        const dLon = (pLon-lon) * Math.PI / 180;
+                        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat * Math.PI / 180) * Math.cos(pLat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        dist = R * c;
+                    }
+                    return { node, dist };
+                });
+                
+                conDistancia.sort((a,b) => a.dist - b.dist);
+                
+                const carousel = document.getElementById('cerca-de-ti-carousel');
+                carousel.innerHTML = '';
+                
+                const cercanos = conDistancia.filter(item => item.dist < 150).slice(0, 8);
+                if(cercanos.length === 0) {
+                    carousel.innerHTML = '<div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-3xl text-center w-full max-w-lg mx-auto"><i class="fas fa-sad-tear text-4xl text-gray-300 mb-3"></i><p class="text-sm font-bold text-gray-500">No hay productos cerca de tu ubicación actual.</p></div>';
+                    return;
+                }
+                
+                cercanos.forEach(item => {
+                    const clone = item.node.cloneNode(true);
+                    clone.classList.remove('js-product-card', 'h-full', 'hidden');
+                    clone.classList.add('min-w-[280px]', 'max-w-[280px]', 'snap-start', 'shrink-0');
+                    clone.style.display = 'flex';
+                    
+                    const anchor = clone.querySelector('a');
+                    if(anchor) {
+                        const distLabel = document.createElement('span');
+                        distLabel.className = 'absolute bottom-3 right-3 bg-blue-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm z-10 border border-blue-400';
+                        distLabel.innerHTML = '<i class="fas fa-location-dot mr-1"></i> A ' + item.dist.toFixed(1) + ' km';
+                        anchor.appendChild(distLabel);
+                    }
+                    carousel.appendChild(clone);
+                });
+                
+            }, err => {
+                btnContainer.innerHTML = '<i class="fas fa-exclamation-triangle text-3xl text-red-400 mb-3"></i><p class="text-sm font-bold text-gray-700 mb-4">Permiso denegado. No pudimos obtener tu ubicación.</p><button type="button" onclick="loadCercaDeMi()" class="bg-blue-600 text-white px-6 py-2.5 rounded-full font-bold text-sm">Reintentar</button>';
+            });
+        };
     </script>
     <!-- FOOTER INSTITUCIONAL AZUL -->
     <footer class="bg-slate-900 pt-10 pb-8 mt-12 relative overflow-hidden w-full">
@@ -1348,11 +1825,15 @@
                         </div>
 
                         <label class="text-[13px] font-semibold text-gray-500 mb-2 block">Dirección</label>
-                        <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200 mb-5 group hover:border-green-300 transition-colors cursor-text" onclick="document.getElementById('direccionInput').focus()">
-                            <input type="text" id="direccionInput" placeholder="Detectando tu ubicación..." class="flex-1 bg-transparent text-[14px] font-semibold text-gray-800 outline-none placeholder:text-gray-400 placeholder:font-normal">
-                            <i class="fas fa-pen text-gray-400 text-xs ml-3 group-hover:text-green-500 transition-colors"></i>
+                        <div class="relative mb-5 z-20">
+                            <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200 group hover:border-green-300 transition-colors cursor-text">
+                                <input type="text" id="direccionInput" placeholder="Ej: Carrera 70 # 45-20" autocomplete="off" class="flex-1 bg-transparent text-[14px] font-semibold text-gray-800 outline-none placeholder:text-gray-400 placeholder:font-normal">
+                                <i class="fas fa-search text-gray-400 text-sm ml-3 group-hover:text-green-500 transition-colors"></i>
+                            </div>
+                            <!-- Dropdown predictivo -->
+                            <div id="addressSuggestions" class="absolute left-0 right-0 top-[105%] bg-white border border-gray-100 rounded-xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15)] z-[100] hidden max-h-48 overflow-y-auto divide-y divide-gray-50 custom-scrollbar">
+                            </div>
                         </div>
-                    </div>
 
                     <!-- Piso / Oficina / Apto -->
                     <label class="text-[13px] font-semibold text-gray-500 mb-2 block">Piso / Oficina / Apto / Dpto (opcional)</label>
@@ -1594,6 +2075,78 @@
                 }, 800); // Esperar 800ms tras soltar mapa
             }
 
+            // 3.1 BÚSQUEDA PREDICTIVA DE DIRECCIONES (Autocomplete Nominatim)
+            let autocompleteTimeout;
+            const addressSuggestions = document.getElementById('addressSuggestions');
+            
+            direccionInput.addEventListener('input', function(e) {
+                clearTimeout(autocompleteTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length < 4) {
+                    addressSuggestions.classList.add('hidden');
+                    return;
+                }
+                
+                // Mostrar spinner de carga overlay
+                geoWaitOverlay.classList.remove('hidden');
+                geoWaitOverlay.classList.add('flex');
+                
+                autocompleteTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=co&limit=5&addressdetails=1`);
+                        const data = await res.json();
+                        
+                        addressSuggestions.innerHTML = '';
+                        if (data && data.length > 0) {
+                            addressSuggestions.classList.remove('hidden');
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'px-4 py-3 hover:bg-green-50 cursor-pointer flex flex-col transition-colors border-l-4 border-transparent hover:border-green-500';
+                                
+                                // Parsear la dirección para mostrarla más bonita
+                                const parts = item.display_name.split(',');
+                                const namePart = parts[0] + (parts[1] ? ',' + parts[1] : '');
+                                const detailsPart = item.display_name;
+                                
+                                div.innerHTML = `
+                                    <span class="text-sm font-extrabold text-gray-800"><i class="fas fa-map-marker-alt text-gray-400 mr-1 text-xs"></i> ${namePart.trim()}</span>
+                                    <span class="text-[11px] text-gray-500 truncate mt-0.5 pl-4">${detailsPart.trim()}</span>
+                                `;
+                                div.onclick = () => {
+                                    direccionInput.value = namePart.trim();
+                                    addressSuggestions.classList.add('hidden');
+                                    
+                                    // Mover el mapa a esa ubicación de forma suave
+                                    const lat = parseFloat(item.lat);
+                                    const lon = parseFloat(item.lon);
+                                    if(map) {
+                                        map.setView([lat, lon], 17, {animate: true, duration: 1});
+                                    }
+                                    currentLat = lat;
+                                    currentLng = lon;
+                                };
+                                addressSuggestions.appendChild(div);
+                            });
+                        } else {
+                            addressSuggestions.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        console.error('Error autocomplete', err);
+                    } finally {
+                        geoWaitOverlay.classList.add('hidden');
+                        geoWaitOverlay.classList.remove('flex');
+                    }
+                }, 600); // 600ms debounce para el teclado
+            });
+            
+            // Cerrar sugerencias al dar clic afuera
+            document.addEventListener('click', function(e) {
+                if (addressSuggestions && !e.target.closest('#addressSuggestions') && e.target !== direccionInput) {
+                    addressSuggestions.classList.add('hidden');
+                }
+            });
+
             // 4. GPS NATIVO NAVEGADOR
             function requestGPS() {
                 if (!navigator.geolocation) return;
@@ -1766,7 +2319,139 @@
                     });
                 }, 500); // 500ms de esqueleto
             }
+            
+            // --- Cálculo "Cosechado Hace X Tiempo" ---
+            const timeBadges = document.querySelectorAll('.time-ago-badge');
+            const now = new Date();
+            
+            timeBadges.forEach(badge => {
+                const dateStr = badge.getAttribute('data-time');
+                if(!dateStr) return;
+                
+                // Formato ISO esperado: YYYY-MM-DDTHH:mm:ss
+                const pastDate = new Date(dateStr);
+                if (isNaN(pastDate)) return;
+                
+                const diffMs = now - pastDate;
+                const diffSecs = Math.floor(diffMs / 1000);
+                const diffMins = Math.floor(diffSecs / 60);
+                const diffHrs = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHrs / 24);
+                
+                let timeText = 'Cosechado recientemente';
+                
+                if (diffDays > 0) {
+                    if (diffDays === 1) timeText = 'Cosechado hace 1 día';
+                    else if (diffDays <= 30) timeText = `Cosechado hace ${diffDays} días`;
+                    else {
+                        const months = Math.floor(diffDays / 30);
+                        timeText = months === 1 ? 'Cosechado hace 1 mes' : `Cosechado hace ${months} meses`;
+                    }
+                } else if (diffHrs > 0) {
+                    timeText = diffHrs === 1 ? 'Cosechado hace 1 hora' : `Cosechado hace ${diffHrs} horas`;
+                } else if (diffMins > 0) {
+                    timeText = diffMins === 1 ? 'Cosechado hace 1 min' : `Cosechado hace ${diffMins} mins`;
+                }
+                
+                badge.textContent = timeText;
+            });
+
+            // --- CAROUSEL ARROWS + DOTS SYSTEM ---
+            const CARD_W = 280 + 24; // card width + gap
+            ['car-dest','car-new','car-ofer','car-reco'].forEach(id => {
+                const track = document.getElementById(id);
+                if (!track) return;
+                const dotsBox = document.querySelector(`.carousel-dots[data-for="${id}"]`);
+                const leftBtn = document.querySelector(`.carousel-arrow.left[data-target="${id}"]`);
+                const rightBtn = document.querySelector(`.carousel-arrow.right[data-target="${id}"]`);
+                
+                // Calcular cuántas páginas hay
+                function getPages() {
+                    const visible = Math.floor(track.clientWidth / CARD_W) || 1;
+                    const totalCards = track.querySelectorAll(':scope > div').length;
+                    return Math.max(1, Math.ceil(totalCards / visible));
+                }
+                function getCurrentPage() {
+                    const visible = Math.floor(track.clientWidth / CARD_W) || 1;
+                    return Math.floor(track.scrollLeft / (CARD_W * visible));
+                }
+
+                // Crear dots
+                function renderDots() {
+                    if (!dotsBox) return;
+                    const pages = getPages();
+                    const current = getCurrentPage();
+                    dotsBox.innerHTML = '';
+                    for (let i = 0; i < pages; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'c-dot' + (i === current ? ' active bg-green-500' : '');
+                        dot.onclick = () => {
+                            const visible = Math.floor(track.clientWidth / CARD_W) || 1;
+                            track.scrollTo({ left: i * CARD_W * visible, behavior: 'smooth' });
+                        };
+                        dotsBox.appendChild(dot);
+                    }
+                }
+
+                // Actualizar flechas
+                function updateArrows() {
+                    if (leftBtn) {
+                        if (track.scrollLeft <= 10) leftBtn.classList.add('hidden-arrow');
+                        else leftBtn.classList.remove('hidden-arrow');
+                    }
+                    if (rightBtn) {
+                        const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+                        if (atEnd) rightBtn.classList.add('hidden-arrow');
+                        else rightBtn.classList.remove('hidden-arrow');
+                    }
+                }
+
+                // Scroll Ultra-Suave con Easing de Cuarta Potencia (Sutil y Lindo)
+                function smoothScroll(el, delta) {
+                    const start = el.scrollLeft;
+                    const target = Math.max(0, Math.min(start + delta, el.scrollWidth - el.clientWidth));
+                    const duration = 750; // Un poco más largo para mayor suavidad
+                    let startTime = null;
+                    
+                    // Cubic Bezier-like Easing (easeInOutQuart) - Muy suave al inicio y final
+                    function ease(t) {
+                        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+                    }
+                    
+                    function step(ts) {
+                        if (!startTime) startTime = ts;
+                        const progress = Math.min((ts - startTime) / duration, 1);
+                        el.scrollLeft = start + (target - start) * ease(progress);
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        }
+                    }
+                    requestAnimationFrame(step);
+                }
+
+                // Eventos de click en flechas
+                if (leftBtn) leftBtn.onclick = () => {
+                    const visible = Math.floor(track.clientWidth / CARD_W) || 1;
+                    smoothScroll(track, -(CARD_W * visible));
+                };
+                if (rightBtn) rightBtn.onclick = () => {
+                    const visible = Math.floor(track.clientWidth / CARD_W) || 1;
+                    smoothScroll(track, CARD_W * visible);
+                };
+
+                // Listeners
+                track.addEventListener('scroll', () => { renderDots(); updateArrows(); });
+                window.addEventListener('resize', () => { renderDots(); updateArrows(); });
+                
+                // Init
+                renderDots();
+                updateArrows();
+            });
         });
     </script>
+    
+    <!-- Widget de Soporte Global -->
+    <div th:replace="fragments/fragment_soporte :: widget"></div>
+
 </body>
 </html>

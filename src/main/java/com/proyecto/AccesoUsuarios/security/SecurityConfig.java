@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/registro", "/registro/guardar", "/api/usuarios/**", "/api/resenas/**", "/css/**", "/js/**", "/img/**", "/images/**", "/error").permitAll()
                 // Rutas protegidas por ROL
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/soporte/**").hasRole("SOPORTE")
                 .requestMatchers("/campesino/**").hasRole("CAMPESINO")
                 .requestMatchers("/tienda/**", "/carrito/**", "/orden/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
@@ -59,6 +60,8 @@ public class SecurityConfig {
 
             if (roles.contains("ROLE_ADMIN")) {
                 response.sendRedirect("/admin/dashboard");
+            } else if (roles.contains("ROLE_SOPORTE")) {
+                response.sendRedirect("/soporte/dashboard");
             } else if (roles.contains("ROLE_CAMPESINO")) {
                 response.sendRedirect("/campesino/productos");
             } else if (roles.contains("ROLE_CLIENTE")) {

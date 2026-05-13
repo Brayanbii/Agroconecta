@@ -6,20 +6,19 @@
     <title>Admin - Verificación de Campesinos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Leaflet para ver las fincas en un minimapa (opcional) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
 <body class="bg-[#f8fafc] flex h-screen overflow-hidden text-gray-800 font-sans antialiased">
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden w-full">
         
-        <!-- Sidebar Admin (Simulada para mantener contexto) -->
+        <!-- Sidebar Admin -->
         <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
-        <!-- Logo -->
         <div class="h-24 flex items-center px-8">
             <div class="flex items-center gap-3">
                 <div class="bg-gradient-to-br from-green-400 to-green-600 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-500/40 flex items-center justify-center">
@@ -29,32 +28,31 @@
             </div>
         </div>
 
-        <!-- Menú -->
         <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
             <p class="px-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 mt-2">Plataforma Administrativa</p>
             
-            <a href="/admin/dashboard" class="nav-link text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
+            <a href="/admin/dashboard" class="text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
                 <div class="bg-gray-100 group-hover:bg-green-100 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
                     <i class="fas fa-chart-pie text-gray-400 group-hover:text-green-600"></i> 
                 </div>
                 Dashboard
             </a>
             
-            <a href="/admin/usuarios" class="nav-link text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
+            <a href="/admin/usuarios" class="text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
                 <div class="bg-gray-100 group-hover:bg-green-100 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
                     <i class="fas fa-users text-gray-400 group-hover:text-green-600"></i> 
                 </div>
                 Usuarios
             </a>
             
-            <a href="/admin/pedidos" class="nav-link text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
+            <a href="/admin/pedidos" class="text-gray-500 hover:bg-green-50 hover:text-green-700 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
                 <div class="bg-gray-100 group-hover:bg-green-100 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
                     <i class="fas fa-box-open text-gray-400 group-hover:text-green-600"></i> 
                 </div>
                 Pedidos
             </a>
 
-            <a href="/admin/usuarios/verificaciones" class="nav-link bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
+            <a href="/admin/usuarios/verificaciones" class="bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
                 <div class="bg-green-200/50 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
                     <i class="fas fa-id-card-clip text-green-600"></i> 
                 </div>
@@ -62,7 +60,6 @@
             </a>
         </nav>
 
-        <!-- Perfil y Cerrar Sesión -->
         <div class="p-6">
             <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
                 <div class="flex items-center gap-3">
@@ -88,7 +85,6 @@
             <!-- Header -->
             <header class="h-24 flex items-center justify-between px-10">
                 <div class="flex items-center">
-                    
                     <div>
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">AgroConecta Admin</p>
                         <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Verificaciones KYC</h1>
@@ -98,17 +94,18 @@
 
             <div class="space-y-8 mt-4">
                 
-                
+                <!-- Alertas de Acciones -->
                 <div th:if="${param.aprobado}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
                     <i class="fas fa-check-circle"></i> Campesino aprobado y habilitado para vender.
                 </div>
                 <div th:if="${param.rechazado}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
                     <i class="fas fa-times-circle"></i> Campesino rechazado.
                 </div>
+                <div th:if="${param.vetado}" class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+                    <i class="fas fa-ban"></i> Campesino vetado de la plataforma.
+                </div>
 
-                <!-- Stats / Filters (Removidos temporalmente para estabilidad) -->
-
-                <!-- Listado de Solicitudes -->
+                <!-- Solicitudes Pendientes -->
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 mb-4">Solicitudes Pendientes</h2>
                 
                 <div class="space-y-6">
@@ -152,40 +149,33 @@
 
                         <!-- Evidencias Fotográficas -->
                         <div class="p-6 flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <!-- Foto Cédula -->
                             <div>
                                 <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><i class="fas fa-id-badge text-blue-500"></i> Foto Documento</h4>
                                 <div class="bg-gray-100 rounded-xl h-48 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer" 
-                                     th:data-url="${campesino.fotoCedulaUrl != null ? '/uploads/' + campesino.fotoCedulaUrl : '#'}"
+                                     th:data-url="${campesino.fotoCedulaUrl != null ? '/images/' + campesino.fotoCedulaUrl : '#'}"
                                      onclick="if(this.getAttribute('data-url') !== '#') window.open(this.getAttribute('data-url'), '_blank')">
-                                    <img th:if="${campesino.fotoCedulaUrl != null}" th:src="@{'/uploads/' + ${campesino.fotoCedulaUrl}}" class="w-full h-full object-cover hover:scale-105 transition" alt="Cédula">
+                                    <img th:if="${campesino.fotoCedulaUrl != null}" th:src="@{'/images/' + ${campesino.fotoCedulaUrl}}" class="w-full h-full object-cover hover:scale-105 transition" alt="Cédula">
                                     <span th:unless="${campesino.fotoCedulaUrl != null}" class="text-gray-400 text-sm font-medium">Sin imagen</span>
                                 </div>
                                 <p class="text-xs text-gray-400 mt-2 text-center">Click para ver grande</p>
                             </div>
 
-                            <!-- Foto Finca -->
                             <div>
                                 <h4 class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><i class="fas fa-tree text-green-500"></i> Foto de la Finca</h4>
                                 <div class="bg-gray-100 rounded-xl h-48 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer" 
-                                     th:data-url="${campesino.fotoFincaUrl != null ? '/uploads/' + campesino.fotoFincaUrl : '#'}"
+                                     th:data-url="${campesino.fotoFincaUrl != null ? '/images/' + campesino.fotoFincaUrl : '#'}"
                                      onclick="if(this.getAttribute('data-url') !== '#') window.open(this.getAttribute('data-url'), '_blank')">
-                                    <img th:if="${campesino.fotoFincaUrl != null}" th:src="@{'/uploads/' + ${campesino.fotoFincaUrl}}" class="w-full h-full object-cover hover:scale-105 transition" alt="Finca">
+                                    <img th:if="${campesino.fotoFincaUrl != null}" th:src="@{'/images/' + ${campesino.fotoFincaUrl}}" class="w-full h-full object-cover hover:scale-105 transition" alt="Finca">
                                     <span th:unless="${campesino.fotoFincaUrl != null}" class="text-gray-400 text-sm font-medium">Sin imagen</span>
                                 </div>
                                 <p class="text-xs text-gray-400 mt-2 text-center">Click para ver grande</p>
                             </div>
-
                         </div>
                     </div>
-
-                    <!-- Empty State removido para evitar crash si el contador falla -->
-
                 </div>
 
+                <!-- Historial de Validaciones -->
                 <h2 class="text-base font-semibold tracking-tight text-gray-800 mt-12 mb-4 border-t pt-8">Historial de Validaciones</h2>
-                <!-- Tabla de Aprobados / Rechazados -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <table class="w-full text-left text-sm text-gray-600">
                         <thead class="text-[11px] text-gray-500 uppercase tracking-wider bg-transparent">
@@ -193,10 +183,11 @@
                                 <th scope="col" class="px-6 py-4">Campesino</th>
                                 <th scope="col" class="px-6 py-4">Finca</th>
                                 <th scope="col" class="px-6 py-4">Estado</th>
+                                <th scope="col" class="px-6 py-4 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="campesino : ${campesinos}" th:if="${campesino.estadoVerificacion == 'APROBADO' or campesino.estadoVerificacion == 'RECHAZADO'}" class="bg-white border-b hover:bg-gray-50">
+                            <tr th:each="campesino : ${campesinos}" th:if="${campesino.estadoVerificacion == 'APROBADO' or campesino.estadoVerificacion == 'RECHAZADO' or campesino.estadoVerificacion == 'VETADO'}" class="bg-white border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                     <span th:text="${campesino.nombreCompleto}"></span><br>
                                     <span class="text-xs text-gray-400" th:text="${campesino.email}"></span>
@@ -205,6 +196,38 @@
                                 <td class="px-6 py-4">
                                     <span th:if="${campesino.estadoVerificacion == 'APROBADO'}" class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-green-200">Aprobado</span>
                                     <span th:if="${campesino.estadoVerificacion == 'RECHAZADO'}" class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-200">Rechazado</span>
+                                    <span th:if="${campesino.estadoVerificacion == 'VETADO'}" class="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-orange-200"><i class="fas fa-ban mr-1"></i>Vetado</span>
+                                </td>
+                                <td class="px-6 py-4 text-center flex items-center justify-center gap-2 flex-wrap">
+                                    <!-- Botón VER PERFIL -->
+                                    <button type="button" class="text-blue-600 hover:text-blue-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50 transition"
+                                            th:data-nombre="${campesino.nombreCompleto}"
+                                            th:data-email="${campesino.email}"
+                                            th:data-telefono="${campesino.telefono != null ? campesino.telefono : 'N/A'}"
+                                            th:data-cedula="${campesino.numeroIdentidad != null ? campesino.numeroIdentidad : 'N/A'}"
+                                            th:data-finca="${campesino.nombreFinca != null ? campesino.nombreFinca : 'N/A'}"
+                                            th:data-direccion="${campesino.descripcionFinca != null ? campesino.descripcionFinca : 'Sin dirección'}"
+                                            th:data-estado="${campesino.estadoVerificacion}"
+                                            th:data-foto-cedula="${campesino.fotoCedulaUrl != null ? '/images/' + campesino.fotoCedulaUrl : ''}"
+                                            th:data-foto-finca="${campesino.fotoFincaUrl != null ? '/images/' + campesino.fotoFincaUrl : ''}"
+                                            th:data-lat="${campesino.latitud != null ? campesino.latitud : ''}"
+                                            th:data-lon="${campesino.longitud != null ? campesino.longitud : ''}"
+                                            onclick="abrirModal(this)">
+                                        <i class="fas fa-eye mr-1"></i> Ver
+                                    </button>
+                                    <!-- Vetar si está APROBADO -->
+                                    <form th:if="${campesino.estadoVerificacion == 'APROBADO'}" th:action="@{/admin/usuarios/verificaciones/vetar/{id}(id=${campesino.id})}" method="POST" class="inline"
+                                          onsubmit="return confirmarVetar(event, this)">
+                                        <button type="submit" class="text-orange-500 hover:text-orange-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-orange-200 hover:bg-orange-50 transition">
+                                            <i class="fas fa-ban mr-1"></i> Vetar
+                                        </button>
+                                    </form>
+                                    <!-- Reactivar si está VETADO o RECHAZADO -->
+                                    <form th:if="${campesino.estadoVerificacion == 'VETADO' or campesino.estadoVerificacion == 'RECHAZADO'}" th:action="@{/admin/usuarios/verificaciones/reactivar/{id}(id=${campesino.id})}" method="POST" class="inline">
+                                        <button type="submit" class="text-green-600 hover:text-green-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-green-200 hover:bg-green-50 transition">
+                                            <i class="fas fa-undo mr-1"></i> Reactivar
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         </tbody>
@@ -214,6 +237,191 @@
             </div>
         </div>
         </main>
+    </div>
+
+    <!-- MODAL DE VISTA PREVIA -->
+    <div id="modalPerfil" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="cerrarModal()"></div>
+        <div class="absolute inset-4 md:inset-10 lg:inset-y-10 lg:inset-x-[15%] bg-white rounded-3xl shadow-2xl overflow-y-auto z-10 flex flex-col">
+            <!-- Header del Modal -->
+            <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 py-5 flex items-center justify-between z-20">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 text-xl">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalNombre" class="text-xl font-extrabold text-gray-900"></h3>
+                        <p id="modalEmail" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="modalEstadoBadge" class="text-xs font-bold px-3 py-1 rounded-full"></span>
+                    <button onclick="cerrarModal()" class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center transition">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body del Modal -->
+            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+                <!-- Datos Personales -->
+                <div class="space-y-5">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Datos Personales</h4>
+                    <div class="bg-gray-50 rounded-2xl p-5 space-y-3 border border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-id-card text-gray-400 w-5"></i>
+                            <span class="text-sm text-gray-600">Cédula:</span>
+                            <strong id="modalCedula" class="text-sm text-gray-900"></strong>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-phone text-gray-400 w-5"></i>
+                            <span class="text-sm text-gray-600">Teléfono:</span>
+                            <strong id="modalTelefono" class="text-sm text-gray-900"></strong>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-home text-gray-400 w-5"></i>
+                            <span class="text-sm text-gray-600">Finca:</span>
+                            <strong id="modalFinca" class="text-sm text-gray-900"></strong>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-map-pin text-gray-400 w-5"></i>
+                            <span class="text-sm text-gray-600">Dirección:</span>
+                            <strong id="modalDireccion" class="text-sm text-gray-900 break-all"></strong>
+                        </div>
+                    </div>
+
+                    <!-- Foto Cédula -->
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Foto Documento</h4>
+                    <div id="modalFotoCedulaContainer" class="bg-gray-100 rounded-2xl h-56 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer group relative">
+                        <img id="modalFotoCedula" src="" class="w-full h-full object-contain hidden transition-transform" alt="Cédula" onclick="abrirLightbox(this.src)">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none"><i class="fas fa-search-plus text-white text-2xl drop-shadow-lg"></i></div>
+                        <span id="modalFotoCedulaEmpty" class="text-gray-400 text-sm font-medium">Sin imagen</span>
+                    </div>
+                </div>
+
+                <!-- Foto Finca + Coordenadas -->
+                <div class="space-y-5">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Foto de la Finca</h4>
+                    <div id="modalFotoFincaContainer" class="bg-gray-100 rounded-2xl h-56 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer group relative">
+                        <img id="modalFotoFinca" src="" class="w-full h-full object-contain hidden transition-transform" alt="Finca" onclick="abrirLightbox(this.src)">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none"><i class="fas fa-search-plus text-white text-2xl drop-shadow-lg"></i></div>
+                        <span id="modalFotoFincaEmpty" class="text-gray-400 text-sm font-medium">Sin imagen</span>
+                    </div>
+
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Coordenadas GPS</h4>
+                    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                        <p id="modalCoords" class="text-sm text-gray-600 font-mono"></p>
+                        <a id="modalGoogleMaps" href="#" target="_blank" class="mt-3 inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-bold transition">
+                            <i class="fas fa-external-link-alt"></i> Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('modalNombre').innerText = d.nombre;
+            document.getElementById('modalEmail').innerText = d.email;
+            document.getElementById('modalCedula').innerText = d.cedula;
+            document.getElementById('modalTelefono').innerText = d.telefono;
+            document.getElementById('modalFinca').innerText = d.finca;
+            document.getElementById('modalDireccion').innerText = d.direccion;
+
+            // Estado badge
+            const badge = document.getElementById('modalEstadoBadge');
+            if (d.estado === 'APROBADO') { badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-green-100 text-green-800 border border-green-200'; badge.innerText = 'Aprobado'; }
+            else if (d.estado === 'RECHAZADO') { badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-800 border border-red-200'; badge.innerText = 'Rechazado'; }
+            else if (d.estado === 'VETADO') { badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-orange-100 text-orange-800 border border-orange-200'; badge.innerText = 'Vetado'; }
+
+            // Foto cédula
+            const imgCedula = document.getElementById('modalFotoCedula');
+            const emptyCedula = document.getElementById('modalFotoCedulaEmpty');
+            if (d.fotoCedula) { imgCedula.src = d.fotoCedula; imgCedula.classList.remove('hidden'); emptyCedula.classList.add('hidden'); }
+            else { imgCedula.classList.add('hidden'); emptyCedula.classList.remove('hidden'); }
+
+            // Foto finca
+            const imgFinca = document.getElementById('modalFotoFinca');
+            const emptyFinca = document.getElementById('modalFotoFincaEmpty');
+            if (d.fotoFinca) { imgFinca.src = d.fotoFinca; imgFinca.classList.remove('hidden'); emptyFinca.classList.add('hidden'); }
+            else { imgFinca.classList.add('hidden'); emptyFinca.classList.remove('hidden'); }
+
+            // Coordenadas
+            const coords = document.getElementById('modalCoords');
+            const mapsLink = document.getElementById('modalGoogleMaps');
+            if (d.lat && d.lon) {
+                coords.innerText = 'Lat: ' + d.lat + ' | Lon: ' + d.lon;
+                mapsLink.href = 'https://www.google.com/maps?q=' + d.lat + ',' + d.lon;
+                mapsLink.classList.remove('hidden');
+            } else {
+                coords.innerText = 'Sin coordenadas registradas';
+                mapsLink.classList.add('hidden');
+            }
+
+            document.getElementById('modalPerfil').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPerfil').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!document.getElementById('lightbox').classList.contains('hidden')) {
+                    cerrarLightbox();
+                } else {
+                    cerrarModal();
+                }
+            }
+        });
+
+        // --- LIGHTBOX ZOOM ---
+        function abrirLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            lb.classList.remove('hidden');
+            setTimeout(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; }, 10);
+        }
+
+        function cerrarLightbox() {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            lb.style.opacity = '0';
+            img.style.transform = 'scale(0.8)';
+            setTimeout(() => { lb.classList.add('hidden'); }, 300);
+        }
+
+        function confirmarVetar(event, form) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Vetar a este campesino?',
+                html: '<p class="text-gray-500">Esta acción bloqueará su acceso a la plataforma como vendedor.</p>',
+                icon: 'warning',
+                iconColor: '#f97316',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-ban mr-1"></i> Sí, vetar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#e5e7eb',
+                customClass: { popup: 'rounded-2xl', cancelButton: 'text-gray-700' }
+            }).then((result) => {
+                if (result.isConfirmed) form.submit();
+            });
+            return false;
+        }
+    </script>
+
+    <!-- LIGHTBOX OVERLAY -->
+    <div id="lightbox" class="fixed inset-0 z-[100] hidden flex items-center justify-center" style="opacity:0; transition: opacity 0.3s ease;" onclick="cerrarLightbox()">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+        <button onclick="cerrarLightbox()" class="absolute top-6 right-6 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-xl transition"><i class="fas fa-times"></i></button>
+        <img id="lightboxImg" src="" class="relative z-10 max-w-[90vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl" style="transform: scale(0.8); transition: transform 0.3s ease;" onclick="event.stopPropagation()" alt="Vista previa">
     </div>
 
 </body>

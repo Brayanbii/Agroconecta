@@ -210,11 +210,13 @@
                                 <td>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border"
                                           th:classappend="${u.rol == 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
+                                                           (u.rol == 'SOPORTE' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                                                            (u.rol == 'CAMPESINO' ? 'bg-green-50 text-green-700 border-green-200' : 
-                                                           'bg-blue-50 text-blue-700 border-blue-200')}">
+                                                           'bg-blue-50 text-blue-700 border-blue-200'))}">
                                         <span class="w-1.5 h-1.5 rounded-full"
                                               th:classappend="${u.rol == 'ADMIN' ? 'bg-purple-500' : 
-                                                               (u.rol == 'CAMPESINO' ? 'bg-green-500' : 'bg-blue-500')}"></span>
+                                                               (u.rol == 'SOPORTE' ? 'bg-orange-500' :
+                                                               (u.rol == 'CAMPESINO' ? 'bg-green-500' : 'bg-blue-500'))}"></span>
                                         <span th:text="${u.rol}">ROL</span>
                                     </span>
                                 </td>

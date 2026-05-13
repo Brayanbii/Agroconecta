@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Gestión de Pedidos - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .tab-btn.active { color: #16a34a; border-bottom: 2px solid #16a34a; background-color: #f0fdf4; }
+        .order-row { display: none; }
+        .order-row.visible { display: table-row; }
+        .empty-msg { display: none; }
+        .empty-msg.visible { display: table-row; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-active-anim { animation: fadeIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
+
+    <!-- SIDEBAR -->
+    <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
+        <div class="h-24 flex items-center px-8 border-b border-gray-50">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-green-500 to-green-700 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-600/40 flex items-center justify-center">
+                    <i class="fas fa-leaf text-xl"></i>
+                </div>
+                <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+            </div>
+        </div>
+        <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
+            <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Panel del Productor</p>
+            <a th:href="@{/campesino/productos}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-box-open group-hover:text-green-600"></i></div>
+                Mis Productos
+            </a>
+            <a th:href="@{/campesino/productos/pedidos}" class="bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
+                <div class="bg-green-200/50 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-shopping-bag text-green-600"></i></div>
+                Gestión de Pedidos
+            </a>
+            <a th:href="@{/campesino/productos/informe}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-chart-line group-hover:text-green-600"></i></div>
+                Analíticas y Reportes
+            </a>
+            <a th:href="@{/tienda}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-store group-hover:text-green-600"></i></div>
+                Ver Tienda Pública
+            </a>
+        </nav>
+        <div class="p-6 border-t border-gray-50">
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm shrink-0">
+                        <span th:text="${#authentication.name.substring(0,1).toUpperCase()}">U</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${#authentication.name}">Campesino</p>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Productor</p>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" class="m-0 shrink-0">
+                    <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-24 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-10 shrink-0 z-10">
+            <div>
+                <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestión de Pedidos</h1>
+                <p class="text-sm text-gray-500 font-medium">Administra el estado de los productos que te han comprado.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl border border-orange-100 flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-bell animate-bounce"></i>
+                    <span class="font-bold text-sm" th:text="${nuevosCount} + ' Nuevos'">0 Nuevos</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-10 bg-slate-50/50">
+            <div class="max-w-6xl mx-auto">
+
+                <!-- TABS -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-6 flex overflow-x-auto gap-2" id="tabs-bar">
+                    <button data-tab="NUEVO" class="tab-btn active flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-inbox"></i> Nuevos
+                        <span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${nuevosCount}">0</span>
+                    </button>
+                    <button data-tab="PREPARADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-box"></i> Preparados
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${preparadosCount}">0</span>
+                    </button>
+                    <button data-tab="ENVIADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-truck"></i> Enviados
+                        <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${enviadosCount}">0</span>
+                    </button>
+                    <button data-tab="ENTREGADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-check-circle"></i> Entregados
+                        <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${entregadosCount}">0</span>
+                    </button>
+                    <button data-tab="CANCELADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-times-circle"></i> Cancelados
+                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${canceladosCount}">0</span>
+                    </button>
+                </div>
+
+                <!-- TABLA ÚNICA -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden tab-active-anim" id="orders-table">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50/80 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                                <th class="p-4 pl-6">Pedido</th>
+                                <th class="p-4">Producto</th>
+                                <th class="p-4 text-center">Cant.</th>
+                                <th class="p-4 text-right">Ganancia</th>
+                                <th class="p-4">Cliente</th>
+                                <th class="p-4 pr-6 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm" id="orders-body">
+                            <tr th:each="v : ${ventas}"
+                                class="order-row border-b border-gray-50 hover:bg-gray-50/50 transition"
+                                th:data-estado="${v.estado != null ? v.estado : 'NUEVO'}">
+                                <td class="p-4 pl-6">
+                                    <p class="font-mono text-gray-800 font-bold text-xs mb-1" th:text="'#' + ${v.orden != null ? v.orden.id : 'N/A'}">#123</p>
+                                    <p class="text-[10px] text-gray-400"><i class="far fa-calendar-alt"></i> <span th:text="${v.orden != null ? #temporals.format(v.orden.fechaCreacion, 'dd/MM/yyyy') : '-'}">12/05</span></p>
+                                </td>
+                                <td class="p-4 font-bold text-gray-800" th:text="${v.nombre}">Producto</td>
+                                <td class="p-4 text-center">
+                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-bold" th:text="${v.cantidad}">0</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <p class="font-extrabold text-green-600" th:text="'$' + ${#numbers.formatDecimal(v.total, 0, 'COMMA', 0, 'POINT')}">$0</p>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-[10px] font-bold" th:text="${v.orden != null and v.orden.usuario != null ? #strings.substring(v.orden.usuario.nombreCompleto,0,1).toUpperCase() : '?'}">?</div>
+                                        <p class="text-xs font-bold text-gray-700 truncate" th:text="${v.orden != null and v.orden.usuario != null ? v.orden.usuario.nombreCompleto : 'Anónimo'}">Cliente</p>
+                                    </div>
+                                </td>
+                                <td class="p-4 pr-6 text-right">
+                                    <form th:action="@{'/campesino/productos/pedidos/' + ${v.id} + '/estado'}" method="post" class="flex gap-2 justify-end m-0 items-center">
+                                        <button th:if="${v.estado == null or v.estado == 'NUEVO'}" type="submit" name="estado" value="PREPARADO" class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold shadow-md shadow-green-500/20 transition flex items-center gap-1">
+                                            <i class="fas fa-box"></i> Preparar
+                                        </button>
+                                        <button th:if="${v.estado == null or v.estado == 'NUEVO'}" type="submit" name="estado" value="CANCELADO" class="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-500 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1" onclick="return confirm('¿Cancelar este pedido?');">
+                                            <i class="fas fa-ban"></i> Cancelar
+                                        </button>
+                                        <button th:if="${v.estado == 'PREPARADO'}" type="submit" name="estado" value="ENVIADO" class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center gap-1">
+                                            <i class="fas fa-truck-fast"></i> Enviar
+                                        </button>
+                                        <button th:if="${v.estado == 'PREPARADO'}" type="submit" name="estado" value="CANCELADO" class="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-500 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1" onclick="return confirm('¿Cancelar este pedido?');">
+                                            <i class="fas fa-ban"></i> Cancelar
+                                        </button>
+                                        <a th:if="${v.estado == 'ENVIADO'}" th:href="@{'/campesino/productos/logistica/' + ${v.id}}" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1 border border-indigo-100">
+                                            <i class="fas fa-map-marked-alt"></i> Ver Ruta
+                                        </a>
+                                        <button th:if="${v.estado == 'ENVIADO'}" type="submit" name="estado" value="ENTREGADO" class="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-xs font-bold shadow-md shadow-teal-500/20 transition flex items-center gap-1">
+                                            <i class="fas fa-check-double"></i> Entregado
+                                        </button>
+                                        <span th:if="${v.estado == 'ENTREGADO'}" class="text-[10px] text-teal-600 font-extrabold uppercase px-3 py-1 bg-teal-50 rounded-lg border border-teal-100 flex items-center gap-1">
+                                            <i class="fas fa-award"></i> Entregado
+                                        </span>
+                                        <span th:if="${v.estado == 'CANCELADO'}" class="text-[10px] text-red-600 font-extrabold uppercase px-3 py-1 bg-red-50 rounded-lg border border-red-100 flex items-center gap-1">
+                                            <i class="fas fa-times-circle"></i> Cancelado
+                                        </span>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr class="empty-msg" data-empty="NUEVO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-inbox"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos nuevos.</p></td></tr>
+                            <tr class="empty-msg" data-empty="PREPARADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-box-open"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos preparados.</p></td></tr>
+                            <tr class="empty-msg" data-empty="ENVIADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-truck"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos en tránsito.</p></td></tr>
+                            <tr class="empty-msg" data-empty="ENTREGADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-check-circle"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos entregados.</p></td></tr>
+                            <tr class="empty-msg" data-empty="CANCELADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-times-circle"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos cancelados.</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var allBtns = document.querySelectorAll('.tab-btn');
+        var allRows = document.querySelectorAll('.order-row');
+        var allEmpty = document.querySelectorAll('.empty-msg');
+
+        function filterByEstado(estado, activeBtn) {
+            // Buttons
+            for (var i = 0; i < allBtns.length; i++) { allBtns[i].classList.remove('active'); }
+            if (activeBtn) activeBtn.classList.add('active');
+            // Rows
+            var count = 0;
+            for (var i = 0; i < allRows.length; i++) {
+                var row = allRows[i];
+                if (row.getAttribute('data-estado') === estado) {
+                    row.style.display = 'table-row';
+                    count++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+            // Empty
+            for (var i = 0; i < allEmpty.length; i++) {
+                var em = allEmpty[i];
+                if (count === 0 && em.getAttribute('data-empty') === estado) {
+                    em.style.display = 'table-row';
+                } else {
+                    em.style.display = 'none';
+                }
+            }
+            try { localStorage.setItem('activePedidoTab', estado); } catch(e) {}
+        }
+
+        // Attach click handlers
+        for (var i = 0; i < allBtns.length; i++) {
+            allBtns[i].addEventListener('click', function() {
+                filterByEstado(this.getAttribute('data-tab'), this);
+            });
+        }
+
+        // Init
+        var saved = 'NUEVO';
+        try { saved = localStorage.getItem('activePedidoTab') || 'NUEVO'; } catch(e) {}
+        var initBtn = document.querySelector('.tab-btn[data-tab="' + saved + '"]') || allBtns[0];
+        filterByEstado(saved, initBtn);
+    });
+    </script>
+
+    <!-- Widget de Soporte -->
+    <div th:replace="~{fragments/fragment_soporte :: widget}"></div>
+</body>
+</html>
+

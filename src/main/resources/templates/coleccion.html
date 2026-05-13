@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title th:text="${tituloColeccion} + ' - AgroConecta'">Colección - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                colors: {
+                    brand: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#064e3b' },
+                    surface: { 50:'#FDFDFC',100:'#F4F5F7' }
+                },
+                boxShadow: { 'glass':'0 8px 32px 0 rgba(31,38,135,0.07)', 'bento':'0 4px 24px -4px rgba(0,0,0,0.04)' }
+            }}
+        };
+        window.fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Ctext x='150' y='160' font-family='sans-serif' font-size='24' font-weight='bold' fill='%239ca3af' text-anchor='middle'%3EAgroConecta%3C/text%3E%3C/svg%3E";
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFDFC; -webkit-font-smoothing: antialiased; }
+        .ambient-bg { position: fixed; top:0; left:0; right:0; bottom:0; z-index:-2;
+            background: radial-gradient(circle at 15% 50%, rgba(22,163,74,0.04), transparent 25%), radial-gradient(circle at 85% 30%, rgba(234,179,8,0.04), transparent 25%);
+            pointer-events: none; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 10px; }
+        .product-card { opacity:0; transform:translateY(30px); animation:cardIn 0.5s ease-out forwards; }
+        @keyframes cardIn { to { opacity:1; transform:translateY(0); } }
+    </style>
+</head>
+<body class="text-gray-800 relative bg-surface-50">
+    <div class="ambient-bg"></div>
+
+    <!-- NAVBAR COMPLETO (Idéntico al de tienda.html) -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-4 md:gap-8">
+                    <a th:href="@{/tienda}" class="flex items-center gap-2 cursor-pointer group">
+                        <div class="bg-green-600 text-white p-2 flex items-center justify-center rounded-xl shadow-md group-hover:scale-105 transition-transform duration-300">
+                            <i class="fas fa-leaf text-xl leading-none"></i>
+                        </div>
+                        <span class="text-2xl font-extrabold text-gray-800 tracking-tight hidden lg:block">Agro<span class="text-green-600">Conecta</span></span>
+                    </a>
+                </div>
+
+                <!-- Buscador Central -->
+                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 mx-4 lg:mx-8 relative">
+                    <div class="relative w-full">
+                        <input type="text" name="buscar" autocomplete="off"
+                               placeholder="Buscar productos en la tienda..." 
+                               class="w-full pl-12 pr-12 py-3 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
+                        <button type="submit" class="absolute left-3 top-2.5 text-gray-400 hover:text-green-600 transition p-1">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Menú Derecha -->
+                <div class="flex items-center gap-6">
+                    <a th:href="@{/orden/mis-compras}" class="hidden md:flex flex-col items-center text-gray-400 hover:text-green-600 transition group" title="Mis Pedidos">
+                        <i class="fas fa-receipt text-xl mb-1 group-hover:-translate-y-1 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wide">Pedidos</span>
+                    </a>
+                    <a th:href="@{/carrito}" class="relative group">
+                        <div class="p-3 bg-gray-100 rounded-full group-hover:bg-green-50 transition">
+                            <i class="fas fa-shopping-basket text-xl text-gray-600 group-hover:text-green-600"></i>
+                        </div>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm"
+                              th:text="${cantidadCarrito != null ? cantidadCarrito : 0}">0</span>
+                    </a>
+                    <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
+                        <a th:href="@{/perfil/ajustes}" class="flex items-center gap-3 hover:opacity-80 transition group">
+                            <div class="text-right hidden lg:block">
+                                <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest group-hover:text-green-500 transition-colors">Mi Perfil</p>
+                                <p class="text-sm font-bold text-gray-800 truncate max-w-[150px]" th:text="${nombreCliente}">Cliente</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-green-50 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-green-600 font-bold group-hover:shadow-md transition">
+                                <i class="fas fa-user text-sm"></i>
+                            </div>
+                        </a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="bg-gray-50 border border-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER DE COLECCIÓN -->
+    <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm mb-6">
+            <a th:href="@{/tienda}" class="text-gray-400 hover:text-green-600 transition-colors font-medium">
+                <i class="fas fa-arrow-left mr-1"></i>Tienda
+            </a>
+            <i class="fas fa-chevron-right text-[8px] text-gray-300"></i>
+            <span class="text-gray-700 font-bold" th:text="${tituloColeccion}">Colección</span>
+        </div>
+
+        <!-- Título -->
+        <div class="flex items-center gap-4 mb-2">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg transition-transform hover:scale-110"
+                 th:classappend="${colorColeccion == 'orange' ? 'bg-orange-100 text-orange-500 shadow-orange-200/50' : 
+                                   (colorColeccion == 'green' ? 'bg-green-100 text-green-600 shadow-green-200/50' : 
+                                   (colorColeccion == 'red' ? 'bg-red-100 text-red-600 shadow-red-200/50' : 
+                                   'bg-purple-100 text-purple-600 shadow-purple-200/50'))}">
+                <i th:class="${iconoColeccion}"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight" th:text="${tituloColeccion}">Colección</h1>
+                <p class="text-sm text-gray-500 mt-1 font-medium">
+                    <span th:text="${#lists.size(productos)}">0</span> productos encontrados
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRID DE PRODUCTOS -->
+    <div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div th:each="p, iterStat : ${productos}" 
+                 class="product-card bg-white rounded-3xl shadow-bento border border-gray-100 overflow-hidden flex flex-col h-full group relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                 th:style="'animation-delay: ' + ${iterStat.index * 60} + 'ms'"
+                 th:classappend="${colorColeccion == 'red' ? 'border-2 border-red-100 hover:border-red-300' : ''}">
+                
+                <!-- Badge con FontAwesome (sin emojis) -->
+                <span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide z-10 shadow-sm"
+                      th:classappend="${colorColeccion == 'orange' ? 'bg-white/90 backdrop-blur text-orange-600 border border-orange-100' : 
+                                       (colorColeccion == 'green' ? 'bg-green-600 text-white border border-green-500' : 
+                                       (colorColeccion == 'red' ? 'bg-red-600 text-white' : 
+                                       'bg-purple-600 text-white'))}">
+                    <i th:classappend="${colorColeccion == 'orange' ? 'fas fa-fire mr-1' : 
+                                        (colorColeccion == 'green' ? 'fas fa-clock mr-1' : 
+                                        (colorColeccion == 'red' ? 'fas fa-bolt mr-1' : 
+                                        'fas fa-star mr-1'))}"></i>
+                    <span th:text="${colorColeccion == 'orange' ? 'TOP VENTAS' : 
+                                    (colorColeccion == 'green' ? 'Nuevo' : 
+                                    (colorColeccion == 'red' ? 'Oferta Flash' : 
+                                    'Para ti'))}">Badge</span>
+                </span>
+
+                <!-- Imagen -->
+                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-56 overflow-hidden bg-gray-100 block">
+                    <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
+                         class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
+                         alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                </a>
+
+                <!-- Cuerpo -->
+                <div class="p-5 flex-1 flex flex-col">
+                    <!-- Vendedor -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div class="flex items-center gap-1 min-w-0">
+                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                            <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
+                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                    </a>
+                    
+                    <!-- Cosechado Hace... -->
+                    <div class="flex items-center gap-1.5 mb-3 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                        <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                        <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                    </div>
+
+                    <!-- Precio -->
+                    <div class="mt-auto flex items-end justify-between">
+                        <div>
+                            <div th:if="${colorColeccion == 'red'}" class="flex items-center gap-2 mb-1">
+                                <span class="text-xs text-gray-400 line-through font-medium" th:text="'$' + ${#numbers.formatDecimal(p.precio * 1.15, 0, 0)}">$0</span>
+                                <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest" th:if="${colorColeccion != 'red'}">Precio</p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-extrabold" 
+                                      th:classappend="${colorColeccion == 'red' ? 'text-red-600' : 'text-green-600'}" 
+                                      th:text="'$' + ${p.precio}">$0</span>
+                            </div>
+                        </div>
+                        <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" 
+                                class="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                                th:classappend="${colorColeccion == 'red' ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-600 hover:text-white'}">
+                            <i class="fas fa-cart-plus text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(productos)}" class="flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 mb-4">
+                <i class="fas fa-seedling text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-700 mb-2">No hay productos en esta colección</h3>
+            <p class="text-sm text-gray-500 mb-6">Vuelve pronto, nuestros campesinos están cosechando para ti.</p>
+            <a th:href="@{/tienda}" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full font-bold text-sm shadow-lg shadow-green-500/30 transition-all hover:scale-105 active:scale-95">
+                Explorar la Tienda
+            </a>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-100 bg-white py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-xs text-gray-400 font-medium">&copy; 2026 AgroConecta — Del campo colombiano directo a tu mesa.</p>
+        </div>
+    </footer>
+
+    <!-- Widget de Soporte -->
+    <div th:replace="fragments/fragment_soporte :: widget"></div>
+
+    <script th:inline="javascript">
+        function añadirCarrito(event, btn) {
+            event.preventDefault(); event.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            const stock = parseInt(btn.getAttribute('data-stock'));
+            if (stock <= 0) { btn.classList.add('!bg-red-100','!text-red-500'); setTimeout(()=>btn.classList.remove('!bg-red-100','!text-red-500'),1500); return; }
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-sm"></i>';
+            btn.classList.add('!bg-green-600','!text-white','scale-110');
+            fetch(`/carrito/agregar/${id}`, { method: 'POST' }).then(() => {
+                setTimeout(() => { btn.innerHTML = original; btn.classList.remove('!bg-green-600','!text-white','scale-110'); }, 1200);
+            }).catch(() => { btn.innerHTML = original; btn.classList.remove('scale-110'); });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.time-ago-badge').forEach(badge => {
+                const d = badge.getAttribute('data-time'); if (!d) return;
+                const past = new Date(d); if (isNaN(past)) return;
+                const diff = Date.now() - past, mins = Math.floor(diff/60000), hrs = Math.floor(mins/60), days = Math.floor(hrs/24);
+                let t = 'Cosechado recientemente';
+                if (days > 30) { const m = Math.floor(days/30); t = m===1?'Cosechado hace 1 mes':`Cosechado hace ${m} meses`; }
+                else if (days > 0) t = days===1?'Cosechado hace 1 día':`Cosechado hace ${days} días`;
+                else if (hrs > 0) t = hrs===1?'Cosechado hace 1 hora':`Cosechado hace ${hrs} horas`;
+                else if (mins > 0) t = `Cosechado hace ${mins} mins`;
+                badge.textContent = t;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title th:text="${producto.nombre + ' - AgroConecta'}">Producto</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-gray-800 antialiased">
+
+    <!-- NAVBAR TIENDA -->
+    <nav class="glass-header sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="/tienda" class="flex items-center gap-3 group">
+                    <div class="bg-gradient-to-br from-green-400 to-green-600 text-white w-10 h-10 rounded-xl shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <i class="fas fa-leaf text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+                </a>
+                
+                <div class="flex items-center gap-6">
+                    <a href="/carrito" class="relative group">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                            <i class="fas fa-shopping-cart text-gray-600 group-hover:text-green-600 transition-colors"></i>
+                        </div>
+                        <span th:if="${cantidadCarrito > 0}" th:text="${cantidadCarrito}" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white"></span>
+                    </a>
+                    
+                    <div class="h-8 w-px bg-gray-200 mx-2"></div>
+                    
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-100 to-green-50 flex items-center justify-center text-green-700 font-bold border border-green-200">
+                            <span th:text="${#strings.substring(nombreCliente, 0, 1)}">C</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-sm font-bold text-gray-800 leading-tight" th:text="${nombreCliente}">Cliente</p>
+                            <p class="text-xs text-gray-500">Mi Perfil</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Breadcrumbs -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-8">
+            <a href="/tienda" class="hover:text-green-600 font-medium"><i class="fas fa-home"></i> Tienda</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <a th:href="@{/tienda(buscar=${producto.categoria})}" th:text="${producto.categoria}" class="hover:text-green-600 font-medium cursor-pointer">Categoria</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <span th:text="${producto.nombre}" class="text-gray-800 font-bold">Producto</span>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-12">
+            
+            <!-- FOTO DEL PRODUCTO (Izquierda) -->
+            <div class="lg:w-1/2">
+                <div class="bg-white p-4 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 relative group overflow-hidden">
+                    
+                    <!-- Badge Frescura -->
+                    <div class="absolute top-6 left-6 z-10 bg-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2">
+                        <i class="fas fa-clock"></i>
+                        <span th:text="${mensajeFrescura}">Frescura</span>
+                    </div>
+
+                    <!-- Badge Stock -->
+                    <div class="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md border border-gray-100">
+                        <span th:text="${producto.stock > 0 ? producto.stock + ' en stock' : 'Agotado'}">Stock</span>
+                    </div>
+
+                    <img th:if="${producto.imagenUrl != null}" th:src="${producto.imagenUrl.startsWith('http') ? producto.imagenUrl : '/images/' + producto.imagenUrl}" alt="Producto" onclick="abrirModalImagen(this.src)" class="w-full h-[500px] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 cursor-pointer">
+                    <img th:unless="${producto.imagenUrl != null}" src="https://via.placeholder.com/600x500?text=Sin+Imagen" class="w-full h-[500px] object-cover rounded-2xl opacity-50">
+                </div>
+            </div>
+
+            <!-- DETALLES DEL PRODUCTO (Derecha) -->
+            <div class="lg:w-1/2 flex flex-col">
+                
+                <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2" th:text="${producto.nombre}">Nombre Producto</h1>
+                
+                <!-- Estrellas y Reseñas -->
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="flex text-amber-400 text-lg">
+                        <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= producto.promedioCalificacion} ? '' : ' text-gray-200'"></i>
+                    </div>
+                    <span class="text-gray-500 font-medium text-sm">
+                        <span class="font-bold text-gray-800" th:text="${producto.promedioCalificacion}">0.0</span> 
+                        (<span th:text="${producto.totalResenas}">0</span> reseñas)
+                    </span>
+                </div>
+
+                <div class="text-4xl font-extrabold text-green-600 mb-6">
+                    <span th:text="'$' + ${producto.precio}">$0</span>
+                    <span class="text-lg text-gray-400 font-medium ml-1" th:text="'/ ' + ${producto.unidad}">/ Kg</span>
+                </div>
+
+                <p class="text-gray-600 leading-relaxed mb-8 text-lg" th:text="${producto.descripcion}">
+                    Descripción detallada del producto.
+                </p>
+
+                <!-- PERFIL DEL CAMPESINO -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 mb-8 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center border-2 border-green-400 shadow-sm text-green-600 text-xl">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-600 font-bold uppercase tracking-wider mb-1">Campesino Productor</p>
+                            <p class="text-lg font-bold text-gray-900" th:text="${producto.usuario.nombreCompleto}">Nombre Campesino</p>
+                            <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                <span th:text="${producto.municipioOrigen != null ? producto.municipioOrigen : 'Colombia'}">Ubicación</span>
+                            </p>
+                        </div>
+                    </div>
+                    <a th:href="@{/tienda/campesino/{id}(id=${producto.usuario.id})}" class="hidden sm:block text-green-600 bg-white border border-green-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50 transition shadow-sm">Ver Perfil</a>
+                </div>
+
+                <!-- ADD TO CART ACCIONES -->
+                <div class="mt-auto pt-6 border-t border-gray-100">
+                    <form onsubmit="añadirAlCarritoDetalle(event)" class="flex flex-col sm:flex-row gap-4">
+                        <input type="hidden" id="detalleProductoId" th:value="${producto.id}">
+                        <input type="hidden" id="detalleProductoNombre" th:value="${producto.nombre}">
+                        
+                        <!-- Selector de Cantidad -->
+                        <div class="flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-2">
+                            <button type="button" onclick="decrementar()" class="w-12 h-14 flex items-center justify-center text-gray-500 hover:text-green-600 transition font-bold text-xl">-</button>
+                            <input type="number" id="cantidadInput" value="1" min="1" th:max="${producto.stock}" class="w-16 h-14 bg-transparent text-center font-bold text-lg text-gray-900 focus:outline-none appearance-none">
+                            <button type="button" onclick="incrementar()" class="w-12 h-14 flex items-center justify-center text-gray-500 hover:text-green-600 transition font-bold text-xl">+</button>
+                        </div>
+
+                        <!-- Botón Agregar -->
+                        <button type="submit" id="btnAñadirDetalle" th:disabled="${producto.stock <= 0}" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-2xl h-14 flex items-center justify-center gap-3 transition shadow-lg shadow-green-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-cart-plus"></i>
+                            <span th:text="${producto.stock > 0 ? 'Añadir al Carrito' : 'Agotado'}">Añadir al Carrito</span>
+                        </button>
+
+                    </form>
+                    <p class="text-xs text-gray-400 mt-4 text-center"><i class="fas fa-shield-alt text-green-500 mr-1"></i> Transacción 100% Segura con Mercado Pago.</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-16 border-gray-200">
+
+        <!-- RESEÑAS Y OTROS PRODUCTOS (Feed) -->
+        <div class="flex flex-col lg:flex-row gap-12">
+            
+            <!-- Reseñas -->
+            <div class="lg:w-2/3">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                        <i class="fas fa-comments text-green-500"></i> Reseñas de Clientes
+                    </h3>
+                    <button th:if="${puedeComentar}" onclick="document.getElementById('formReview').classList.toggle('hidden')" class="bg-green-50 text-green-700 hover:bg-green-100 font-bold px-4 py-2 rounded-xl transition shadow-sm text-sm flex items-center gap-2">
+                        <i class="fas fa-pen"></i> Escribir Reseña
+                    </button>
+                    <span th:unless="${puedeComentar}" class="text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100"><i class="fas fa-info-circle mr-1"></i> Solo compradores pueden comentar</span>
+                </div>
+                
+                <form id="formReview" class="hidden mb-8 bg-white border border-gray-100 shadow-sm rounded-2xl p-6 transition-all">
+                    <input type="hidden" id="reviewProductoId" th:value="${producto.id}">
+                    <div class="min-w-0">
+                        <p class="text-sm text-gray-500 mb-2 font-bold">Tu Calificación</p>
+                        <div class="mb-4 flex gap-2 text-2xl text-gray-200" id="starSelector">
+                            <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="1"></i>
+                            <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="2"></i>
+                            <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="3"></i>
+                            <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="4"></i>
+                            <i class="fas fa-star cursor-pointer hover:scale-110 hover:text-amber-400 transition" data-val="5"></i>
+                        </div>
+                        <input type="hidden" id="reviewEstrellas" value="0" required>
+                        <textarea id="reviewTexto" class="w-full text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 p-4 mb-4 resize-none transition" rows="3" placeholder="¿Qué te pareció el producto?" required maxlength="800"></textarea>
+                        <button type="button" onclick="enviarResenaLocal()" id="btnSubmitReview" class="w-full sm:w-auto bg-green-600 border border-transparent text-white text-sm font-bold px-6 py-2.5 rounded-xl hover:bg-green-700 hover:shadow-lg transition active:scale-95 flex justify-center items-center gap-2">Publicar Opinión</button>
+                    </div>
+                </form>
+
+                <div th:if="${producto.resenas == null or producto.resenas.empty}" class="bg-white p-8 rounded-2xl border border-gray-100 text-center shadow-sm">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 text-2xl">
+                        <i class="far fa-comment-dots"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">Aún no hay reseñas para este producto.</p>
+                    <p class="text-sm text-gray-400 mt-1">Sé el primero en comprar y dejar tu opinión.</p>
+                </div>
+
+                <div th:if="${producto.resenas != null and !producto.resenas.empty}" class="space-y-6">
+                    <div th:each="r : ${producto.resenas}" class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 flex items-center justify-center font-bold text-gray-600 border border-gray-200">
+                            <span th:text="${#strings.substring(r.usuario.nombreCompleto, 0, 1)}">C</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-gray-900" th:text="${r.usuario.nombreCompleto}">Nombre Cliente</h4>
+                                    <div class="flex text-amber-400 text-xs mt-1">
+                                        <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= r.estrellas} ? '' : ' text-gray-200'"></i>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-lg" th:text="${#strings.replace(r.fecha.toString(), 'T', ' ').substring(0, 10)}">Fecha</span>
+                            </div>
+                            <p class="text-gray-600 text-sm leading-relaxed" th:text="${r.comentario}">Comentario del usuario.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Otros Productos del Mismo Campesino -->
+            <div class="lg:w-1/3">
+                <h3 class="text-xl font-bold text-gray-900 mb-8">Más de este Campesino</h3>
+                
+                <div th:if="${otrosProductos == null or otrosProductos.empty}" class="text-gray-500 text-sm bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    No tiene otros productos publicados.
+                </div>
+
+                <div class="space-y-4">
+                    <a th:each="op : ${otrosProductos}" th:href="@{/tienda/producto/{id}(id=${op.id})}" class="flex gap-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
+                        <img th:if="${op.imagenUrl != null}" th:src="${op.imagenUrl.startsWith('http') ? op.imagenUrl : '/images/' + op.imagenUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Sin+Imagen'" class="w-20 h-20 object-cover rounded-xl">
+                        <div th:unless="${op.imagenUrl != null}" class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
+                        
+                        <div class="flex flex-col justify-center">
+                            <h4 class="font-bold text-gray-900 group-hover:text-green-600 transition-colors line-clamp-1" th:text="${op.nombre}">Nombre</h4>
+                            <p class="text-sm font-bold text-green-600 my-1" th:text="'$' + ${op.precio}">$0</p>
+                            <div class="flex text-amber-400 text-[10px]">
+                                <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= op.promedioCalificacion} ? '' : ' text-gray-200'"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Image Modal (Lightbox) -->
+    <div id="imageModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 p-4 transition-opacity duration-300 opacity-0" onclick="cerrarModalImagen()">
+        <button class="absolute top-6 right-6 text-white text-3xl hover:text-gray-300 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalEnlargedImg" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+    </div>
+
+    <!-- FOOTER SIMPLE -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12 relative">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Botón Volver a la Tienda (Abajo izquierda) -->
+            <a href="/tienda" class="flex items-center gap-2 text-gray-500 hover:text-green-600 font-bold bg-gray-50 hover:bg-green-50 px-5 py-2.5 rounded-xl border border-gray-200 transition shadow-sm">
+                <i class="fas fa-arrow-left"></i> Volver a la Tienda
+            </a>
+
+            <p class="text-gray-400 font-medium text-sm">© 2026 AgroConecta. Conectando el campo con la ciudad.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Lógica Estrellas
+        document.getElementById('starSelector')?.addEventListener('click', function(e) {
+            if(e.target.tagName === 'I') {
+                const rating = parseInt(e.target.getAttribute('data-val'));
+                document.getElementById('reviewEstrellas').value = rating;
+                Array.from(this.children).forEach((star, index) => {
+                    if(index < rating) {
+                        star.classList.remove('text-gray-200');
+                        star.classList.add('text-amber-400');
+                    } else {
+                        star.classList.remove('text-amber-400');
+                        star.classList.add('text-gray-200');
+                    }
+                });
+            }
+        });
+
+        // Lógica Enviar Reseña
+        function enviarResenaLocal() {
+            const productoId = document.getElementById('reviewProductoId').value;
+            const estrellas = document.getElementById('reviewEstrellas').value;
+            const texto = document.getElementById('reviewTexto').value;
+            
+            if(estrellas == 0) {
+                Swal.fire('Atención', 'Por favor selecciona una calificación en estrellas', 'warning');
+                return;
+            }
+            if(!texto.trim()) {
+                Swal.fire('Atención', 'Por favor escribe un comentario', 'warning');
+                return;
+            }
+            
+            const btn = document.getElementById('btnSubmitReview');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando...';
+            btn.disabled = true;
+            
+            fetch('/api/resenas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productoId: productoId,
+                    estrellas: parseInt(estrellas),
+                    comentario: texto
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.error) throw new Error(data.error);
+                Swal.fire('¡Gracias!', 'Tu reseña ha sido publicada', 'success').then(() => {
+                    window.location.reload();
+                });
+            })
+            .catch(e => {
+                btn.innerHTML = 'Publicar Opinión';
+                btn.disabled = false;
+                Swal.fire('Error', e.message || 'No se pudo publicar la reseña', 'error');
+            });
+        }
+
+        const input = document.getElementById('cantidadInput');
+        function incrementar() {
+            if(parseInt(input.value) < parseInt(input.max)) {
+                input.value = parseInt(input.value) + 1;
+            }
+        }
+        function decrementar() {
+            if(parseInt(input.value) > parseInt(input.min)) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+
+        // Logic Modal Image
+        function abrirModalImagen(src) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalEnlargedImg');
+            img.src = src;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                img.classList.remove('scale-95');
+                img.classList.add('scale-100');
+            }, 10);
+        }
+
+        function cerrarModalImagen() {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalEnlargedImg');
+            modal.classList.add('opacity-0');
+            img.classList.remove('scale-100');
+            img.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Add to Cart via API
+        function añadirAlCarritoDetalle(event) {
+            event.preventDefault();
+            const id = document.getElementById('detalleProductoId').value;
+            const cantidad = parseInt(document.getElementById('cantidadInput').value);
+            const nombre = document.getElementById('detalleProductoNombre').value;
+            const btn = document.getElementById('btnAñadirDetalle');
+            const icon = btn.querySelector('i');
+            
+            icon.className = 'fas fa-circle-notch fa-spin';
+            btn.classList.add('pointer-events-none');
+            
+            fetch('/api/carrito/agregar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, cantidad: cantidad })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error === "stock_insuficiente") {
+                    Swal.fire({
+                        icon: 'info',
+                        title: '¡Límite alcanzado!',
+                        text: 'No hay más unidades disponibles de ' + nombre + '. El stock restante es ' + data.stock + '.',
+                        confirmButtonColor: '#eab308'
+                    });
+                    icon.className = 'fas fa-cart-plus';
+                    btn.classList.remove('pointer-events-none');
+                    return;
+                }
+                if (data.error) throw new Error(data.error);
+
+                icon.className = 'fas fa-check scale-125 transition-transform text-xl';
+                setTimeout(() => {
+                    icon.className = 'fas fa-cart-plus';
+                    btn.classList.remove('pointer-events-none');
+                }, 1200);
+
+                Swal.fire({
+                    toast: true,
+                    position: 'bottom-end',
+                    icon: 'success',
+                    title: `<span style="font-family: 'Inter', sans-serif;">${cantidad}x ${nombre} al carrito</span>`,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                
+                // Actualizar badge del carrito (si existe en la cabecera actual)
+                setTimeout(() => {
+                    window.location.reload(); // Recarga para actualizar el navbar 
+                }, 1500);
+            })
+            .catch(err => {
+                icon.className = 'fas fa-cart-plus';
+                btn.classList.remove('pointer-events-none');
+                Swal.fire('Error', 'Problema al conectar con el servidor', 'error');
+            });
+        }
+    </script>
+</body>
+</html>

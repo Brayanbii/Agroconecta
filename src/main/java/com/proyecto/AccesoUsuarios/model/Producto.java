@@ -57,6 +57,16 @@ public class Producto {
     @ToString.Exclude
     private List<Resena> resenas;
 
+    @Column(name = "fecha_creacion")
+    private java.time.LocalDateTime fechaCreacion;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = java.time.LocalDateTime.now();
+        }
+    }
+
     @Transient
     public Double getPromedioCalificacion() {
         if (resenas == null || resenas.isEmpty()) {

@@ -7,7 +7,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.proyecto.AccesoUsuarios.service.UploadFileService;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/perfil")
@@ -18,6 +22,9 @@ public class PerfilController {
 
     @Autowired
     private com.proyecto.AccesoUsuarios.repository.OrdenRepository ordenRepository;
+
+    @Autowired
+    private UploadFileService uploadService;
 
     @GetMapping("/{seccion}")
     public String verPerfil(@PathVariable(required = false) String seccion, Authentication auth, Model model) {
@@ -46,6 +53,14 @@ public class PerfilController {
             model.addAttribute("ultimasOrdenes", ordenRepository.findTop5ByUsuarioOrderByFechaCreacionDesc(usuarioDB));
         }
         
+        if ("favoritos".equals(seccion)) {
+            // Lazy loading forces us to fetch them here or use an explicit fetch, but wait, size() initializes it
+            if (usuarioDB.getProductosFavoritos() != null) {
+                usuarioDB.getProductosFavoritos().size(); // Trigger lazy initialization
+                model.addAttribute("favoritos", usuarioDB.getProductosFavoritos());
+            }
+        }
+        
         return "perfil";
     }
 
@@ -55,7 +70,10 @@ public class PerfilController {
     }
 
     @PostMapping("/actualizar")
-    public String actualizarPerfil(@ModelAttribute Usuario datosNuevos, Authentication auth, RedirectAttributes redirectAttributes) {
+    public String actualizarPerfil(@ModelAttribute Usuario datosNuevos, 
+                                   @RequestParam(value = "imgPerfil", required = false) MultipartFile imgPerfil,
+                                   @RequestParam(value = "imgPortada", required = false) MultipartFile imgPortada,
+                                   Authentication auth, RedirectAttributes redirectAttributes) throws IOException {
         if (auth == null || !auth.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -70,8 +88,18 @@ public class PerfilController {
             usuarioDB.setFechaNacimiento(datosNuevos.getFechaNacimiento());
             usuarioDB.setGenero(datosNuevos.getGenero());
             
-            if (datosNuevos.getFotoPerfil() != null && !datosNuevos.getFotoPerfil().isEmpty()) {
+            if (imgPerfil != null && !imgPerfil.isEmpty()) {
+                String nombreImagen = uploadService.saveImage(imgPerfil);
+                usuarioDB.setFotoPerfil(nombreImagen);
+            } else if (datosNuevos.getFotoPerfil() != null && !datosNuevos.getFotoPerfil().isEmpty()) {
                 usuarioDB.setFotoPerfil(datosNuevos.getFotoPerfil());
+            }
+            
+            if (imgPortada != null && !imgPortada.isEmpty()) {
+                String nombreImagen = uploadService.saveImage(imgPortada);
+                usuarioDB.setFotoFincaUrl(nombreImagen);
+            } else if (datosNuevos.getFotoFincaUrl() != null && !datosNuevos.getFotoFincaUrl().isEmpty()) {
+                usuarioDB.setFotoFincaUrl(datosNuevos.getFotoFincaUrl());
             }
             
             // Si el usuario envía datos de su negocio (para campesinos)
@@ -80,6 +108,9 @@ public class PerfilController {
             }
             if (datosNuevos.getDescripcionFinca() != null) {
                 usuarioDB.setDescripcionFinca(datosNuevos.getDescripcionFinca());
+            }
+            if (datosNuevos.getMunicipioOrigen() != null) {
+                usuarioDB.setMunicipioOrigen(datosNuevos.getMunicipioOrigen());
             }
 
             usuarioRepository.save(usuarioDB);

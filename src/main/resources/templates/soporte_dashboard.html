@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Dashboard de Soporte - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased">
+
+    <!-- SIDEBAR SOPORTE -->
+    <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
+        <div class="h-24 flex items-center px-8">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white w-10 h-10 rounded-xl shadow-lg shadow-orange-500/40 flex items-center justify-center">
+                    <i class="fas fa-headset text-xl"></i>
+                </div>
+                <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-orange-600">Soporte</span></span>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
+            <p class="px-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 mt-2">Atención al Cliente</p>
+            
+            <a href="/soporte/dashboard" class="bg-orange-50 text-orange-700 shadow-sm ring-1 ring-orange-100 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-orange-200/50 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-inbox text-orange-600"></i> 
+                </div>
+                Bandeja de Entrada
+            </a>
+        </nav>
+
+        <div class="p-6">
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-extrabold shadow-sm">
+                        <span th:text="${#authentication.name.substring(0,2).toUpperCase()}">SP</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${#authentication.name}">Agente</p>
+                        <p class="text-xs text-green-500 font-bold truncate"><i class="fas fa-circle text-[8px] mr-1"></i> En línea</p>
+                    </div>
+                </div>
+                <form action="/logout" method="post" class="m-0">
+                    <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-24 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-10 shrink-0 z-10">
+            <div>
+                <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Centro de Ayuda</h1>
+                <p class="text-sm text-gray-500 font-medium">Gestiona los tickets y consultas de los usuarios.</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="bg-red-50 text-red-600 px-4 py-2 rounded-xl border border-red-100 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> <span class="font-bold" th:text="${abiertosCount} + ' Pendientes'">0</span>
+                </div>
+                <div class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
+                    <i class="fas fa-spinner fa-spin"></i> <span class="font-bold" th:text="${enProgresoCount} + ' En progreso'">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-10">
+            
+            <!-- TARJETAS DE ESTADÍSTICAS -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Urgentes (>24h)</p>
+                        <p class="text-2xl font-extrabold text-gray-800" th:text="${urgentesCount}">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-spinner"></i></div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">En Progreso</p>
+                        <p class="text-2xl font-extrabold text-gray-800" th:text="${enProgresoCount}">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Resueltos</p>
+                        <p class="text-2xl font-extrabold text-gray-800" th:text="${cerradosCount}">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-user-times"></i></div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Problema Mayor</p>
+                        <p class="text-sm font-extrabold text-gray-800 truncate" th:text="${usuarioProblematico}">Usuario</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                            <th class="p-4 pl-6">ID</th>
+                            <th class="p-4">Usuario</th>
+                            <th class="p-4">Asunto</th>
+                            <th class="p-4">Estado</th>
+                            <th class="p-4">Última Actividad</th>
+                            <th class="p-4 pr-6 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr th:each="t : ${tickets}" class="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                            <td class="p-4 pl-6 font-mono text-gray-500 font-bold" th:text="'#' + ${t.id}">#1</td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-bold" th:text="${#strings.substring(t.usuario.nombreCompleto,0,1).toUpperCase()}">U</div>
+                                    <div>
+                                        <p class="font-bold text-gray-900" th:text="${t.usuario.nombreCompleto}">Nombre</p>
+                                        <p class="text-[10px] text-gray-400 font-mono" th:text="${t.usuario.rol}">ROL</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 font-bold text-gray-800" th:text="${t.asunto}">Asunto</td>
+                            <td class="p-4">
+                                <span th:if="${t.estado == 'ABIERTO'}" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-bold border border-red-200">Abierto</span>
+                                <span th:if="${t.estado == 'EN_PROGRESO'}" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200">En Progreso</span>
+                                <span th:if="${t.estado == 'CERRADO'}" class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs font-bold border border-gray-200">Cerrado</span>
+                            </td>
+                            <td class="p-4 text-gray-500 text-xs font-medium" th:text="${#temporals.format(t.fechaActualizacion, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                            <td class="p-4 pr-6 text-right">
+                                <a th:href="@{'/soporte/ticket/' + ${t.id}}" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:border-orange-500 hover:text-orange-600 rounded-lg font-bold text-xs transition shadow-sm inline-block">
+                                    Atender <i class="fas fa-arrow-right ml-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(tickets)}">
+                            <td colspan="6" class="p-8 text-center text-gray-400 font-medium">No hay tickets de soporte en este momento.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

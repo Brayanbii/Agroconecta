@@ -1,0 +1,377 @@
+<div th:fragment="widget" th:if="${#authorization.expression('isAuthenticated()')}">
+    <!-- BURBUJA DE SOPORTE FLOTANTE -->
+    <div id="soporte-widget" class="fixed bottom-6 right-6 z-[9999] font-sans antialiased">
+        
+        <!-- BOTÓN PRINCIPAL -->
+        <button id="soporte-btn" class="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform relative group">
+            <i class="fas fa-headset" id="soporte-icon"></i>
+            <span class="absolute -top-1 -right-1 flex h-4 w-4">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 hidden" id="soporte-ping"></span>
+              <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white hidden" id="soporte-dot"></span>
+            </span>
+            <!-- Tooltip Hover -->
+            <div class="absolute right-16 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none shadow-lg">
+                Soporte en línea
+            </div>
+        </button>
+
+        <!-- PANEL DE CHAT -->
+        <div id="soporte-panel" class="absolute bottom-20 right-0 w-[360px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-orange-900/20 border border-white overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-300 origin-bottom-right flex flex-col h-[520px]">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 p-5 text-white shrink-0 relative overflow-hidden">
+                <!-- Decoración -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-extrabold text-xl flex items-center gap-2 drop-shadow-md tracking-tight">
+                            <i class="fas fa-headset text-orange-200"></i> AgroSoporte
+                        </h3>
+                        <p class="text-orange-100 text-xs font-medium mt-0.5 opacity-90">Hola <span th:text="${#authentication.name}">Usuario</span>, ¿en qué te ayudamos?</p>
+                    </div>
+                    <button id="soporte-close" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-all duration-300 hover:rotate-90">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA 0: FAQ -->
+            <div id="soporte-view-faq" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <h4 class="font-bold text-gray-700 text-sm">Preguntas Frecuentes</h4>
+                    <button id="soporte-btn-mis-tickets" class="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-300 transition">Mis Consultas</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
+                    
+                    <!-- FAQ CLIENTE -->
+                    <div th:if="${#authorization.expression('hasRole(''CLIENTE'')')}">
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Mi pedido no llegó, ¿qué hago?</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Por favor verifica el estado del pedido en la sección "Mis Compras". Si aparece como ENVIADO pero pasaron los días hábiles, abre una consulta y nuestro equipo te ayudará.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Quiero cancelar una compra</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Puedes cancelar un pedido siempre y cuando su estado sea PENDIENTE. Si ya fue PAGADO o ENVIADO, deberás solicitar un reembolso abriendo un ticket.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">El campesino no responde</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Recuerda que los campesinos pueden tardar hasta 24h en procesar la orden. Si no obtienes respuesta, nosotros podemos escalar el caso.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Mi pago fue rechazado</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Esto suele pasar por fondos insuficientes o bloqueos bancarios temporales. Intenta con otra tarjeta o contacta a tu banco. El dinero no fue descontado.
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- FAQ CAMPESINO -->
+                    <div th:if="${#authorization.expression('hasRole(''CAMPESINO'')')}">
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">No puedo abrir mi cuenta (Bloqueado)</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Si tu cuenta fue vetada, significa que infringiste nuestras políticas (ej. no entregar pedidos a tiempo). Abre un ticket para revisar tu caso y solicitar la reactivación.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Problemas con una orden de un cliente</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Si no tienes inventario para cumplir, contacta a Soporte de inmediato para que podamos reembolsar al cliente sin afectar tu reputación.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">¿Cómo retirar mi dinero?</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Los pagos son procesados quincenalmente hacia tu cuenta bancaria registrada en Mercado Pago. Revisa la sección de Billetera.
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-[10px] text-gray-400 mb-2">¿Aún necesitas ayuda?</p>
+                        <button id="soporte-btn-nuevo-from-faq" class="w-full bg-orange-100 text-orange-600 py-2 rounded-lg font-bold text-xs hover:bg-orange-200 transition">
+                            <i class="fas fa-headset mr-1"></i> Contactar Soporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 1: Lista de Tickets -->
+            <div id="soporte-view-list" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <button id="soporte-btn-back-to-faq" class="text-xs text-gray-500 hover:text-orange-500 font-bold"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <h4 class="font-bold text-gray-700 text-sm">Tus Consultas</h4>
+                    <button id="soporte-btn-nuevo" class="text-xs bg-orange-100 text-orange-600 px-3 py-1.5 rounded-lg font-bold hover:bg-orange-200 transition"><i class="fas fa-plus"></i> Nuevo</button>
+                </div>
+                <div id="soporte-tickets-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p class="text-xs">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: Nuevo Ticket -->
+            <div id="soporte-view-new" class="flex-1 flex flex-col p-5 bg-white overflow-y-auto hidden">
+                <button id="soporte-btn-back-from-new" class="text-xs text-gray-500 mb-4 hover:text-orange-500 font-bold self-start"><i class="fas fa-arrow-left"></i> Volver</button>
+                <h4 class="font-bold text-gray-800 mb-4 text-sm">Crear nueva consulta</h4>
+                
+                <form id="soporte-form-new" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Asunto</label>
+                        <input type="text" id="soporte-new-asunto" required class="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Ej. Problema con mi pedido">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mensaje Inicial</label>
+                        <textarea id="soporte-new-mensaje" required rows="4" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none resize-none" placeholder="Describe tu problema con detalle..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-orange-500 text-white font-bold p-3 rounded-lg hover:bg-orange-600 transition shadow-lg shadow-orange-500/30 text-sm">
+                        Enviar Consulta
+                    </button>
+                </form>
+            </div>
+
+            <!-- VISTA 3: Chat Activo -->
+            <div id="soporte-view-chat" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-3 bg-gray-50 border-b border-gray-100 flex items-center gap-3 shrink-0">
+                    <button id="soporte-btn-back-from-chat" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-orange-500 transition shadow-sm"><i class="fas fa-arrow-left text-xs"></i></button>
+                    <div class="flex-1 min-w-0">
+                        <p id="soporte-chat-asunto" class="font-bold text-gray-800 text-xs truncate">Asunto del ticket</p>
+                        <p id="soporte-chat-estado" class="text-[10px] text-gray-500 uppercase">Estado</p>
+                    </div>
+                </div>
+                
+                <div id="soporte-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                    <!-- Mensajes aquí -->
+                </div>
+
+                <div id="soporte-chat-input-area" class="p-3 bg-white border-t border-gray-100 shrink-0">
+                    <form id="soporte-form-reply" class="flex gap-2">
+                        <input type="text" id="soporte-reply-msg" required placeholder="Escribe un mensaje..." class="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50">
+                        <button type="submit" class="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition shrink-0">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT DEL WIDGET -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('soporte-btn');
+            const panel = document.getElementById('soporte-panel');
+            const icon = document.getElementById('soporte-icon');
+            const closeBtn = document.getElementById('soporte-close');
+            
+            // Views
+            const viewFaq = document.getElementById('soporte-view-faq');
+            const viewList = document.getElementById('soporte-view-list');
+            const viewNew = document.getElementById('soporte-view-new');
+            const viewChat = document.getElementById('soporte-view-chat');
+
+            // Data
+            let currentTicketId = null;
+            let refreshInterval = null;
+
+            // Toggle Panel
+            btn.addEventListener('click', () => {
+                if(panel.classList.contains('opacity-0')) {
+                    abrirPanel();
+                } else {
+                    cerrarPanel();
+                }
+            });
+
+            closeBtn.addEventListener('click', cerrarPanel);
+
+            function abrirPanel() {
+                panel.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                panel.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                icon.classList.remove('fa-headset');
+                icon.classList.add('fa-times');
+                showView(viewFaq); // Mostrar FAQ por defecto al abrir
+            }
+
+            function cerrarPanel() {
+                panel.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                panel.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-headset');
+                stopRefresh();
+            }
+
+            function showView(view) {
+                [viewFaq, viewList, viewNew, viewChat].forEach(v => v.classList.add('hidden'));
+                view.classList.remove('hidden');
+            }
+
+            // --- NAVEGACIÓN FAQ ---
+            document.getElementById('soporte-btn-mis-tickets').addEventListener('click', showList);
+            document.getElementById('soporte-btn-nuevo-from-faq').addEventListener('click', () => { showView(viewNew); });
+            document.getElementById('soporte-btn-back-to-faq').addEventListener('click', () => { showView(viewFaq); });
+
+            // --- LISTA DE TICKETS ---
+            function showList() {
+                showView(viewList);
+                stopRefresh();
+                fetch('/api/soporte/mis-tickets')
+                    .then(res => res.json())
+                    .then(data => {
+                        const container = document.getElementById('soporte-tickets-container');
+                        container.innerHTML = '';
+                        if(data.length === 0) {
+                            container.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-3"></i><p class="text-xs">No tienes consultas activas</p></div>';
+                            return;
+                        }
+
+                        data.forEach(t => {
+                            let statusColor = t.estado === 'ABIERTO' ? 'text-red-500' : (t.estado === 'EN_PROGRESO' ? 'text-blue-500' : 'text-gray-500');
+                            let html = `
+                                <div onclick="openChat(${t.id}, '${t.asunto}', '${t.estado}')" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-orange-300 hover:shadow-md cursor-pointer transition">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h5 class="font-bold text-gray-800 text-xs truncate max-w-[70%]">${t.asunto}</h5>
+                                        <span class="text-[9px] font-bold ${statusColor} uppercase">${t.estado}</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400"><i class="far fa-clock"></i> ${new Date(t.fecha).toLocaleDateString()}</p>
+                                </div>
+                            `;
+                            container.insertAdjacentHTML('beforeend', html);
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
+
+            // --- NUEVO TICKET ---
+            document.getElementById('soporte-btn-nuevo').addEventListener('click', () => { showView(viewNew); });
+            document.getElementById('soporte-btn-back-from-new').addEventListener('click', showList);
+
+            document.getElementById('soporte-form-new').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const asunto = document.getElementById('soporte-new-asunto').value;
+                const mensaje = document.getElementById('soporte-new-mensaje').value;
+                
+                const formData = new URLSearchParams();
+                formData.append('asunto', asunto);
+                formData.append('mensaje', mensaje);
+
+                fetch('/api/soporte/crear-ticket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('soporte-new-asunto').value = '';
+                    document.getElementById('soporte-new-mensaje').value = '';
+                    openChat(data.ticketId, asunto, 'ABIERTO');
+                });
+            });
+
+            // --- CHAT ACTIVO ---
+            document.getElementById('soporte-btn-back-from-chat').addEventListener('click', showList);
+
+            window.openChat = function(id, asunto, estado) {
+                currentTicketId = id;
+                document.getElementById('soporte-chat-asunto').innerText = asunto;
+                document.getElementById('soporte-chat-estado').innerText = estado;
+                
+                const inputArea = document.getElementById('soporte-chat-input-area');
+                if(estado === 'CERRADO') inputArea.classList.add('hidden');
+                else inputArea.classList.remove('hidden');
+
+                showView(viewChat);
+                loadMessages();
+                
+                // Polling cada 5 segundos si está abierto
+                if(estado !== 'CERRADO') {
+                    refreshInterval = setInterval(loadMessages, 5000);
+                }
+            };
+
+            function loadMessages() {
+                if(!currentTicketId) return;
+                fetch('/api/soporte/ticket/' + currentTicketId + '/mensajes')
+                    .then(res => res.json())
+                    .then(data => {
+                        const container = document.getElementById('soporte-chat-messages');
+                        const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+                        
+                        container.innerHTML = '';
+                        data.forEach(m => {
+                            let html = '';
+                            if(m.esMio) {
+                                // Mi mensaje
+                                html = `
+                                    <div class="flex justify-end mb-4 animate-[fadeIn_0.3s_ease-out]">
+                                        <div class="max-w-[80%] bg-gradient-to-br from-orange-400 to-orange-500 text-white p-3.5 rounded-2xl rounded-tr-sm shadow-md shadow-orange-500/20 text-xs">
+                                            <p class="whitespace-pre-wrap leading-relaxed">${m.contenido}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                // Mensaje de soporte o sistema
+                                let isSystem = m.remitente === 'Sistema';
+                                let bgClass = isSystem ? 'bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-100 text-indigo-900' : 'bg-white border-gray-100 text-gray-800 shadow-sm';
+                                let iconClass = isSystem ? '<i class="fas fa-robot text-indigo-500"></i>' : '<i class="fas fa-headset text-orange-500"></i>';
+                                
+                                html = `
+                                    <div class="flex items-end gap-2 mb-4 max-w-[85%] animate-[fadeIn_0.3s_ease-out]">
+                                        <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-[10px] shrink-0 shadow-sm border border-gray-100">
+                                            ${iconClass}
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] text-gray-400 ml-1 mb-1 font-medium">${m.remitente}</p>
+                                            <div class="p-3.5 rounded-2xl rounded-tl-sm border text-xs ${bgClass}">
+                                                <p class="whitespace-pre-wrap leading-relaxed">${m.contenido}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            container.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        // Scroll auto solo si estaba abajo
+                        if (isScrolledToBottom) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+            }
+
+            document.getElementById('soporte-form-reply').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const input = document.getElementById('soporte-reply-msg');
+                const msg = input.value.trim();
+                if(!msg) return;
+
+                const formData = new URLSearchParams();
+                formData.append('mensaje', msg);
+
+                input.value = ''; // clear optimista
+                
+                fetch('/api/soporte/ticket/' + currentTicketId + '/enviar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                }).then(() => loadMessages());
+            });
+
+            function stopRefresh() {
+                if(refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+            }
+        });
+    </script>
+</div>

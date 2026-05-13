@@ -179,12 +179,41 @@ public class CampesinoController {
         return "redirect:/campesino/productos";
     }
 
-    @GetMapping("/ventas")
-    public String misVentas(Model model, Authentication auth) {
+    @GetMapping("/pedidos")
+    public String misPedidos(Model model, Authentication auth) {
         String email = auth.getName();
         Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
-        model.addAttribute("ventas", detalleRepo.findVentasByCampesino(campesino));
-        return "campesino_ventas";
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+        
+        // Agrupar por estado para la vista
+        long nuevos = ventas.stream().filter(v -> "NUEVO".equals(v.getEstado()) || v.getEstado() == null).count();
+        long preparados = ventas.stream().filter(v -> "PREPARADO".equals(v.getEstado())).count();
+        long enviados = ventas.stream().filter(v -> "ENVIADO".equals(v.getEstado())).count();
+        long entregados = ventas.stream().filter(v -> "ENTREGADO".equals(v.getEstado())).count();
+        long cancelados = ventas.stream().filter(v -> "CANCELADO".equals(v.getEstado())).count();
+        
+        model.addAttribute("ventas", ventas);
+        model.addAttribute("nuevosCount", nuevos);
+        model.addAttribute("preparadosCount", preparados);
+        model.addAttribute("enviadosCount", enviados);
+        model.addAttribute("entregadosCount", entregados);
+        model.addAttribute("canceladosCount", cancelados);
+        
+        return "campesino_pedidos";
+    }
+
+    @PostMapping("/pedidos/{id}/estado")
+    public String actualizarEstadoPedido(@PathVariable Long id, @RequestParam String estado, Authentication auth) {
+        DetalleOrden detalle = detalleRepo.findById(id).orElseThrow();
+        Usuario campesino = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
+        
+        // Verificar que el detalle pertenezca a un producto de este campesino
+        if (detalle.getProducto() != null && detalle.getProducto().getUsuario().getId().equals(campesino.getId())) {
+            detalle.setEstado(estado);
+            detalleRepo.save(detalle);
+        }
+        
+        return "redirect:/campesino/productos/pedidos";
     }
 
     // -------------------------------------------------------

@@ -97,10 +97,15 @@ public class AdminUserController {
         return "admin_usuario_form";
     }
 
-    // Eliminar usuario (POST para seguridad CSRF)
+    // Eliminar usuario (Soft Delete / Vetar)
     @PostMapping("/eliminar/{id}")
     public String eliminarUsuario(@PathVariable Long id) {
-        usuarioRepo.deleteById(id);
+        Usuario usuario = usuarioRepo.findById(id).orElse(null);
+        if (usuario != null) {
+            // Soft delete
+            usuario.setEstadoVerificacion("VETADO");
+            usuarioRepo.save(usuario);
+        }
         return "redirect:/admin/usuarios";
     }
 
@@ -135,5 +140,21 @@ public class AdminUserController {
         campesino.setEstadoVerificacion("RECHAZADO");
         usuarioRepo.save(campesino);
         return "redirect:/admin/usuarios/verificaciones?rechazado=true";
+    }
+
+    @PostMapping("/verificaciones/vetar/{id}")
+    public String vetarCampesino(@PathVariable Long id) {
+        Usuario campesino = usuarioRepo.findById(id).orElseThrow();
+        campesino.setEstadoVerificacion("VETADO");
+        usuarioRepo.save(campesino);
+        return "redirect:/admin/usuarios/verificaciones?vetado=true";
+    }
+
+    @PostMapping("/verificaciones/reactivar/{id}")
+    public String reactivarCampesino(@PathVariable Long id) {
+        Usuario campesino = usuarioRepo.findById(id).orElseThrow();
+        campesino.setEstadoVerificacion("APROBADO");
+        usuarioRepo.save(campesino);
+        return "redirect:/admin/usuarios/verificaciones?aprobado=true";
     }
 }

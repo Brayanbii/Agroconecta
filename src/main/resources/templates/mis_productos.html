@@ -1,47 +1,53 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
+
 <head>
     <title>Mis Productos - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Driver.js para Onboarding -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-    
+
     <!-- Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
+
     <script>
         // Imagen por defecto global para cuando fallan las fotos de los productos
         window.fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3Cpath d='M 125,120 Q 150,90 175,120 Q 175,150 150,150 Q 125,150 125,120 Z' fill='%23d1d5db' stroke='%239ca3af' stroke-width='4'/%3E%3Ctext x='150' y='185' font-family='sans-serif' font-size='24' font-weight='bold' fill='%239ca3af' text-anchor='middle'%3EAgroConecta%3C/text%3E%3C/svg%3E";
     </script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
         /* Efecto de Vidrio para el Navbar */
         .glass-nav {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         /* Tarjeta Pro */
         .pro-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .pro-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+
         .pro-card:hover .actions-overlay {
             opacity: 1;
         }
@@ -52,11 +58,12 @@
             backdrop-filter: blur(20px) !important;
             border-radius: 1.5rem !important;
             border: 1px solid rgba(0, 0, 0, 0.05) !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
             padding: 1.5rem !important;
             max-width: 420px !important;
             font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-title {
             font-size: 1.25rem !important;
             font-weight: 800 !important;
@@ -64,15 +71,18 @@
             margin-bottom: 0.75rem !important;
             line-height: 1.2 !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-description {
             font-size: 0.9rem !important;
             color: #4b5563 !important;
             line-height: 1.5 !important;
             font-weight: 500 !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-footer {
             margin-top: 1.25rem !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-footer button {
             border-radius: 0.75rem !important;
             font-weight: 700 !important;
@@ -81,29 +91,37 @@
             transition: all 0.2s !important;
             text-shadow: none !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-next-btn {
-            background-color: #16a34a !important; /* Green 600 */
+            background-color: #16a34a !important;
+            /* Green 600 */
             color: white !important;
             border: none !important;
             box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3) !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-next-btn:hover {
-            background-color: #15803d !important; /* Green 700 */
+            background-color: #15803d !important;
+            /* Green 700 */
             transform: translateY(-1px) !important;
             box-shadow: 0 6px 12px -2px rgba(22, 163, 74, 0.4) !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-prev-btn {
             background-color: #f3f4f6 !important;
             color: #4b5563 !important;
             border: none !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-prev-btn:hover {
             background-color: #e5e7eb !important;
             color: #1f2937 !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-close-btn {
             color: #9ca3af !important;
         }
+
         .driver-popover.driverjs-theme .driver-popover-close-btn:hover {
             color: #ef4444 !important;
             background: #fef2f2 !important;
@@ -111,139 +129,145 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
 
-    <!-- NAVBAR (Estilo Unificado) -->
-    <nav class="glass-nav sticky top-0 z-50 w-full">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Marca -->
-                <div class="flex items-center gap-3">
-                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg shadow-green-600/20">
-                        <i class="fas fa-tractor text-xl"></i>
-                    </div>
-                    <span class="text-xl font-extrabold text-gray-900 tracking-tight">Portal Campesino</span>
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
+
+    <!-- SIDEBAR CAMPESINO -->
+    <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
+        <div class="h-24 flex items-center px-8 border-b border-gray-50">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-green-500 to-green-700 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-600/40 flex items-center justify-center">
+                    <i class="fas fa-leaf text-xl"></i>
                 </div>
-
-                <!-- Menú Central -->
-                <div class="hidden md:flex items-center gap-1 p-1 bg-gray-100/80 rounded-xl border border-gray-200">
-                    <a href="#" class="px-5 py-2 rounded-lg bg-white text-green-700 font-bold shadow-sm text-sm transition">
-                        <i class="fas fa-box-open mr-2"></i> Mis Productos
-                    </a>
-                    <a th:href="@{/campesino/productos/ventas}" class="px-5 py-2 rounded-lg text-gray-500 hover:text-green-600 font-medium text-sm transition hover:bg-white/50">
-                        <i class="fas fa-chart-line mr-2"></i> Mis Ventas
-                    </a>
-                </div>
-
-                <!-- BOTÓN ANALÍTICA DE VENTAS -->
-                <a th:href="@{/campesino/productos/informe}"
-                   id="btn-analitica"
-                   class="hidden md:flex items-center gap-3 pl-4 pr-5 py-2.5 rounded-2xl font-bold text-sm text-white shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
-                   style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%); box-shadow: 0 8px 24px rgba(15,23,42,0.4);">
-                    <!-- Brillo animado -->
-                    <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
-                    <!-- Ícono -->
-                    <span class="relative bg-white/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-chart-pie text-sm"></i>
-                    </span>
-                    <!-- Texto -->
-                    <span class="relative flex flex-col leading-tight">
-                        <span class="text-[13px] tracking-wide">Analítica de Ventas</span>
-                        <span class="text-[9px] text-slate-400 font-medium tracking-wider uppercase">Reporte inteligente</span>
-                    </span>
-                    <!-- Badge Python sutil -->
-                    <span class="relative bg-emerald-500/20 text-emerald-300 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-500/30">
-                        <i class="fab fa-python"></i>
-                    </span>
-                </a>
-
-                <!-- Perfil y Logout -->
-                <div class="flex items-center gap-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Mi Perfil</p>
-                        <p class="text-sm font-bold text-gray-800" th:text="${usuario != null ? #strings.arraySplit(usuario.nombreCompleto, ' ')[0] : 'Campesino'}">Campesino</p>
-                    </div>
-                    
-                    <a th:href="@{/perfil}" class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 hover:bg-green-500 hover:text-white transition-colors cursor-pointer relative shadow-inner overflow-hidden border border-green-200" title="Ir a mi perfil">
-                        <img th:if="${usuario != null and usuario.fotoPerfil != null and !usuario.fotoPerfil.isEmpty()}" 
-                             th:src="${usuario.fotoPerfil}" class="w-full h-full object-cover">
-                        <i th:unless="${usuario != null and usuario.fotoPerfil != null and !usuario.fotoPerfil.isEmpty()}" 
-                           class="fas fa-user-alt text-sm"></i>
-                    </a>
-                    
-                    <form th:action="@{/logout}" method="post" class="m-0">
-                        <button type="submit" class="w-10 h-10 bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 rounded-xl transition shadow-sm group" title="Cerrar Sesión">
-                            <i class="fas fa-sign-out-alt group-hover:scale-110 transition-transform"></i>
-                        </button>
-                    </form>
-                </div>
+                <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
             </div>
         </div>
-    </nav>
 
-    <!-- CONTENIDO -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        
-        <!-- Encabezado de Sección -->
-        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-            <div>
-                <span class="text-green-600 font-bold tracking-wider uppercase text-xs">Inventario</span>
-                <h1 class="text-4xl font-extrabold text-gray-900 mt-1">Mis Productos</h1>
-                <p class="text-gray-500 mt-2 text-lg">Gestiona tu catálogo, precios y disponibilidad.</p>
-            </div>
+        <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
+            <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Panel del Productor</p>
             
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <button id="btn-modo-prueba" onclick="iniciarModoPrueba()" class="w-full sm:w-auto group flex items-center justify-center gap-3 bg-blue-50 border-2 border-blue-100 hover:bg-blue-100 text-blue-700 px-5 py-3 rounded-xl font-bold transition transform hover:-translate-y-1 shadow-sm">
-                    <div class="bg-blue-500 text-white rounded-lg p-1 w-6 h-6 flex items-center justify-center">
-                        <i class="fas fa-magic text-[10px]"></i>
+            <a th:href="@{/campesino/productos}" class="bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-green-200/50 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
+                    <i class="fas fa-box-open text-green-600"></i> 
+                </div>
+                Mis Productos
+            </a>
+
+            <a th:href="@{/campesino/productos/pedidos}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
+                    <i class="fas fa-shopping-bag group-hover:text-green-600"></i> 
+                </div>
+                Gestión de Pedidos
+            </a>
+
+            <a th:href="@{/campesino/productos/informe}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
+                    <i class="fas fa-chart-line group-hover:text-green-600"></i> 
+                </div>
+                Analíticas y Reportes
+            </a>
+            
+            <a th:href="@{/tienda}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
+                    <i class="fas fa-store group-hover:text-green-600"></i> 
+                </div>
+                Ver Tienda Pública
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-gray-50">
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm shrink-0">
+                        <span th:text="${#authentication.name.substring(0,1).toUpperCase()}">U</span>
                     </div>
-                    <span class="text-sm">Modo de Práctica</span>
-                </button>
-                <a th:href="@{/campesino/productos/nuevo}" 
-                   id="btn-nuevo-producto"
-                   class="w-full sm:w-auto group flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-bold shadow-xl shadow-green-600/20 transition transform hover:-translate-y-1">
-                    <div class="bg-white/20 rounded-lg p-1">
-                        <i class="fas fa-plus text-sm"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${usuario != null ? #strings.arraySplit(usuario.nombreCompleto, ' ')[0] : 'Campesino'}">Campesino</p>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Productor</p>
                     </div>
-                    <span>Nuevo Producto</span>
-                </a>
+                </div>
+                <form th:action="@{/logout}" method="post" class="m-0 shrink-0">
+                    <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
             </div>
         </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <!-- HEADER COMPACTO -->
+        <header class="h-24 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-10 shrink-0 z-10">
+            <div class="flex items-center gap-4">
+                <button id="mobile-menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Mis Productos</h1>
+                    <p class="text-sm text-gray-500 font-medium hidden sm:block">Gestiona tu catálogo, precios y disponibilidad.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-modo-prueba" onclick="iniciarModoPrueba()" class="hidden md:flex bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition shadow-sm items-center gap-2">
+                    <i class="fas fa-magic text-blue-500"></i> Sandbox
+                </button>
+                <button id="btn-tutorial" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-sm border border-blue-100 hover:bg-blue-100 transition shadow-sm flex items-center gap-2">
+                    <i class="fas fa-graduation-cap"></i> <span class="hidden sm:inline">Tutorial</span>
+                </button>
+                <a th:href="@{/campesino/productos/nuevo}" id="btn-nuevo-producto" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl font-bold text-sm shadow-lg shadow-green-600/30 transition hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Nuevo Producto</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- CONTENT SCROLLABLE -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-10">
+            <div class="max-w-6xl mx-auto">
 
         <!-- GRID DE PRODUCTOS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            
+
             <!-- TARJETA DE PRODUCTO (Loop) -->
-            <div th:each="p : ${productos}" class="group relative bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/80 hover:border-green-100 h-full">
-                
+            <div th:each="p : ${productos}"
+                class="group relative bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/80 hover:border-green-100 h-full">
+
                 <!-- Imagen con Efectos -->
                 <div class="relative h-64 overflow-hidden bg-gray-50 p-2">
                     <div class="w-full h-full rounded-[2rem] overflow-hidden relative shadow-inner">
-                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
-                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                             alt="Producto"
-                             onerror="this.onerror=null; this.src=window.fallbackImg">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+                        <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity">
+                        </div>
                     </div>
 
                     <!-- Badges Top -->
                     <div class="absolute top-6 left-6 flex flex-col gap-2">
-                        <span class="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-widest text-green-700 shadow-sm flex items-center gap-1.5 transform -translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <span
+                            class="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-widest text-green-700 shadow-sm flex items-center gap-1.5 transform -translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
                             <i class="fas fa-tag"></i> <span th:text="${p.categoria}">CAT</span>
                         </span>
                     </div>
-                    
+
                     <div class="absolute top-6 right-6">
-                        <span class="bg-black/30 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg" th:text="'#' + ${p.id}">#1</span>
+                        <span
+                            class="bg-black/30 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg"
+                            th:text="'#' + ${p.id}">#1</span>
                     </div>
 
                     <!-- Floating Price inside image -->
                     <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
                         <div>
-                            <p class="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-0.5 shadow-sm">Precio</p>
-                            <p class="text-3xl font-black text-white tracking-tight drop-shadow-md" th:text="'$' + ${p.precio}">$0</p>
+                            <p class="text-white/80 text-[10px] uppercase tracking-widest font-bold mb-0.5 shadow-sm">
+                                Precio</p>
+                            <p class="text-3xl font-black text-white tracking-tight drop-shadow-md"
+                                th:text="'$' + ${p.precio}">$0</p>
                         </div>
-                        <div class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl px-3 py-1.5 flex flex-col items-center justify-center text-white shadow-lg">
+                        <div
+                            class="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl px-3 py-1.5 flex flex-col items-center justify-center text-white shadow-lg">
                             <span class="text-[9px] uppercase tracking-widest font-bold opacity-80">Stock</span>
                             <div class="flex items-center gap-1">
                                 <span class="font-extrabold text-sm" th:text="${p.stock}">0</span>
@@ -254,32 +278,39 @@
                 </div>
 
                 <!-- Cuerpo de la Tarjeta -->
-                <div class="p-6 flex-1 flex flex-col justify-between bg-white relative z-10 rounded-t-[2rem] -mt-4 transition-transform duration-300">
-                    
+                <div
+                    class="p-6 flex-1 flex flex-col justify-between bg-white relative z-10 rounded-t-[2rem] -mt-4 transition-transform duration-300">
+
                     <div class="mb-4">
                         <div class="flex justify-between items-start gap-4 mb-2">
-                            <h3 class="text-xl font-extrabold text-gray-800 leading-tight line-clamp-2 group-hover:text-green-600 transition-colors" th:text="${p.nombre}">Nombre Producto</h3>
-                            <div class="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg shrink-0">
+                            <h3 class="text-xl font-extrabold text-gray-800 leading-tight line-clamp-2 group-hover:text-green-600 transition-colors"
+                                th:text="${p.nombre}">Nombre Producto</h3>
+                            <div
+                                class="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg shrink-0">
                                 <i class="fas fa-star text-[10px]"></i>
-                                <span class="text-xs font-extrabold" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                                <span class="text-xs font-extrabold"
+                                    th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-500 line-clamp-2 font-medium leading-relaxed" th:text="${p.descripcion}">Descripción corta del producto...</p>
+                        <p class="text-sm text-gray-500 line-clamp-2 font-medium leading-relaxed"
+                            th:text="${p.descripcion}">Descripción corta del producto...</p>
                     </div>
-                    
+
                     <!-- Botones de Acción -->
                     <div class="flex gap-3 mt-auto pt-4 border-t border-gray-50">
-                        <a th:href="@{'/campesino/productos/editar/' + ${p.id}}" 
-                           class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 font-bold text-sm transition-all group/btn border border-gray-100 hover:border-green-200">
-                            <i class="fas fa-pen text-xs group-hover/btn:-translate-y-0.5 transition-transform"></i> Editar
+                        <a th:href="@{'/campesino/productos/editar/' + ${p.id}}"
+                            class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 font-bold text-sm transition-all group/btn border border-gray-100 hover:border-green-200">
+                            <i class="fas fa-pen text-xs group-hover/btn:-translate-y-0.5 transition-transform"></i>
+                            Editar
                         </a>
-                        
-                        <form th:action="@{'/campesino/productos/eliminar/' + ${p.id}}" method="post" class="m-0 p-0 flex-1"
-                              th:data-nombre="${p.nombre}"
-                              onsubmit="confirmarEliminacion(event, this)">
-                            <button type="submit" 
-                                    class="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 font-bold text-sm transition-all group/btn border border-gray-100 hover:border-red-200">
-                                <i class="fas fa-trash text-xs group-hover/btn:scale-110 transition-transform"></i> Eliminar
+
+                        <form th:action="@{'/campesino/productos/eliminar/' + ${p.id}}" method="post"
+                            class="m-0 p-0 flex-1" th:data-nombre="${p.nombre}"
+                            onsubmit="confirmarEliminacion(event, this)">
+                            <button type="submit"
+                                class="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 font-bold text-sm transition-all group/btn border border-gray-100 hover:border-red-200">
+                                <i class="fas fa-trash text-xs group-hover/btn:scale-110 transition-transform"></i>
+                                Eliminar
                             </button>
                         </form>
                     </div>
@@ -287,27 +318,28 @@
             </div>
 
             <!-- TARJETA "AGREGAR" (Siempre al final o si está vacío) -->
-            <a th:href="@{/campesino/productos/nuevo}" 
-               class="group relative rounded-[2.5rem] border-2 border-dashed border-gray-200 hover:border-green-400 bg-gray-50/50 hover:bg-green-50/30 flex flex-col items-center justify-center text-center transition-all duration-500 min-h-[420px] cursor-pointer overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-green-500/0 to-green-500/0 group-hover:from-green-500/5 group-hover:to-transparent transition-all duration-500"></div>
-                <div class="w-20 h-20 rounded-[1.5rem] rotate-3 group-hover:rotate-12 bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-6 group-hover:bg-green-500 group-hover:border-green-500 transition-all duration-500 relative z-10">
-                    <i class="fas fa-plus text-3xl text-gray-300 group-hover:text-white transition-colors duration-500"></i>
+            <a th:href="@{/campesino/productos/nuevo}"
+                class="group relative rounded-[2.5rem] border-2 border-dashed border-gray-200 hover:border-green-400 bg-gray-50/50 hover:bg-green-50/30 flex flex-col items-center justify-center text-center transition-all duration-500 min-h-[420px] cursor-pointer overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-green-500/0 to-green-500/0 group-hover:from-green-500/5 group-hover:to-transparent transition-all duration-500">
                 </div>
-                <span class="font-extrabold text-xl text-gray-400 group-hover:text-green-600 transition-colors relative z-10">Nuevo Producto</span>
-                <p class="text-sm font-medium text-gray-400 mt-2 max-w-[200px] group-hover:text-green-600/70 transition-colors relative z-10">Sube fotos, define el precio y empieza a vender.</p>
+                <div
+                    class="w-20 h-20 rounded-[1.5rem] rotate-3 group-hover:rotate-12 bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-6 group-hover:bg-green-500 group-hover:border-green-500 transition-all duration-500 relative z-10">
+                    <i
+                        class="fas fa-plus text-3xl text-gray-300 group-hover:text-white transition-colors duration-500"></i>
+                </div>
+                <span
+                    class="font-extrabold text-xl text-gray-400 group-hover:text-green-600 transition-colors relative z-10">Nuevo
+                    Producto</span>
+                <p
+                    class="text-sm font-medium text-gray-400 mt-2 max-w-[200px] group-hover:text-green-600/70 transition-colors relative z-10">
+                    Sube fotos, define el precio y empieza a vender.</p>
             </a>
 
         </div>
-    </main>
-
-    <!-- FOOTER SIMPLE -->
-    <footer class="bg-white border-t border-gray-100 py-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-gray-400 text-sm font-medium">
-                &copy; 2025 AgroConecta - Panel de Gestión
-            </p>
+            </div>
         </div>
-    </footer>
+    </main>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -356,19 +388,17 @@
         // --- SISTEMA DE ONBOARDING INTERACTIVO ---
         document.addEventListener('DOMContentLoaded', () => {
             const driver = window.driver.js.driver;
-            
-            // Layout con espacio para tu Mascota (Cafecito)
-            const mascotHtml = `
-                <div class="w-[84px] h-[84px] shrink-0 bg-orange-50/80 rounded-[1.25rem] border-2 border-dashed border-orange-200 flex flex-col items-center justify-center text-orange-400 group relative overflow-hidden shadow-inner cursor-help" title="Reemplaza esto por la imagen de tu mascota">
-                    <span class="text-[9px] font-extrabold absolute bottom-2 opacity-60 uppercase tracking-widest">Mascota</span>
-                    <i class="fas fa-mug-hot text-2xl mb-2 group-hover:scale-110 transition-transform duration-300"></i>
-                    <!-- 🛠️ DEV NOTE: Para poner tu diseño real, reemplaza este div entero por: <img src="ruta-de-tu-mascota.png" class="w-full h-full object-cover rounded-[1.25rem] shadow-sm"> -->
+
+            // Layout con iconos dinámicos premium
+            const getIcon = (bgClass, emoji) => `
+                <div class="w-16 h-16 shrink-0 ${bgClass} rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300">
+                    <span class="text-3xl filter drop-shadow-sm" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;">${emoji}</span>
                 </div>
             `;
             
-            const renderDesc = (text) => `
-                <div class="flex gap-4 mt-3 items-center">
-                    ${mascotHtml}
+            const renderDesc = (text, iconHtml) => `
+                <div class="flex gap-4 mt-4 items-center bg-gray-50/50 p-3 rounded-2xl border border-gray-100/80">
+                    ${iconHtml}
                     <div class="flex-1">
                         <p class="text-gray-600 font-medium leading-relaxed text-[13px]">${text}</p>
                     </div>
@@ -383,10 +413,10 @@
                 doneBtnText: '¡Entendido!',
                 popoverClass: 'driverjs-theme',
                 steps: [
-                    { popover: { title: '<span class="text-2xl mr-1">👋</span> ¡Bienvenido a tu panel!', description: renderDesc('Estamos muy felices de que estés aquí. Te daremos un recorrido rapidísimo para que sepas cómo empezar a vender.'), side: "bottom", align: 'start' } },
-                    { element: '#btn-analitica', popover: { title: 'Tus Ganancias 📈', description: renderDesc('Toca aquí para ver los reportes de tus ventas y cuánto dinero has generado en la plataforma.'), side: "bottom", align: 'center' } },
-                    { element: '#btn-nuevo-producto', popover: { title: 'Tu Primer Producto ➕', description: renderDesc('¡Este botón verde gigante es tu mejor amigo! Toca aquí para publicar la foto y precio de lo que quieres vender.'), side: "left", align: 'center' } },
-                    { element: '#btn-modo-prueba', popover: { title: '¿Miedo a equivocarte? 🤔', description: renderDesc('No te preocupes. Con este "Simulador" puedes crear un producto de mentira solo para practicar, ¡nadie lo verá!'), side: "bottom", align: 'center' } }
+                    { popover: { title: '¡Bienvenido a tu panel!', description: renderDesc('Estamos muy felices de que estés aquí. Te daremos un recorrido rapidísimo para que sepas cómo empezar a vender.', getIcon('bg-gradient-to-br from-orange-400 to-red-400', '👋')), side: "bottom", align: 'start' } },
+                    { element: '#btn-nuevo-producto', popover: { title: 'Tu Primer Producto', description: renderDesc('¡Toca aquí para publicar la foto y precio de lo que quieres vender.', getIcon('bg-gradient-to-br from-green-400 to-emerald-600', '📦')), side: "bottom", align: 'center' } },
+                    { element: '#btn-modo-prueba', popover: { title: '¿Miedo a equivocarte?', description: renderDesc('No te preocupes. Con el modo Sandbox puedes crear un producto de mentira solo para practicar, ¡nadie lo verá!', getIcon('bg-gradient-to-br from-blue-400 to-indigo-500', '🎮')), side: "bottom", align: 'center' } },
+                    { element: 'aside', popover: { title: 'Panel del Productor', description: renderDesc('En esta barra lateral encuentras tus analíticas, gestión de ventas, y el estado de tus envíos.', getIcon('bg-gradient-to-br from-purple-400 to-fuchsia-500', '📊')), side: "right", align: 'center' } }
                 ],
                 onDestroyStarted: () => {
                     if (!driverObj.hasNextStep() || confirm("¿Seguro que quieres terminar el recorrido?")) {
@@ -398,7 +428,15 @@
 
             // Forzar inicio si es nuevo
             if (!localStorage.getItem('onboarding_completed')) {
-                setTimeout(() => driverObj.drive(), 800); 
+                setTimeout(() => driverObj.drive(), 800);
+            }
+
+            // Iniciar manualmente al presionar "Tutorial"
+            const btnTutorial = document.getElementById('btn-tutorial');
+            if (btnTutorial) {
+                btnTutorial.addEventListener('click', () => {
+                    driverObj.drive();
+                });
             }
 
             // --- MENSAJE DE CELEBRACIÓN (Confeti) ---
@@ -461,7 +499,7 @@
                     cancelButton: 'w-full sm:w-1/3 bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.02] text-lg'
                 }
             }).then((result) => {
-                if(result.isConfirmed) {
+                if (result.isConfirmed) {
                     // Redirigir enviando parámetro simulador=true (El backend/frontend podría reaccionar a esto)
                     window.location.href = '/campesino/productos/prueba';
                 }
@@ -469,4 +507,5 @@
         }
     </script>
 </body>
+
 </html>

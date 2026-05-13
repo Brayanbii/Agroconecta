@@ -70,6 +70,20 @@
             </a>
         </div>
 
+        <!-- ESTADO: VETADO -->
+        <div th:if="${campesino.estadoVerificacion == 'VETADO'}" class="bg-white rounded-3xl p-10 text-center shadow-xl border border-orange-100 max-w-2xl mx-auto animate-fade-in mt-10">
+            <div class="w-24 h-24 bg-orange-50 text-orange-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner relative">
+                <i class="fas fa-ban text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-black text-gray-800 mb-4 tracking-tight">Cuenta Suspendida</h2>
+            <p class="text-gray-500 text-lg leading-relaxed mb-6">
+                Tu cuenta ha sido suspendida por un administrador. Si crees que esto es un error, por favor comunícate con soporte.
+            </p>
+            <div class="bg-orange-50 text-orange-800 px-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 w-fit mx-auto">
+                <i class="fas fa-envelope"></i> soporte@agroconecta.com
+            </div>
+        </div>
+
         <!-- ESTADO: PENDIENTE (Formulario) -->
         <div th:if="${campesino.estadoVerificacion == 'PENDIENTE_DATOS'}">
             
@@ -127,8 +141,12 @@
                                     <p class="text-blue-600/70 text-sm mt-1">Sube la foto de la parte frontal de tu documento</p>
                                     <input type="file" id="fotoCedula" name="fotoCedula" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewFile(this, 'previewCedula')" />
                                 </div>
-                                <div id="previewCedula" class="hidden mt-4 text-green-600 font-bold text-sm flex items-center gap-2">
-                                    <i class="fas fa-check-circle"></i> Archivo seleccionado correctamente.
+                                <div id="previewCedula" class="hidden mt-4 text-blue-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100 font-bold text-sm flex items-center justify-between gap-2 shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-check-circle text-lg"></i> 
+                                        <span id="fileNameCedula" class="truncate max-w-[200px]">Archivo seleccionado</span>
+                                    </div>
+                                    <button type="button" onclick="document.getElementById('fotoCedula').click()" class="text-blue-500 hover:text-blue-700 text-xs uppercase tracking-widest"><i class="fas fa-sync-alt"></i> Cambiar</button>
                                 </div>
                             </div>
                         </div>
@@ -154,8 +172,12 @@
                                     <p class="text-green-800 font-bold">Subir foto de tu terreno</p>
                                     <input type="file" id="fotoFinca" name="fotoFinca" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewFile(this, 'previewFinca')" />
                                 </div>
-                                <div id="previewFinca" class="hidden mt-2 text-green-600 font-bold text-sm flex items-center gap-2">
-                                    <i class="fas fa-check-circle"></i> Archivo seleccionado correctamente.
+                                <div id="previewFinca" class="hidden mt-4 text-green-600 bg-green-50/50 p-3 rounded-xl border border-green-100 font-bold text-sm flex items-center justify-between gap-2 shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-check-circle text-lg"></i> 
+                                        <span id="fileNameFinca" class="truncate max-w-[200px]">Archivo seleccionado</span>
+                                    </div>
+                                    <button type="button" onclick="document.getElementById('fotoFinca').click()" class="text-green-500 hover:text-green-700 text-xs uppercase tracking-widest"><i class="fas fa-sync-alt"></i> Cambiar</button>
                                 </div>
                             </div>
 
@@ -271,7 +293,15 @@
 
         function previewFile(input, textId) {
             if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
                 document.getElementById(textId).classList.remove('hidden');
+                
+                // Actualizar el nombre del archivo dependiendo de qué preview sea
+                if (textId === 'previewCedula') {
+                    document.getElementById('fileNameCedula').innerText = fileName;
+                } else if (textId === 'previewFinca') {
+                    document.getElementById('fileNameFinca').innerText = fileName;
+                }
             }
         }
 
@@ -364,6 +394,29 @@
                     document.getElementById('detectedAddress').innerText = 'No se pudo obtener el nombre del lugar.';
                 });
         }
+
+        // --- MANEJO DE ÉXITO TRAS GUARDAR ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('exito')) {
+                // Ocultar la barra de URL param para limpieza
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                Swal.fire({
+                    title: '¡Solicitud Enviada con Éxito!',
+                    html: '<div class="text-gray-500 font-medium text-lg mt-2">Hemos recibido tus documentos.<br>Nuestro equipo los revisará en las <b>próximas 24 horas</b>.</div>',
+                    icon: 'success',
+                    confirmButtonText: '¡Entendido!',
+                    confirmButtonColor: '#10b981',
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl pb-6',
+                        title: 'text-2xl font-extrabold text-gray-800'
+                    }
+                });
+            }
+        });
     </script>
+    <!-- Widget de Soporte -->
+    <div th:replace="fragments/fragment_soporte :: widget"></div>
 </body>
 </html>

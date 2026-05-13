@@ -27,6 +27,7 @@ public class CarritoAPIController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Falta ID de producto"));
             }
             Long id = Long.valueOf(payload.get("id").toString());
+            int cantidad = payload.containsKey("cantidad") ? Integer.parseInt(payload.get("cantidad").toString()) : 1;
             
             // Verificamos antes si existe
             Optional<Producto> optProducto = productoRepository.findById(id);
@@ -37,7 +38,7 @@ public class CarritoAPIController {
             Producto producto = optProducto.get();
             int stockDisponible = (producto.getStock() != null) ? producto.getStock() : 0;
             
-            boolean agregadoConExito = carritoService.agregarProducto(id, 1);
+            boolean agregadoConExito = carritoService.agregarProducto(id, cantidad);
             
             if (!agregadoConExito) {
                 // Si retorna false, significa que topó el límite

@@ -74,9 +74,10 @@ public class Usuario {
     @Column(length = 1000)
     private String descripcionFinca;
 
-    // Coordenadas geográficas (ubicación por defecto o finca del campesino)
+    // Coordenadas geográficas y ubicación (ubicación por defecto o finca del campesino)
     private Double latitud;
     private Double longitud;
+    private String municipioOrigen;
 
     // --- RELACIONES PARA BORRADO EN CASCADA ---
 
@@ -94,4 +95,14 @@ public class Usuario {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<Direccion> direcciones;
+
+    // Favoritos del usuario
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_favoritos",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "producto_id")
+    )
+    @ToString.Exclude
+    private List<Producto> productosFavoritos;
 }
