@@ -40,7 +40,7 @@ Cada tarea es accionable y está diseñada para aportar valor real al negocio. U
 - [ ] **Compra con "1 Clic":** Guardar tarjetas tokenizadas de forma segura para no tener que meter los datos en la próxima compra.
 
 ## 6. 🤝 Confianza, Fidelización y Componente Social
-- [ ] **Sistema de Reseñas y Calificaciones con Fotos:** Clientes pueden dar 1 a 5 estrellas al producto y subir foto de las fresas o papas que recibieron para dar confianza a otros compradores.
+- [x] **Sistema de Reseñas y Calificaciones:** Clientes pueden dar 1 a 5 estrellas al producto y escribir comentarios. Panel de Reputación para campesinos con vista de reseñas buenas vs oportunidades de mejora. *(Fotos de reseñas pendiente)*
 - [ ] **Perfiles Verificados (Check Azul/Verde):** Validar la identidad de los campesinos (foto de cédula, foto de la finca) y darles un badge de "Productor Certificado".
 - [ ] **Programa de Referidos:** Códigos de invitación únicos ("Invita a un amigo y ambos ganan $10.000 en su próxima compra").
 - [ ] **Historias / Feed (Estilo Instagram):** Permitir a los campesinos subir un video corto o foto mostrando su cosecha del día a sus seguidores.

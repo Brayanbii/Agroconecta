@@ -101,6 +101,26 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
         
+        /* Animaciones Toast Premium 2026 */
+        @keyframes toast-progress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+        .animate-toast-progress {
+            animation: toast-progress 3.5s linear forwards;
+        }
+        @keyframes slide-in-right {
+            0% { transform: translateX(120%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slide-in-right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes slide-out-right {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+
         /* Botón de añadir al carrito */
         .add-btn {
             opacity: 0;
@@ -254,6 +274,12 @@
 
                 <!-- Menú Derecha -->
                 <div class="flex items-center gap-6">
+                    <!-- Enlace a Mis Favoritos -->
+                    <a th:href="@{/favoritos}" class="hidden md:flex flex-col items-center text-gray-400 hover:text-red-500 transition group" title="Mis Favoritos">
+                        <i class="fas fa-heart text-xl mb-1 group-hover:-translate-y-1 transition-transform"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wide">Favoritos</span>
+                    </a>
+
                     <!-- Enlace a Pedidos -->
                     <a th:href="@{/orden/mis-compras}" class="hidden md:flex flex-col items-center text-gray-400 hover:text-green-600 transition group" title="Mis Pedidos">
                         <i class="fas fa-receipt text-xl mb-1 group-hover:-translate-y-1 transition-transform"></i>
@@ -371,26 +397,81 @@
                 <button class="carousel-arrow left hidden-arrow" data-target="car-dest"><i class="fas fa-chevron-left text-sm"></i></button>
                 <div id="car-dest" class="flex overflow-x-auto gap-6 scroller-visible">
                 <div th:each="p : ${productosDestacados}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
-                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden rounded-t-3xl transform-gpu">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
                              alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-orange-600 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-orange-100"><i class="fas fa-fire mr-1"></i>TOP VENTAS</span>
+                        <!-- Botón Favorito -->
+                        <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                            <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                        </button>
                     </a>
-                    <div class="p-5 flex-1 flex flex-col">
+                    <div class="p-5 flex-1 flex flex-col relative">
+                        <!-- Vendedor (Avatar y Verificado) -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <div class="flex items-center gap-1 min-w-0">
+                                <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.nombreCompleto : 'AgroConecta'}">Vendedor</span>
+                                <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                            </div>
+                        </div>
+
                         <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors line-clamp-2" th:text="${p.nombre}">Nombre</h3>
                         </a>
+                        
+                        <!-- Ubicación y Distancia -->
+                        <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                            <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                            <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
+                            
+                            <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                                  class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
+                                  A <span th:text="${p.distanciaKm}"></span> km
+                            </span>
+                        </div>
+
+                        <!-- Cosechado Hace... -->
+                        <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                            <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                            <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                        </div>
+
+                        <!-- Estrellas y Stock -->
+                        <div class="flex items-center gap-1 mb-4 mt-1">
+                            <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                            <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                            <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                            <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                        </div>
+                        
                         <div class="mt-auto flex items-end justify-between">
                             <div>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase">Precio</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xl font-extrabold text-gray-900" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
                                 </div>
                             </div>
-                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
-                                <i class="fas fa-cart-plus text-sm"></i>
-                            </button>
+                            
+                            <div class="flex gap-2">
+                                <!-- Botón Vista Rápida -->
+                                <button type="button" 
+                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
+                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
+                                        onclick="event.stopPropagation(); abrirModal(this)"
+                                        class="bg-white border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                <!-- Botón Añadir -->
+                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
+                                    <i class="fas fa-plus transition-all text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -425,24 +506,79 @@
                 <button class="carousel-arrow left hidden-arrow" data-target="car-new"><i class="fas fa-chevron-left text-sm"></i></button>
                 <div id="car-new" class="flex overflow-x-auto gap-6 scroller-visible">
                 <div th:each="p, iterStat : ${productos}" th:if="${iterStat.index < 12}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
-                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden rounded-t-3xl transform-gpu">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-green-500 shadow-sm"><i class="fas fa-clock mr-1"></i>Nuevo</span>
+                        <!-- Botón Favorito -->
+                        <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                            <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                        </button>
                     </a>
-                    <div class="p-5 flex-1 flex flex-col">
+                    <div class="p-5 flex-1 flex flex-col relative">
+                        <!-- Vendedor (Avatar y Verificado) -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <div class="flex items-center gap-1 min-w-0">
+                                <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.nombreCompleto : 'AgroConecta'}">Vendedor</span>
+                                <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                            </div>
+                        </div>
+
                         <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors line-clamp-2" th:text="${p.nombre}">Nombre</h3>
                         </a>
+                        
+                        <!-- Ubicación y Distancia -->
+                        <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                            <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                            <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
+                            
+                            <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                                  class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
+                                  A <span th:text="${p.distanciaKm}"></span> km
+                            </span>
+                        </div>
+
+                        <!-- Cosechado Hace... -->
+                        <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                            <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                            <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                        </div>
+
+                        <!-- Estrellas y Stock -->
+                        <div class="flex items-center gap-1 mb-4 mt-1">
+                            <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                            <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                            <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                            <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                        </div>
+                        
                         <div class="mt-auto flex items-end justify-between">
                             <div>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase">Precio</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xl font-extrabold text-gray-900" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
                                 </div>
                             </div>
-                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
-                                <i class="fas fa-cart-plus text-sm"></i>
-                            </button>
+                            
+                            <div class="flex gap-2">
+                                <!-- Botón Vista Rápida -->
+                                <button type="button" 
+                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.nombreCompleto : 'Productor'}"
+                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
+                                        onclick="event.stopPropagation(); abrirModal(this)"
+                                        class="bg-white border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                <!-- Botón Añadir -->
+                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
+                                    <i class="fas fa-plus transition-all text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -477,29 +613,83 @@
                 <button class="carousel-arrow left hidden-arrow" data-target="car-ofer"><i class="fas fa-chevron-left text-sm"></i></button>
                 <div id="car-ofer" class="flex overflow-x-auto gap-6 scroller-visible">
                 <div th:each="p : ${productos}" th:if="${p.id % 3 == 0}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border-2 border-red-100 hover:border-red-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
-                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden rounded-t-3xl transform-gpu">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-md"><i class="fas fa-bolt mr-1"></i>Oferta Flash</span>
+                        <!-- Botón Favorito -->
+                        <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                            <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                        </button>
                     </a>
-                    <div class="p-5 flex-1 flex flex-col">
+                    <div class="p-5 flex-1 flex flex-col relative">
+                        <!-- Vendedor (Avatar y Verificado) -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <div class="flex items-center gap-1 min-w-0">
+                                <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                                <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                            </div>
+                        </div>
+
                         <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-red-600 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-red-600 transition-colors line-clamp-2" th:text="${p.nombre}">Nombre</h3>
                         </a>
+                        
+                        <!-- Ubicación y Distancia -->
+                        <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                            <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                            <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
+                            
+                            <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                                  class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
+                                  A <span th:text="${p.distanciaKm}"></span> km
+                            </span>
+                        </div>
+
+                        <!-- Cosechado Hace... -->
+                        <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                            <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                            <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                        </div>
+
+                        <!-- Estrellas y Stock -->
+                        <div class="flex items-center gap-1 mb-4 mt-1">
+                            <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                            <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                            <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                            <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                        </div>
+                        
                         <div class="mt-auto flex items-end justify-between">
                             <div>
-                                <div class="flex items-center gap-2 mb-1">
+                                <div class="flex items-center gap-2 mb-0.5">
                                     <!-- Simulador visual de descuento: Precio original era 15% más caro -->
-                                    <span class="text-xs text-gray-400 line-through font-medium" th:text="'$' + ${#numbers.formatDecimal(p.precio * 1.15, 0, 0)}">$0</span>
-                                    <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
+                                    <span class="text-[10px] text-gray-400 line-through font-medium" th:text="'$' + ${#numbers.formatDecimal(p.precio * 1.15, 0, 0)}">$0</span>
+                                    <span class="bg-red-50 text-red-600 text-[9px] font-bold px-1.5 py-0.5 rounded-sm">-15%</span>
                                 </div>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-2xl font-extrabold text-red-600" th:text="'$' + ${p.precio}">$0</span>
-                                    <span class="text-[9px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded ml-1 tracking-wide uppercase">¡Bajó!</span>
+                                    <span class="text-xl font-extrabold text-red-600" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
                                 </div>
                             </div>
-                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-sm">
-                                <i class="fas fa-cart-plus text-sm"></i>
-                            </button>
+                            
+                            <div class="flex gap-2">
+                                <!-- Botón Vista Rápida -->
+                                <button type="button" 
+                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
+                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
+                                        onclick="event.stopPropagation(); abrirModal(this)"
+                                        class="bg-white border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                <!-- Botón Añadir -->
+                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
+                                    <i class="fas fa-cart-plus text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -535,24 +725,79 @@
                 <button class="carousel-arrow left hidden-arrow" data-target="car-reco"><i class="fas fa-chevron-left text-sm"></i></button>
                 <div id="car-reco" class="flex overflow-x-auto gap-6 scroller-visible">
                 <div th:each="p : ${productosRecomendados}" class="min-w-[280px] max-w-[280px] shrink-0 flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
-                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden">
+                    <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 bg-gray-100 block overflow-hidden rounded-t-3xl transform-gpu">
                         <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
                         <span class="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide shadow-sm"><i class="fas fa-star mr-1"></i>Para ti</span>
+                        <!-- Botón Favorito -->
+                        <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                            <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                        </button>
                     </a>
-                    <div class="p-5 flex-1 flex flex-col">
+                    <div class="p-5 flex-1 flex flex-col relative">
+                        <!-- Vendedor (Avatar y Verificado) -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <div class="flex items-center gap-1 min-w-0">
+                                <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                                <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
+                            </div>
+                        </div>
+
                         <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-purple-600 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-purple-600 transition-colors line-clamp-2" th:text="${p.nombre}">Nombre</h3>
                         </a>
+                        
+                        <!-- Ubicación y Distancia -->
+                        <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                            <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                            <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
+                            
+                            <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                                  class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
+                                  A <span th:text="${p.distanciaKm}"></span> km
+                            </span>
+                        </div>
+
+                        <!-- Cosechado Hace... -->
+                        <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                            <i class="fas fa-leaf text-[10px] text-green-600"></i>
+                            <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
+                        </div>
+
+                        <!-- Estrellas y Stock -->
+                        <div class="flex items-center gap-1 mb-4 mt-1">
+                            <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                            <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                            <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                            <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                        </div>
+                        
                         <div class="mt-auto flex items-end justify-between">
                             <div>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Precio</p>
+                                <p class="text-xs text-gray-400 font-semibold uppercase">Precio</p>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-xl font-extrabold text-green-600" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xl font-extrabold text-gray-900" th:text="'$' + ${p.precio}">$0</span>
+                                    <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
                                 </div>
                             </div>
-                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm">
-                                <i class="fas fa-cart-plus text-sm"></i>
-                            </button>
+                            
+                            <div class="flex gap-2">
+                                <!-- Botón Vista Rápida -->
+                                <button type="button" 
+                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
+                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
+                                        onclick="event.stopPropagation(); abrirModal(this)"
+                                        class="bg-white border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                <!-- Botón Añadir -->
+                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
+                                    <i class="fas fa-cart-plus text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -751,7 +996,7 @@
                       th:text="${p.categoria}">CAT</span>
 
                 <!-- Imagen -->
-                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-64 overflow-hidden bg-gray-100 block">
+                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-64 overflow-hidden bg-gray-100 block rounded-t-3xl transform-gpu">
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition duration-700 ease-out" 
                          alt="Producto"
@@ -759,6 +1004,11 @@
                     
                     <!-- Overlay Oscuro al Hover -->
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
+                    
+                    <!-- Botón Favorito -->
+                    <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                        <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                    </button>
                 </a>
 
                 <!-- Cuerpo de la Tarjeta -->
@@ -770,7 +1020,7 @@
                             <i class="fas fa-tractor"></i>
                         </div>
                         <div class="flex items-center gap-1 min-w-0">
-                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.nombreCompleto : 'AgroConecta'}">Vendedor</span>
                             <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
                         </div>
                     </div>
@@ -933,6 +1183,60 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        window.showModernToast = function(type, title, message) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-[1000] flex flex-col gap-3 pointer-events-none';
+                document.body.appendChild(container);
+            }
+            
+            const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 
+                              (type === 'error' ? 'fas fa-trash-alt text-red-500' : 
+                              'fas fa-exclamation-triangle text-amber-500');
+            const bgIconClass = type === 'success' ? 'bg-green-50 border-green-100' : 
+                               (type === 'error' ? 'bg-red-50 border-red-100' : 
+                               'bg-amber-50 border-amber-100');
+            const barClass = type === 'success' ? 'bg-green-500' : 
+                             (type === 'error' ? 'bg-red-500' : 'bg-amber-500');
+            const titleClass = type === 'success' ? 'text-green-600' : 
+                               (type === 'error' ? 'text-red-600' : 'text-amber-600');
+            
+            const toast = document.createElement('div');
+            toast.className = 'bg-white/95 backdrop-blur-2xl border border-gray-100 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl p-4 pr-8 flex items-center gap-4 relative overflow-hidden pointer-events-auto min-w-[320px] sm:min-w-[360px] max-w-md animate-slide-in';
+            
+            toast.innerHTML = `
+                <!-- Progress Bar -->
+                <div class="absolute bottom-0 left-0 h-1 ${barClass} animate-toast-progress"></div>
+                
+                <!-- Ícono -->
+                <div class="w-12 h-12 ${bgIconClass} rounded-xl flex items-center justify-center shrink-0 border">
+                    <i class="${iconClass} text-2xl drop-shadow-sm"></i>
+                </div>
+                
+                <!-- Texto -->
+                <div class="flex flex-col flex-1">
+                    <span class="text-[11px] font-extrabold ${titleClass} uppercase tracking-widest mb-0.5">${title}</span>
+                    <span class="text-[14px] font-bold text-gray-800 leading-tight line-clamp-2">${message}</span>
+                </div>
+                
+                <!-- Botón cerrar -->
+                <button onclick="this.parentElement.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards'; setTimeout(() => this.parentElement.remove(), 400)" class="absolute right-3 top-4 text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if(toast.parentElement) {
+                    toast.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 3500);
+        };
+
         function añadirCarrito(event, elemento) {
             event.preventDefault();
             
@@ -942,12 +1246,7 @@
             const stock = stockStr ? parseInt(stockStr) : 0;
             
             if (stock <= 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '¡Producto Agotado!',
-                    text: 'Actualmente este producto no cuenta con unidades disponibles.',
-                    confirmButtonColor: '#16a34a'
-                });
+                showModernToast('warning', 'Producto Agotado', 'Actualmente este producto no cuenta con unidades disponibles.');
                 return;
             }
             
@@ -965,13 +1264,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.error === "stock_insuficiente") {
-                        Swal.fire({
-                            icon: 'info',
-                            title: '¡Límite alcanzado!',
-                            text: 'Ya tienes en el carrito todas las unidades disponibles (' + data.stock + ') de ' + nombreProducto + '.',
-                            confirmButtonColor: '#eab308',
-                            confirmButtonText: 'Entendido'
-                        });
+                        showModernToast('warning', 'Límite alcanzado', 'Ya tienes en el carrito todas las unidades disponibles (' + data.stock + ') de ' + nombreProducto + '.');
                         icon.className = 'fas fa-plus text-sm';
                         elemento.classList.remove('pointer-events-none');
                         return;
@@ -985,23 +1278,7 @@
                         elemento.classList.remove('pointer-events-none');
                     }, 1200);
                     
-                    // Mostrar alerta emergente (Toast)
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'bottom-end',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        didOpen: (toast) => {
-                            toast.onmouseenter = Swal.stopTimer;
-                            toast.onmouseleave = Swal.resumeTimer;
-                        }
-                    });
-                    
-                    Toast.fire({
-                        icon: 'success',
-                        title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif;">¡${nombreProducto} añadido al carrito!</span>`
-                    });
+                    showModernToast('success', 'Agregado al carrito', nombreProducto);
                     
                     // Actualizar badge visualmente
                     const badge = document.getElementById('cart-badge');
@@ -1591,6 +1868,7 @@
                                         </div>
                                         <div class="text-left">
                                             <h4 class="text-sm font-bold text-gray-800 leading-tight group-hover:text-green-700 transition-colors">${highlighted}</h4>
+                                            <p class="text-[10px] text-gray-400 font-bold mt-0.5">${nombreCompleto}</p>
                                             <div class="flex items-center gap-1.5 mt-1">
                                                 <span class="text-xs font-extrabold text-gray-900">$${precio}</span>
                                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}">Disp: ${stock}</span>
@@ -2286,6 +2564,32 @@
                 }
             }
 
+            window.deleteDBAddress = function(id) {
+                Swal.fire({
+                    title: '¿Eliminar dirección?',
+                    text: "Esta dirección se borrará de tu cuenta.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#9ca3af',
+                    confirmButtonText: 'Sí, borrarla',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/api/direcciones/' + id, { method: 'DELETE' })
+                        .then(res => {
+                            if(res.ok) {
+                                fetchMyAddresses(true);
+                                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Dirección eliminada', showConfirmButton: false, timer: 2000 });
+                            } else {
+                                throw new Error('Error eliminando');
+                            }
+                        })
+                        .catch(err => Swal.fire('Error', 'No se pudo eliminar la dirección', 'error'));
+                    }
+                });
+            };
+
             function renderDBAddresses() {
                 if(dbAddresses.length === 0) {
                     dbAddressesContainer.innerHTML = `<p class="text-[11px] text-center text-gray-400 py-3">Aún no tienes direcciones en tu cuenta H2.</p>`;
@@ -2309,8 +2613,11 @@
                                 ${d.detalles ? `<p class="text-[9px] text-gray-400 mt-0.5">${d.detalles}</p>` : ''}
                             </div>
                         </div>
-                        <div class="${isPrim ? 'text-green-500' : 'text-gray-200 group-hover:text-green-300'} transition-colors ml-2">
-                            <i class="${isPrim ? 'fas fa-check-circle' : 'far fa-circle'} text-lg"></i>
+                        <div class="flex items-center gap-2 ml-2">
+                            <button type="button" onclick="event.stopPropagation(); deleteDBAddress('${d.id}')" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-100 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar dirección">
+                                <i class="fas fa-trash-alt text-[13px]"></i>
+                            </button>
+                            <i class="${isPrim ? 'fas fa-check-circle text-green-500' : 'far fa-circle text-gray-200 group-hover:text-green-300'} text-lg transition-colors"></i>
                         </div>
                     </div>
                 `}).join('');
@@ -2458,6 +2765,84 @@
                 updateArrows();
             });
         });
+
+        // ==========================================
+        // LÓGICA DE FAVORITOS (Corazones)
+        // ==========================================
+        function toggleFavorito(event, btnElement, productoId) {
+            event.preventDefault(); // Evita navegar a la vista de detalle
+            event.stopPropagation();
+            
+            const icon = btnElement.querySelector('i');
+            
+            // Animación temporal "pensando"
+            icon.className = 'fas fa-spinner fa-spin text-gray-400';
+            
+            fetch('/api/favoritos/toggle/' + productoId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                
+                if (data.success) {
+                    if (data.isFavorito) {
+                        // Ahora es favorito (rellenar)
+                        icon.className = 'fas fa-heart text-red-500 scale-110 transition-all';
+                        Swal.fire({
+                            toast: true,
+                            position: 'bottom-end',
+                            iconHtml: '<i class="fas fa-heart text-2xl"></i>',
+                            iconColor: '#ef4444',
+                            title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;">¡Guardado en favoritos!</span>`,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                                const progressBar = toast.querySelector('.swal2-timer-progress-bar');
+                                if (progressBar) {
+                                    progressBar.style.backgroundColor = '#ef4444';
+                                }
+                            }
+                        });
+                    } else {
+                        // Ya no es favorito (vaciar)
+                        icon.className = 'far fa-heart text-gray-400 transition-all';
+                        Swal.fire({
+                            toast: true,
+                            position: 'bottom-end',
+                            iconHtml: '<i class="fa-solid fa-heart-crack text-2xl text-gray-400 fa-shake" style="--fa-animation-duration: 2s; --fa-animation-iteration-count: 1;"></i>',
+                            iconColor: '#9ca3af',
+                            title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: #4b5563;">Eliminado de favoritos</span>`,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                                const progressBar = toast.querySelector('.swal2-timer-progress-bar');
+                                if (progressBar) {
+                                    progressBar.style.backgroundColor = '#9ca3af';
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    icon.className = 'far fa-heart text-gray-400';
+                    if (data.message.includes('sesión')) {
+                        Swal.fire('Atención', data.message, 'warning').then(() => window.location.href='/login');
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                icon.className = 'far fa-heart text-gray-400';
+                console.error("Error toggling favorito:", error);
+                Swal.fire('Error', 'Hubo un problema de conexión', 'error');
+            });
+        }
     </script>
     
     <!-- Widget de Soporte Global -->

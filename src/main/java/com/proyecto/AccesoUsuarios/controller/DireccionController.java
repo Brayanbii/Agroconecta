@@ -95,4 +95,25 @@ public class DireccionController {
         
         return ResponseEntity.notFound().build();
     }
+
+    // Eliminar una dirección
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarDireccion(@PathVariable Long id, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return ResponseEntity.status(401).build();
+
+        Optional<Usuario> userOpt = usuarioRepository.findByEmail(auth.getName());
+        if (!userOpt.isPresent()) return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+
+        Optional<Direccion> direccionOpt = direccionRepository.findById(id);
+        if (direccionOpt.isPresent()) {
+            Direccion direccion = direccionOpt.get();
+            if (direccion.getUsuario().getId().equals(userOpt.get().getId())) {
+                direccionRepository.delete(direccion);
+                return ResponseEntity.ok(Map.of("mensaje", "Dirección eliminada exitosamente"));
+            } else {
+                return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar esta dirección"));
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

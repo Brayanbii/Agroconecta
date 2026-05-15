@@ -41,43 +41,102 @@ public class ResenaAPIController {
         return ResponseEntity.ok(resenas);
     }
 
-    // Guardar una nueva reseña
+    // Guardar o actualizar una reseña (UPSERT)
+    // - El comentario es OPCIONAL: se puede calificar solo con estrellas
+    // - Si el usuario ya tiene reseña en ese producto, se actualiza
     @PostMapping
     public ResponseEntity<?> guardarResena(@RequestBody Map<String, Object> payload) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
-            return ResponseEntity.status(401).body(Map.of("error", "Debes iniciar sesión para comentar"));
+            return ResponseEntity.status(401).body(Map.of("error", "Debes iniciar sesión para calificar"));
         }
 
         try {
             Long productoId = Long.valueOf(payload.get("productoId").toString());
             Integer estrellas = Integer.valueOf(payload.get("estrellas").toString());
-            String comentario = payload.get("comentario").toString();
+            // Comentario es opcional: puede ser null o vacío
+            String comentario = payload.get("comentario") != null ? payload.get("comentario").toString().trim() : "";
 
             if (estrellas < 1 || estrellas > 5) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Estrellas entre 1 y 5"));
             }
 
             Optional<Producto> optProducto = productoRepository.findById(productoId);
-            // El authentication.getName() en esta app devuelve el EMAIL, no el userName
             Optional<Usuario> optUsuario = usuarioRepository.findByEmail(auth.getName());
 
             if (optProducto.isPresent() && optUsuario.isPresent()) {
-                Resena resena = new Resena();
-                resena.setProducto(optProducto.get());
-                resena.setUsuario(optUsuario.get());
-                resena.setEstrellas(estrellas);
-                resena.setComentario(comentario);
-                resena.setFecha(LocalDate.now());
+                Producto producto = optProducto.get();
+                Usuario usuario = optUsuario.get();
+                
+                // Buscar si ya existe una reseña de este usuario para este producto
+                Optional<Resena> existente = resenaRepository.findByProductoIdAndUsuarioId(productoId, usuario.getId());
+                
+                Resena resena;
+                boolean esActualizacion = false;
+                
+                if (existente.isPresent()) {
+                    // ACTUALIZAR la reseña existente
+                    resena = existente.get();
+                    resena.setEstrellas(estrellas);
+                    resena.setComentario(comentario.isEmpty() ? null : comentario);
+                    resena.setFecha(LocalDate.now());
+                    esActualizacion = true;
+                } else {
+                    // CREAR nueva reseña
+                    resena = new Resena();
+                    resena.setProducto(producto);
+                    resena.setUsuario(usuario);
+                    resena.setEstrellas(estrellas);
+                    resena.setComentario(comentario.isEmpty() ? null : comentario);
+                    resena.setFecha(LocalDate.now());
+                }
 
                 resenaRepository.save(resena);
 
-                return ResponseEntity.ok(Map.of("mensaje", "Reseña guardada exitosamente"));
+                return ResponseEntity.ok(Map.of(
+                    "mensaje", esActualizacion ? "Calificación actualizada" : "Reseña guardada exitosamente",
+                    "resenaId", resena.getId(),
+                    "actualizada", esActualizacion
+                ));
             }
 
             return ResponseEntity.badRequest().body(Map.of("error", "Producto o Usuario no válidos"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Error procesando la solicitud"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Error procesando la solicitud: " + e.getMessage()));
+        }
+    }
+
+    // Eliminar una reseña (solo el autor puede borrarla)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminarResena(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+            return ResponseEntity.status(401).body(Map.of("error", "Debes iniciar sesión"));
+        }
+
+        try {
+            Optional<Resena> optResena = resenaRepository.findById(id);
+            if (optResena.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Reseña no encontrada"));
+            }
+
+            Resena resena = optResena.get();
+            Optional<Usuario> optUsuario = usuarioRepository.findByEmail(auth.getName());
+
+            if (optUsuario.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Usuario no encontrado"));
+            }
+
+            // Solo el autor puede borrar su propia reseña
+            if (!resena.getUsuario().getId().equals(optUsuario.get().getId())) {
+                return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar esta reseña"));
+            }
+
+            resenaRepository.delete(resena);
+
+            return ResponseEntity.ok(Map.of("mensaje", "Reseña eliminada exitosamente", "success", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Error al eliminar la reseña"));
         }
     }
 }

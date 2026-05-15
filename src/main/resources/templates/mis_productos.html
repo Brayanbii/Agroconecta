@@ -133,67 +133,8 @@
 <body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
 
     <!-- SIDEBAR CAMPESINO -->
-    <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
-        <div class="h-24 flex items-center px-8 border-b border-gray-50">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-green-500 to-green-700 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-600/40 flex items-center justify-center">
-                    <i class="fas fa-leaf text-xl"></i>
-                </div>
-                <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
-            </div>
-        </div>
-
-        <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
-            <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Panel del Productor</p>
-            
-            <a th:href="@{/campesino/productos}" class="bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
-                <div class="bg-green-200/50 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
-                    <i class="fas fa-box-open text-green-600"></i> 
-                </div>
-                Mis Productos
-            </a>
-
-            <a th:href="@{/campesino/productos/pedidos}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
-                    <i class="fas fa-shopping-bag group-hover:text-green-600"></i> 
-                </div>
-                Gestión de Pedidos
-            </a>
-
-            <a th:href="@{/campesino/productos/informe}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
-                    <i class="fas fa-chart-line group-hover:text-green-600"></i> 
-                </div>
-                Analíticas y Reportes
-            </a>
-            
-            <a th:href="@{/tienda}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
-                    <i class="fas fa-store group-hover:text-green-600"></i> 
-                </div>
-                Ver Tienda Pública
-            </a>
-        </nav>
-
-        <div class="p-6 border-t border-gray-50">
-            <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm shrink-0">
-                        <span th:text="${#authentication.name.substring(0,1).toUpperCase()}">U</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${usuario != null ? #strings.arraySplit(usuario.nombreCompleto, ' ')[0] : 'Campesino'}">Campesino</p>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Productor</p>
-                    </div>
-                </div>
-                <form th:action="@{/logout}" method="post" class="m-0 shrink-0">
-                    <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </aside>
+    <!-- SIDEBAR CAMPESINO -->
+    <aside th:replace="~{fragments/campesino_sidebar :: sidebar('productos')}"></aside>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
@@ -211,7 +152,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <button id="btn-modo-prueba" onclick="iniciarModoPrueba()" class="hidden md:flex bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition shadow-sm items-center gap-2">
-                    <i class="fas fa-magic text-blue-500"></i> Sandbox
+                    <i class="fas fa-magic text-blue-500"></i> Modo Práctica
                 </button>
                 <button id="btn-tutorial" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-sm border border-blue-100 hover:bg-blue-100 transition shadow-sm flex items-center gap-2">
                     <i class="fas fa-graduation-cap"></i> <span class="hidden sm:inline">Tutorial</span>
@@ -225,6 +166,53 @@
         <!-- CONTENT SCROLLABLE -->
         <div class="flex-1 overflow-y-auto p-6 md:p-10">
             <div class="max-w-6xl mx-auto">
+
+                <!-- WELCOME DASHBOARD BANNER -->
+                <div class="bg-gradient-to-br from-green-800 via-emerald-700 to-teal-600 rounded-[2rem] p-8 md:p-10 shadow-xl mb-10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+                    <!-- Background Effects -->
+                    <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+                    
+                    <!-- Welcome Text -->
+                    <div class="relative z-10 text-center md:text-left">
+                        <span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-white/30 mb-4 inline-block">Resumen Diario</span>
+                        <h2 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tight">
+                            ¡Hola, <span th:text="${usuario != null ? #strings.arraySplit(usuario.nombreCompleto, ' ')[0] : 'Tomás'}">Tomás</span>! 👋
+                        </h2>
+                        <p class="text-emerald-100 font-medium text-sm md:text-base">Aquí tienes el rendimiento de tu negocio hoy.</p>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="relative z-10 grid grid-cols-2 gap-4 w-full md:w-auto">
+                        <div class="group bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4 hover:-translate-y-1 hover:bg-white/20 hover:shadow-lg hover:border-white/40 transition-all duration-300 cursor-default">
+                            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white/30 transition-all"><i class="fas fa-dollar-sign text-lg"></i></div>
+                            <div>
+                                <p class="text-[10px] text-emerald-100 font-bold uppercase tracking-widest">Ventas Hoy</p>
+                                <p class="text-xl font-black text-white" th:text="'$' + ${#numbers.formatDecimal(ventasHoy, 0, 'COMMA', 0, 'POINT')}">$145,500</p>
+                            </div>
+                        </div>
+                        <div class="group bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4 hover:-translate-y-1 hover:bg-white/20 hover:shadow-lg hover:border-white/40 transition-all duration-300 cursor-default">
+                            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white/30 transition-all"><i class="fas fa-box text-lg group-hover:rotate-12 transition-transform"></i></div>
+                            <div>
+                                <p class="text-[10px] text-emerald-100 font-bold uppercase tracking-widest">Por Enviar</p>
+                                <p class="text-xl font-black text-white" th:text="${pedidosPendientes} + ' pedidos'">4 pedidos</p>
+                            </div>
+                        </div>
+                        <div class="group bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4 hover:-translate-y-1 hover:bg-white/20 hover:shadow-lg hover:border-white/40 transition-all duration-300 cursor-default">
+                            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white/30 transition-all"><i class="fas fa-trophy text-lg group-hover:text-yellow-300 transition-colors"></i></div>
+                            <div>
+                                <p class="text-[10px] text-emerald-100 font-bold uppercase tracking-widest">Más Vendido</p>
+                                <p class="text-sm font-black text-white truncate max-w-[100px]" th:text="${productoMasVendido}">Tomate</p>
+                            </div>
+                        </div>
+                        <div class="group bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4 hover:-translate-y-1 hover:bg-white/20 hover:shadow-lg hover:border-white/40 transition-all duration-300 cursor-default">
+                            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-white/30 transition-all"><i class="fas fa-chart-line text-lg group-hover:-translate-y-0.5 transition-transform"></i></div>
+                            <div>
+                                <p class="text-[10px] text-emerald-100 font-bold uppercase tracking-widest">Mes Actual</p>
+                                <p class="text-xl font-black text-white" th:text="'$' + ${#numbers.formatDecimal(gananciaMes, 0, 'COMMA', 0, 'POINT')}">$1.2M</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
         <!-- GRID DE PRODUCTOS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -415,8 +403,9 @@
                 steps: [
                     { popover: { title: '¡Bienvenido a tu panel!', description: renderDesc('Estamos muy felices de que estés aquí. Te daremos un recorrido rapidísimo para que sepas cómo empezar a vender.', getIcon('bg-gradient-to-br from-orange-400 to-red-400', '👋')), side: "bottom", align: 'start' } },
                     { element: '#btn-nuevo-producto', popover: { title: 'Tu Primer Producto', description: renderDesc('¡Toca aquí para publicar la foto y precio de lo que quieres vender.', getIcon('bg-gradient-to-br from-green-400 to-emerald-600', '📦')), side: "bottom", align: 'center' } },
-                    { element: '#btn-modo-prueba', popover: { title: '¿Miedo a equivocarte?', description: renderDesc('No te preocupes. Con el modo Sandbox puedes crear un producto de mentira solo para practicar, ¡nadie lo verá!', getIcon('bg-gradient-to-br from-blue-400 to-indigo-500', '🎮')), side: "bottom", align: 'center' } },
-                    { element: 'aside', popover: { title: 'Panel del Productor', description: renderDesc('En esta barra lateral encuentras tus analíticas, gestión de ventas, y el estado de tus envíos.', getIcon('bg-gradient-to-br from-purple-400 to-fuchsia-500', '📊')), side: "right", align: 'center' } }
+                    { element: '#btn-modo-prueba', popover: { title: '¿Miedo a equivocarte?', description: renderDesc('No te preocupes. Con el Modo Práctica puedes crear un producto de mentira solo para practicar, ¡nadie lo verá!', getIcon('bg-gradient-to-br from-blue-400 to-indigo-500', '🎮')), side: "bottom", align: 'center' } },
+                    { element: 'aside', popover: { title: 'Panel del Productor', description: renderDesc('En esta barra lateral encuentras tus analíticas, gestión de ventas, y el estado de tus envíos.', getIcon('bg-gradient-to-br from-purple-400 to-fuchsia-500', '📊')), side: "right", align: 'center' } },
+                    { popover: { title: '¡Listo, perfecto!', description: renderDesc('Ahora ya sabes cómo vender. ¡Empieza a crear tu primer producto real!', getIcon('bg-gradient-to-br from-green-400 to-emerald-500', '🚀')), side: "bottom", align: 'center' } }
                 ],
                 onDestroyStarted: () => {
                     if (!driverObj.hasNextStep() || confirm("¿Seguro que quieres terminar el recorrido?")) {

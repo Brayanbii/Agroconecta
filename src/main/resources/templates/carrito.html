@@ -33,6 +33,26 @@
             -webkit-appearance: none; 
             margin: 0; 
         }
+        
+        /* Animaciones Toast Premium 2026 */
+        @keyframes toast-progress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+        .animate-toast-progress {
+            animation: toast-progress 3.5s linear forwards;
+        }
+        @keyframes slide-in-right {
+            0% { transform: translateX(120%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slide-in-right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes slide-out-right {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
@@ -42,7 +62,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
-                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                <a th:href="@{/tienda}" class="flex items-center gap-2 cursor-pointer group">
                     <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
                         <i class="fas fa-leaf text-xl"></i>
                     </div>
@@ -189,7 +209,7 @@
                                     <p class="text-xs text-gray-400">Subtotal</p>
                                     <p class="text-xl font-extrabold text-green-600" th:text="'$' + ${item.getTotal()}">$0</p>
                                 </div>
-                                <form th:action="@{'/carrito/eliminar/' + ${item.producto.id}}" method="post" class="inline m-0 p-0">
+                                <form th:action="@{'/carrito/eliminar/' + ${item.producto.id}}" method="post" class="inline m-0 p-0" th:data-nombre="${item.producto.nombre}" onsubmit="prepararEliminacion(event, this)">
                                     <button type="submit" class="text-gray-300 hover:text-red-500 transition p-2 bg-transparent border-none cursor-pointer" 
                                             title="Eliminar producto">
                                         <i class="fas fa-trash-alt text-lg"></i>
@@ -292,8 +312,84 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // FUNCIÓN GLOBAL TOAST 2026
+        window.showModernToast = function(type, title, message) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-[1000] flex flex-col gap-3 pointer-events-none';
+                document.body.appendChild(container);
+            }
+            
+            const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 
+                              (type === 'error' ? 'fas fa-trash-alt text-red-500' : 
+                              'fas fa-exclamation-triangle text-amber-500');
+            const bgIconClass = type === 'success' ? 'bg-green-50 border-green-100' : 
+                               (type === 'error' ? 'bg-red-50 border-red-100' : 
+                               'bg-amber-50 border-amber-100');
+            const barClass = type === 'success' ? 'bg-green-500' : 
+                             (type === 'error' ? 'bg-red-500' : 'bg-amber-500');
+            const titleClass = type === 'success' ? 'text-green-600' : 
+                               (type === 'error' ? 'text-red-600' : 'text-amber-600');
+            
+            const toast = document.createElement('div');
+            toast.className = 'bg-white/95 backdrop-blur-2xl border border-gray-100 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl p-4 pr-8 flex items-center gap-4 relative overflow-hidden pointer-events-auto min-w-[320px] sm:min-w-[360px] max-w-md animate-slide-in';
+            
+            toast.innerHTML = `
+                <div class="absolute bottom-0 left-0 h-1 ${barClass} animate-toast-progress"></div>
+                <div class="w-12 h-12 ${bgIconClass} rounded-xl flex items-center justify-center shrink-0 border">
+                    <i class="${iconClass} text-2xl drop-shadow-sm"></i>
+                </div>
+                <div class="flex flex-col flex-1">
+                    <span class="text-[11px] font-extrabold ${titleClass} uppercase tracking-widest mb-0.5">${title}</span>
+                    <span class="text-[14px] font-bold text-gray-800 leading-tight line-clamp-2">${message}</span>
+                </div>
+                <button onclick="this.parentElement.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards'; setTimeout(() => this.parentElement.remove(), 400)" class="absolute right-3 top-4 text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                if(toast.parentElement) {
+                    toast.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 3500);
+        };
+
+        // LECTURA DE TOASTS PENDIENTES TRAS RECARGA
+        document.addEventListener('DOMContentLoaded', () => {
+            const toastError = sessionStorage.getItem('toast_error');
+            const toastWarning = sessionStorage.getItem('toast_warning');
+            
+            if (toastError) {
+                showModernToast('error', 'Producto Eliminado', toastError);
+                sessionStorage.removeItem('toast_error');
+            }
+            if (toastWarning) {
+                showModernToast('warning', 'Límite Ajustado', toastWarning);
+                sessionStorage.removeItem('toast_warning');
+            }
+        });
+
+        // PREPARAR ANIMACIÓN AL ELIMINAR
+        function prepararEliminacion(event, form) {
+            const nombre = form.getAttribute('data-nombre');
+            sessionStorage.setItem('toast_error', `Has eliminado ${nombre} de tu carrito.`);
+            
+            // Animación de salida en el DOM (Feedback inmediato)
+            const card = form.closest('.group');
+            if(card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0.3';
+                card.style.transform = 'scale(0.98)';
+                card.style.filter = 'grayscale(100%)';
+            }
+        }
+
         document.getElementById('btn-checkout')?.addEventListener('click', function(e) {
-            // Evitar doble submit visual
             this.style.pointerEvents = 'none';
             this.classList.add('opacity-75');
             this.innerHTML = '<i class="fas fa-circle-notch fa-spin font-bold text-lg"></i><span class="font-bold">Procesando...</span>';
@@ -304,14 +400,8 @@
             const val = parseInt(input.value);
             if (val > max) {
                 input.value = max;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Stock Llevado al Máximo',
-                    text: 'Se han ajustado las unidades a ' + max + ' ya que es todo lo que está disponible del campesino ahora mismo.',
-                    confirmButtonColor: '#16a34a'
-                }).then(() => {
-                    input.closest('form').submit();
-                });
+                sessionStorage.setItem('toast_warning', `Se han ajustado las unidades a ${max} porque es el stock disponible actual.`);
+                input.closest('form').submit();
             } else if (val < 1) {
                 input.value = 1;
                 input.closest('form').submit();
@@ -326,12 +416,7 @@
             const actual = parseInt(input.value);
             
             if (actual >= max) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Límite Obtenido',
-                    text: 'Ya no hay más unidades disponibles de este producto.',
-                    confirmButtonColor: '#eab308'
-                });
+                showModernToast('warning', 'Límite Alcanzado', 'Ya no hay más unidades disponibles de este producto.');
             } else {
                 input.stepUp();
                 btn.closest('form').submit();

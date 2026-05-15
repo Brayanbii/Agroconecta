@@ -72,7 +72,7 @@
                             <div class="bg-white/20 backdrop-blur-md p-2.5 rounded-xl shadow-inner border border-white/30">
                                 <i class="fas fa-magic text-white text-xl"></i>
                             </div>
-                            <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Modo Simulador</h2>
+                            <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Modo Práctica</h2>
                             <span class="bg-white text-blue-600 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-black/10 animate-pulse">Práctica Segura</span>
                         </div>
                         <p class="text-blue-50 font-medium text-sm md:text-base max-w-xl leading-relaxed mt-3">
@@ -182,13 +182,14 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
                                     <i class="fas fa-list"></i>
                                 </div>
-                                    <option value="Verduras">Verduras</option>
-                                    <option value="Frutas">Frutas</option>
-                                    <option value="Tubérculos">Tubérculos</option>
-                                    <option value="Lácteos">Lácteos</option>
-                                    <option value="Granos">Granos</option>
-                                    <option value="Café">Café</option>
-                                    <option value="Huevos">Huevos</option>
+                                <select th:field="*{categoria}" class="block w-full pl-12 pr-10 py-4 border border-gray-300 rounded-2xl text-gray-900 bg-gray-50 hover:bg-white transition cursor-pointer appearance-none font-medium text-lg focus:ring-4 focus:ring-blue-100">
+                                    <option value="VERDURAS">Verduras</option>
+                                    <option value="FRUTAS">Frutas</option>
+                                    <option value="TUBÉRCULOS">Tubérculos</option>
+                                    <option value="LÁCTEOS">Lácteos</option>
+                                    <option value="GRANOS">Granos</option>
+                                    <option value="CAFÉ">Café</option>
+                                    <option value="HUEVOS">Huevos</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                                     <i class="fas fa-chevron-down text-sm"></i>
@@ -370,10 +371,10 @@
                         <i class="fas fa-arrow-right"></i>
                     </button>
                     
-                    <!-- Botón Publicar (Simulador) -->
+                    <!-- Botón Publicar (Práctica) -->
                     <button type="button" id="btnSubmit" onclick="mostrarExitoSimulador()" class="hidden px-10 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 transition transform hover:scale-105 items-center gap-3 ml-auto text-lg">
                         <i class="fas fa-magic"></i>
-                        <span>Completar Prueba</span>
+                        <span>Completar Práctica</span>
                     </button>
                 </div>
 

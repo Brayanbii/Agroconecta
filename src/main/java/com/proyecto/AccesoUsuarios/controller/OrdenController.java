@@ -193,10 +193,28 @@ public class OrdenController {
     @GetMapping("/mis-compras")
     public String misCompras(Authentication auth, Model model) {
         String email = auth.getName();
-        Usuario usuario = usuarioRepo.findByEmail(email).orElseThrow(); // CORREGIDO
+        Usuario usuario = usuarioRepo.findByEmail(email).orElseThrow();
         
-        List<Orden> ordenes = ordenRepo.findByUsuario(usuario);
+        List<Orden> ordenes = ordenRepo.findByUsuarioOrderByFechaCreacionDesc(usuario);
+        
+        // Filtrar detalles con producto eliminado (null) para evitar errores de renderizado
+        for (Orden o : ordenes) {
+            if (o.getDetalles() != null) {
+                o.getDetalles().removeIf(d -> d.getProducto() == null);
+            }
+        }
+        
+        // Lógica: Calcular "ahorro" estimado de este mes (ej. 5% de descuento frente a supermercados)
+        double totalAhorrado = 0.0;
+        LocalDateTime inicioMes = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0);
+        for(Orden o : ordenes) {
+            if(o.getFechaCreacion() != null && o.getFechaCreacion().isAfter(inicioMes)) {
+                totalAhorrado += o.getTotal() * 0.05; // 5% de ahorro
+            }
+        }
+        
         model.addAttribute("ordenes", ordenes);
+        model.addAttribute("ahorroMes", totalAhorrado);
         return "mis_compras";
     }
 

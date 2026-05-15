@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Inventario - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Driver.js para Onboarding -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+        /* Animaciones para alertas */
+        @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .alert-pulse { animation: pulseAlert 2s infinite; }
+        
+        /* Custom Driver.js Theme (2026 SaaS Style) */
+        .driver-popover.driverjs-theme {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+            border-radius: 1.5rem !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
+            padding: 1.5rem !important;
+            max-width: 420px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .driver-popover.driverjs-theme .driver-popover-title { font-size: 1.25rem !important; font-weight: 800 !important; color: #111827 !important; margin-bottom: 0.5rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-description { font-size: 0.9rem !important; color: #4b5563 !important; font-weight: 500 !important; line-height: 1.6 !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer { margin-top: 1.25rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer button { border-radius: 0.75rem !important; font-weight: 700 !important; padding: 0.6rem 1.2rem !important; font-size: 0.85rem !important; transition: all 0.2s !important; text-shadow: none !important; border: none !important; cursor: pointer !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn { background: linear-gradient(135deg, #16a34a, #059669) !important; color: white !important; box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn:hover { transform: translateY(-1px) !important; box-shadow: 0 6px 16px -2px rgba(22, 163, 74, 0.5) !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn { background-color: #f3f4f6 !important; color: #4b5563 !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn:hover { background-color: #e5e7eb !important; color: #1f2937 !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn { color: #9ca3af !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn:hover { color: #ef4444 !important; background: #fef2f2 !important; border-radius: 50% !important; }
+        .driver-popover.driverjs-theme .driver-popover-progress-text { font-size: 0.7rem !important; color: #9ca3af !important; font-weight: 600 !important; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
+
+    <!-- SIDEBAR -->
+    <!-- SIDEBAR -->
+    <aside th:replace="~{fragments/campesino_sidebar :: sidebar('inventario')}"></aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <!-- HERO HEADER -->
+        <div class="relative bg-gradient-to-br from-blue-800 via-indigo-700 to-violet-600 px-10 py-10 shrink-0 overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-72 h-72 bg-violet-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-56 h-56 bg-blue-300 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-white/30"><i class="fas fa-warehouse mr-1"></i>Bodega Virtual</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Control de Inventario</h1>
+                    <p class="text-blue-100 font-medium text-sm md:text-base">Maneja tu stock fácilmente. Activa o pausa productos en un clic.</p>
+                </div>
+
+                <!-- QUICK ALERTS -->
+                <div class="flex items-center gap-4">
+                    <button id="btn-tutorial" class="bg-white/20 backdrop-blur-md text-white border border-white/30 hover:bg-white/30 px-4 py-2 rounded-xl font-bold text-sm transition shadow-sm flex items-center gap-2">
+                        <i class="fas fa-graduation-cap"></i> <span class="hidden sm:inline">Tutorial</span>
+                    </button>
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center text-white shadow-inner alert-pulse" th:if="${agotados > 0}"><i class="fas fa-exclamation-triangle text-xl"></i></div>
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow-inner" th:unless="${agotados > 0}"><i class="fas fa-check-circle text-xl"></i></div>
+                        <div>
+                            <p class="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Agotados</p>
+                            <p class="text-2xl font-black text-white"><span th:text="${agotados}">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE CONTENT -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50">
+            <div class="max-w-6xl mx-auto space-y-6">
+
+                <!-- FILTROS RAPIDOS -->
+                <div id="filtros-stock" class="flex flex-wrap items-center gap-3 mb-6">
+                    <button onclick="filtrar('todos')" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-700 transition">Todos (<span th:text="${productos.size()}">0</span>)</button>
+                    <button onclick="filtrar('agotado')" class="bg-white border border-gray-200 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-50 hover:border-red-200 transition"><i class="fas fa-times-circle mr-1"></i>Agotados (<span th:text="${agotados}">0</span>)</button>
+                    <button onclick="filtrar('bajo')" class="bg-white border border-gray-200 text-orange-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-50 hover:border-orange-200 transition"><i class="fas fa-exclamation-circle mr-1"></i>Poco Stock (<span th:text="${bajoStock}">0</span>)</button>
+                    <button onclick="filtrar('bien')" class="bg-white border border-gray-200 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-200 transition"><i class="fas fa-check-circle mr-1"></i>Suficiente (<span th:text="${productos.size() - agotados - bajoStock}">0</span>)</button>
+                </div>
+
+                <!-- CARDS INVENTARIO -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="grid-inventario">
+                    <div th:each="p : ${productos}" 
+                         th:data-stock="${p.stock != null ? p.stock : 0}"
+                         th:class="'prod-card bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-all duration-300 ' + (${p.stock == null || p.stock == 0} ? 'border-red-200 shadow-red-100/50' : (${p.stock < 10} ? 'border-orange-200 shadow-orange-100/50' : 'border-gray-100 hover:border-blue-200 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'))">
+                        
+                        <!-- Header Card -->
+                        <div class="flex items-start gap-4 mb-5">
+                            <div class="w-16 h-16 rounded-[1rem] bg-gray-100 overflow-hidden shrink-0 border border-gray-200/50 shadow-inner">
+                                <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" class="w-full h-full object-cover" alt="">
+                            </div>
+                            <div class="flex-1 min-w-0 pt-1">
+                                <h3 class="font-black text-gray-800 text-base leading-tight truncate" th:text="${p.nombre}">Producto</h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1" th:text="${p.categoria}">Categoría</p>
+                                <!-- BADGE ESTADO -->
+                                <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                                     th:classappend="${p.stock == null || p.stock == 0} ? 'bg-red-50 text-red-600 border border-red-100' : (${p.stock < 10} ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-green-50 text-green-600 border border-green-100')"
+                                     th:id="'badge-' + ${p.id}">
+                                    <i th:class="${p.stock == null || p.stock == 0} ? 'fas fa-times-circle' : (${p.stock < 10} ? 'fas fa-exclamation-circle' : 'fas fa-check-circle')"></i>
+                                    <span th:text="${p.stock == null || p.stock == 0} ? 'AGOTADO' : (${p.stock < 10} ? 'POCO STOCK' : 'EN VENTA')">EN VENTA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botonera Interactiva -->
+                        <div class="bg-gray-50 rounded-[1.25rem] p-3 border border-gray-100 shadow-inner flex flex-col gap-3">
+                            <div class="flex items-center justify-between px-2">
+                                <span class="text-xs font-bold text-gray-500">Unidades (<span th:text="${p.unidad}">Kg</span>)</span>
+                                <span class="text-xs text-gray-400 font-medium" th:id="'saving-' + ${p.id}" style="display:none;"><i class="fas fa-spinner fa-spin text-blue-500"></i> Guardando...</span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between gap-3">
+                                <!-- Botón -1 -->
+                                <button type="button" th:onclick="'cambiarStock(' + ${p.id} + ', -1)'"
+                                        class="w-12 h-12 rounded-[1rem] bg-white border border-gray-200 text-gray-600 hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all shadow-sm active:scale-95 flex items-center justify-center text-lg font-bold">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                <!-- Input Number -->
+                                <div class="flex-1 relative">
+                                    <input type="number" th:id="'stock-input-' + ${p.id}" th:value="${p.stock != null ? p.stock : 0}" 
+                                           class="w-full text-center text-2xl font-black text-gray-800 bg-white border-2 border-gray-200 rounded-[1rem] py-2 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
+                                           th:onblur="'guardarStockManual(' + ${p.id} + ')'" min="0">
+                                </div>
+
+                                <!-- Botón +1 -->
+                                <button type="button" th:onclick="'cambiarStock(' + ${p.id} + ', 1)'"
+                                        class="w-12 h-12 rounded-[1rem] bg-white border border-gray-200 text-gray-600 hover:text-green-600 hover:bg-green-50 hover:border-green-200 transition-all shadow-sm active:scale-95 flex items-center justify-center text-lg font-bold">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Botones Rapidos -->
+                            <div class="flex items-center justify-center gap-2 mt-1">
+                                <button th:onclick="'cambiarStock(' + ${p.id} + ', 5)'" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition shadow-sm">+5</button>
+                                <button th:onclick="'cambiarStock(' + ${p.id} + ', 10)'" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition shadow-sm">+10</button>
+                                <button th:onclick="'cambiarStock(' + ${p.id} + ', 50)'" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition shadow-sm">+50</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- EMPTY STATES -->
+                <div id="empty-state" style="display:none;" class="bg-white rounded-[2rem] p-10 text-center border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mt-4">
+                    <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500 text-3xl">
+                        <i class="fas fa-leaf" id="empty-icon"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-800 mb-2" id="empty-title">¡Todo en orden!</h3>
+                    <p class="text-gray-500 font-medium max-w-sm mx-auto" id="empty-desc">No tienes productos en esta categoría.</p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- AJAX LOGIC -->
+    <script>
+        function cambiarStock(id, cantidad) {
+            let input = document.getElementById('stock-input-' + id);
+            let val = parseInt(input.value) || 0;
+            let nuevo = Math.max(0, val + cantidad);
+            input.value = nuevo;
+            enviarUpdate(id, 'set', nuevo);
+        }
+
+        function guardarStockManual(id) {
+            let input = document.getElementById('stock-input-' + id);
+            let nuevo = Math.max(0, parseInt(input.value) || 0);
+            input.value = nuevo;
+            enviarUpdate(id, 'set', nuevo);
+        }
+
+        function enviarUpdate(id, accion, valor) {
+            let savingEl = document.getElementById('saving-' + id);
+            savingEl.style.display = 'inline-block';
+            
+            let formData = new FormData();
+            formData.append('productoId', id);
+            formData.append('accion', accion);
+            formData.append('valor', valor);
+
+            let tokenMeta = document.querySelector("meta[name='_csrf']");
+            let headerMeta = document.querySelector("meta[name='_csrf_header']");
+            let headers = {};
+            
+            if (tokenMeta && headerMeta && tokenMeta.getAttribute("content") && headerMeta.getAttribute("content")) {
+                headers[headerMeta.getAttribute("content")] = tokenMeta.getAttribute("content");
+            }
+
+            fetch('/campesino/productos/inventario/actualizar', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                savingEl.style.display = 'none';
+                if(data.success) {
+                    actualizarUI(id, data.nuevoStock);
+                } else {
+                    alert('Error guardando el inventario: ' + data.error);
+                }
+            }).catch(e => {
+                savingEl.style.display = 'none';
+                alert('Error de conexión');
+            });
+        }
+
+        function actualizarUI(id, stock) {
+            let badge = document.getElementById('badge-' + id);
+            let card = badge.closest('.prod-card');
+            card.setAttribute('data-stock', stock);
+            
+            // Remover estilos viejos
+            badge.className = "mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold ";
+            card.className = "prod-card bg-white rounded-[2rem] p-5 border transition-all duration-300 ";
+
+            if(stock === 0) {
+                badge.className += 'bg-red-50 text-red-600 border border-red-100';
+                badge.innerHTML = '<i class="fas fa-times-circle"></i> <span>AGOTADO</span>';
+                card.className += 'border-red-200 shadow-red-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
+            } else if (stock < 10) {
+                badge.className += 'bg-orange-50 text-orange-600 border border-orange-100';
+                badge.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>POCO STOCK</span>';
+                card.className += 'border-orange-200 shadow-orange-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
+            } else {
+                badge.className += 'bg-green-50 text-green-600 border border-green-100';
+                badge.innerHTML = '<i class="fas fa-check-circle"></i> <span>EN VENTA</span>';
+                card.className += 'border-gray-100 hover:border-blue-200 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
+            }
+        }
+
+        function filtrar(tipo) {
+            let cards = document.querySelectorAll('.prod-card');
+            let visibles = 0;
+            cards.forEach(card => {
+                let stock = parseInt(card.getAttribute('data-stock'));
+                let show = false;
+                if(tipo === 'todos') show = true;
+                else if (tipo === 'agotado' && stock === 0) show = true;
+                else if (tipo === 'bajo' && stock > 0 && stock < 10) show = true;
+                else if (tipo === 'bien' && stock >= 10) show = true;
+                
+                card.style.display = show ? 'block' : 'none';
+                if(show) visibles++;
+            });
+
+            let emptyState = document.getElementById('empty-state');
+            if(visibles === 0) {
+                emptyState.style.display = 'block';
+                let icon = document.getElementById('empty-icon');
+                let title = document.getElementById('empty-title');
+                let desc = document.getElementById('empty-desc');
+                
+                if(tipo === 'agotado') {
+                    icon.className = 'fas fa-check-circle';
+                    icon.parentElement.className = 'w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500 text-3xl shadow-inner';
+                    title.innerText = '¡Excelente! Nada agotado';
+                    desc.innerText = 'No te preocupes, en este momento tienes existencias de todos tus productos activos.';
+                } else if(tipo === 'bajo') {
+                    icon.className = 'fas fa-thumbs-up';
+                    icon.parentElement.className = 'w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500 text-3xl shadow-inner';
+                    title.innerText = 'Inventario Saludable';
+                    desc.innerText = 'No tienes productos en bajo stock por ahora. Sigue así, tu negocio va por buen camino.';
+                } else if(tipo === 'bien') {
+                    icon.className = 'fas fa-box-open';
+                    icon.parentElement.className = 'w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-500 text-3xl shadow-inner';
+                    title.innerText = 'Necesitas surtir';
+                    desc.innerText = 'Parece que no tienes productos con stock suficiente actualmente. ¡Hora de cosechar!';
+                } else {
+                    icon.className = 'fas fa-seedling';
+                    icon.parentElement.className = 'w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 text-3xl shadow-inner';
+                    title.innerText = 'Bodega vacía';
+                    desc.innerText = 'Aún no tienes productos registrados en tu catálogo.';
+                }
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        // --- TUTORIAL ONBOARDING ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const driver = window.driver.js.driver;
+            
+            const driverObj = driver({
+                showProgress: true,
+                nextBtnText: 'Siguiente &rarr;',
+                prevBtnText: '&larr; Anterior',
+                doneBtnText: '¡Entendido!',
+                popoverClass: 'driverjs-theme',
+                steps: [
+                    { popover: { title: 'Tu Bodega Inteligente 📦', description: 'Bienvenido al control de inventario. Aquí manejas cuántos productos tienes disponibles para vender, de forma fácil y rápida.', side: "bottom", align: 'start' } },
+                    { element: '#filtros-stock', popover: { title: 'Filtros Rápidos 🎯', description: 'Usa estos botones de colores para ver al instante cuáles productos están Agotados (rojo), con Poco Stock (naranja) o con buen inventario (verde).', side: "bottom", align: 'center' } },
+                    { element: '#grid-inventario', popover: { title: 'Tus Productos 🔢', description: 'Cada tarjeta es un producto. Usa los botones + y - para sumar o restar unidades rápidamente, o escribe el número directamente.', side: "top", align: 'center' } },
+                    { element: '.prod-card', popover: { title: 'Estado por Color 🚥', description: 'El borde de cada tarjeta te dice su estado: Verde = buen inventario, Naranja = poco stock, Rojo = agotado. ¡Así lo ves de un vistazo!', side: "right", align: 'start' } },
+                    { popover: { title: '¡Todo bajo control! 🚀', description: 'Mantén tu inventario actualizado para que tus clientes siempre sepan qué hay disponible. ¡Éxitos con tu cosecha!', side: "bottom", align: 'center' } }
+                ]
+            });
+
+            const btnTutorial = document.getElementById('btn-tutorial');
+            if (btnTutorial) {
+                btnTutorial.addEventListener('click', () => {
+                    driverObj.drive();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

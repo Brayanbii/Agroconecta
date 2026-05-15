@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Driver.js para Onboarding -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .tab-btn.active { color: #16a34a; border-bottom: 2px solid #16a34a; background-color: #f0fdf4; }
@@ -16,73 +19,68 @@
         .empty-msg.visible { display: table-row; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .tab-active-anim { animation: fadeIn 0.3s ease-out; }
+        
+        /* Custom Driver.js Theme (2026 SaaS Style) */
+        .driver-popover.driverjs-theme {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+            border-radius: 1.5rem !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
+            padding: 1.5rem !important;
+            max-width: 420px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .driver-popover.driverjs-theme .driver-popover-title { font-size: 1.25rem !important; font-weight: 800 !important; color: #111827 !important; margin-bottom: 0.5rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-description { font-size: 0.9rem !important; color: #4b5563 !important; font-weight: 500 !important; line-height: 1.6 !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer { margin-top: 1.25rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer button { border-radius: 0.75rem !important; font-weight: 700 !important; padding: 0.6rem 1.2rem !important; font-size: 0.85rem !important; transition: all 0.2s !important; text-shadow: none !important; border: none !important; cursor: pointer !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn { background: linear-gradient(135deg, #16a34a, #059669) !important; color: white !important; box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn:hover { transform: translateY(-1px) !important; box-shadow: 0 6px 16px -2px rgba(22, 163, 74, 0.5) !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn { background-color: #f3f4f6 !important; color: #4b5563 !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn:hover { background-color: #e5e7eb !important; color: #1f2937 !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn { color: #9ca3af !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn:hover { color: #ef4444 !important; background: #fef2f2 !important; border-radius: 50% !important; }
+        .driver-popover.driverjs-theme .driver-popover-progress-text { font-size: 0.7rem !important; color: #9ca3af !important; font-weight: 600 !important; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
 
     <!-- SIDEBAR -->
-    <aside class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
-        <div class="h-24 flex items-center px-8 border-b border-gray-50">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-green-500 to-green-700 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-600/40 flex items-center justify-center">
-                    <i class="fas fa-leaf text-xl"></i>
-                </div>
-                <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
-            </div>
-        </div>
-        <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
-            <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Panel del Productor</p>
-            <a th:href="@{/campesino/productos}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-box-open group-hover:text-green-600"></i></div>
-                Mis Productos
-            </a>
-            <a th:href="@{/campesino/productos/pedidos}" class="bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
-                <div class="bg-green-200/50 w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-shopping-bag text-green-600"></i></div>
-                Gestión de Pedidos
-            </a>
-            <a th:href="@{/campesino/productos/informe}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-chart-line group-hover:text-green-600"></i></div>
-                Analíticas y Reportes
-            </a>
-            <a th:href="@{/tienda}" class="text-gray-600 hover:bg-gray-50 hover:text-green-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all group">
-                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all"><i class="fas fa-store group-hover:text-green-600"></i></div>
-                Ver Tienda Pública
-            </a>
-        </nav>
-        <div class="p-6 border-t border-gray-50">
-            <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm shrink-0">
-                        <span th:text="${#authentication.name.substring(0,1).toUpperCase()}">U</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${#authentication.name}">Campesino</p>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Productor</p>
-                    </div>
-                </div>
-                <form th:action="@{/logout}" method="post" class="m-0 shrink-0">
-                    <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </aside>
+    <!-- SIDEBAR -->
+    <aside th:replace="~{fragments/campesino_sidebar :: sidebar('pedidos')}"></aside>
 
     <!-- MAIN -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
-        <header class="h-24 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-10 shrink-0 z-10">
-            <div>
-                <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestión de Pedidos</h1>
-                <p class="text-sm text-gray-500 font-medium">Administra el estado de los productos que te han comprado.</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl border border-orange-100 flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-bell animate-bounce"></i>
-                    <span class="font-bold text-sm" th:text="${nuevosCount} + ' Nuevos'">0 Nuevos</span>
+        <!-- HERO HEADER -->
+        <div class="relative bg-gradient-to-br from-indigo-800 via-blue-700 to-cyan-600 px-10 py-10 shrink-0 overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-72 h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-56 h-56 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-15"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-white/30"><i class="fas fa-shipping-fast mr-1"></i>Logística</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Gestión de Pedidos</h1>
+                    <p class="text-blue-100 font-medium text-sm md:text-base">Administra el estado de los productos que te han comprado.</p>
+                </div>
+                
+                <!-- NEW ORDERS BADGE & TUTORIAL -->
+                <div class="flex items-center gap-4">
+                    <button id="btn-tutorial" class="bg-white/20 backdrop-blur-md text-white border border-white/30 hover:bg-white/30 px-4 py-2 rounded-xl font-bold text-sm transition shadow-sm flex items-center gap-2">
+                        <i class="fas fa-graduation-cap"></i> <span class="hidden sm:inline">Tutorial</span>
+                    </button>
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-sm flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
+                        <div class="w-12 h-12 rounded-xl bg-orange-500/80 flex items-center justify-center text-white shadow-inner animate-pulse"><i class="fas fa-bell text-xl"></i></div>
+                        <div>
+                            <p class="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Atención Requerida</p>
+                            <p class="text-2xl font-black text-white"><span th:text="${nuevosCount}">0</span> <span class="text-lg font-bold">Nuevos</span></p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
+        </div>
 
         <div class="flex-1 overflow-y-auto p-10 bg-slate-50/50">
             <div class="max-w-6xl mx-auto">
@@ -232,6 +230,30 @@
         try { saved = localStorage.getItem('activePedidoTab') || 'NUEVO'; } catch(e) {}
         var initBtn = document.querySelector('.tab-btn[data-tab="' + saved + '"]') || allBtns[0];
         filterByEstado(saved, initBtn);
+        
+        // --- TUTORIAL ONBOARDING ---
+        const driver = window.driver.js.driver;
+        const driverObj = driver({
+            showProgress: true,
+            nextBtnText: 'Siguiente &rarr;',
+            prevBtnText: '&larr; Anterior',
+            doneBtnText: '¡Entendido!',
+            popoverClass: 'driverjs-theme',
+            steps: [
+                { popover: { title: 'Gestión de Pedidos 💰', description: '¡Aquí llega el dinero! Te enseñaremos a manejar los productos que tus clientes te han comprado paso a paso.', side: "bottom", align: 'start' } },
+                { element: '#tabs-bar', popover: { title: 'Filtra por Estado 📊', description: 'Usa estas pestañas para ver rápidamente los pedidos Nuevos, los que estás Preparando, los Enviados y los ya Entregados.', side: "bottom", align: 'center' } },
+                { element: '#orders-table', popover: { title: 'Tabla de Pedidos 👤', description: 'Aquí verás cada pedido con los detalles: qué producto compraron, la cantidad, cuánto ganaste y quién te lo compró.', side: "top", align: 'start' } },
+                { popover: { title: 'Actualizar Estado 🚚', description: '¡Importante! En la columna "Acción" puedes cambiar el estado del pedido para que el cliente sepa que ya estás trabajando en su orden.', side: "bottom", align: 'center' } },
+                { popover: { title: '¡A empacar! ⭐', description: 'Cumplir a tiempo te dará excelentes calificaciones en tu perfil. ¡Tus clientes te amarán!', side: "bottom", align: 'center' } }
+            ]
+        });
+
+        const btnTutorial = document.getElementById('btn-tutorial');
+        if (btnTutorial) {
+            btnTutorial.addEventListener('click', () => {
+                driverObj.drive();
+            });
+        }
     });
     </script>
 

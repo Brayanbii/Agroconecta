@@ -1,5 +1,5 @@
-Status: 500
-jakarta.servlet.ServletException: Request processing failed: org.thymeleaf.exceptions.TemplateInputException: Error resolving template [coleccion], template might not exist or might not be accessible by any of the configured Template Resolvers
+Status: 200
+jakarta.servlet.ServletException: Request processing failed: org.thymeleaf.exceptions.TemplateInputException: An error happened during template parsing (template: "class path resource [templates/admin_pedidos.html]")
 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1022)
 	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
 	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
@@ -91,9 +91,10 @@ jakarta.servlet.ServletException: Request processing failed: org.thymeleaf.excep
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491)
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
 	at java.base/java.lang.Thread.run(Thread.java:842)
-Caused by: org.thymeleaf.exceptions.TemplateInputException: Error resolving template [coleccion], template might not exist or might not be accessible by any of the configured Template Resolvers
-	at org.thymeleaf.engine.TemplateManager.resolveTemplate(TemplateManager.java:869)
-	at org.thymeleaf.engine.TemplateManager.parseAndProcess(TemplateManager.java:607)
+Caused by: org.thymeleaf.exceptions.TemplateInputException: An error happened during template parsing (template: "class path resource [templates/admin_pedidos.html]")
+	at org.thymeleaf.templateparser.markup.AbstractMarkupTemplateParser.parse(AbstractMarkupTemplateParser.java:241)
+	at org.thymeleaf.templateparser.markup.AbstractMarkupTemplateParser.parseStandalone(AbstractMarkupTemplateParser.java:100)
+	at org.thymeleaf.engine.TemplateManager.parseAndProcess(TemplateManager.java:666)
 	at org.thymeleaf.TemplateEngine.process(TemplateEngine.java:1103)
 	at org.thymeleaf.TemplateEngine.process(TemplateEngine.java:1077)
 	at org.thymeleaf.spring6.view.ThymeleafView.renderFragment(ThymeleafView.java:372)
@@ -104,3 +105,29 @@ Caused by: org.thymeleaf.exceptions.TemplateInputException: Error resolving temp
 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
 	... 90 more
+Caused by: org.attoparser.ParseException: Could not parse as expression: " 1, "desc" " (template: "admin_pedidos" - line 309, col 26)
+	at org.attoparser.MarkupParser.parseDocument(MarkupParser.java:393)
+	at org.attoparser.MarkupParser.parse(MarkupParser.java:257)
+	at org.thymeleaf.templateparser.markup.AbstractMarkupTemplateParser.parse(AbstractMarkupTemplateParser.java:230)
+	... 101 more
+Caused by: org.thymeleaf.exceptions.TemplateProcessingException: Could not parse as expression: " 1, "desc" " (template: "admin_pedidos" - line 309, col 26)
+	at org.thymeleaf.standard.expression.StandardExpressionParser.parseExpression(StandardExpressionParser.java:131)
+	at org.thymeleaf.standard.expression.StandardExpressionParser.parseExpression(StandardExpressionParser.java:62)
+	at org.thymeleaf.standard.expression.StandardExpressionParser.parseExpression(StandardExpressionParser.java:44)
+	at org.thymeleaf.engine.EngineEventUtils.parseAttributeExpression(EngineEventUtils.java:220)
+	at org.thymeleaf.engine.EngineEventUtils.computeAttributeExpression(EngineEventUtils.java:207)
+	at org.thymeleaf.standard.processor.AbstractStandardExpressionAttributeTagProcessor.doProcess(AbstractStandardExpressionAttributeTagProcessor.java:125)
+	at org.thymeleaf.processor.element.AbstractAttributeTagProcessor.doProcess(AbstractAttributeTagProcessor.java:74)
+	at org.thymeleaf.processor.element.AbstractElementTagProcessor.process(AbstractElementTagProcessor.java:95)
+	at org.thymeleaf.util.ProcessorConfigurationUtils$ElementTagProcessorWrapper.process(ProcessorConfigurationUtils.java:633)
+	at org.thymeleaf.engine.ProcessorTemplateHandler.handleOpenElement(ProcessorTemplateHandler.java:1314)
+	at org.thymeleaf.engine.TemplateHandlerAdapterMarkupHandler.handleOpenElementEnd(TemplateHandlerAdapterMarkupHandler.java:304)
+	at org.thymeleaf.templateparser.markup.InlinedOutputExpressionMarkupHandler$InlineMarkupAdapterPreProcessorHandler.handleOpenElementEnd(InlinedOutputExpressionMarkupHandler.java:278)
+	at org.thymeleaf.standard.inline.OutputExpressionInlinePreProcessorHandler.performInlining(OutputExpressionInlinePreProcessorHandler.java:440)
+	at org.thymeleaf.standard.inline.OutputExpressionInlinePreProcessorHandler.handleText(OutputExpressionInlinePreProcessorHandler.java:146)
+	at org.thymeleaf.templateparser.markup.InlinedOutputExpressionMarkupHandler.handleText(InlinedOutputExpressionMarkupHandler.java:80)
+	at org.attoparser.HtmlMarkupHandler.handleText(HtmlMarkupHandler.java:208)
+	at org.attoparser.AbstractChainedMarkupHandler.handleText(AbstractChainedMarkupHandler.java:203)
+	at org.attoparser.MarkupParser.parseBuffer(MarkupParser.java:557)
+	at org.attoparser.MarkupParser.parseDocument(MarkupParser.java:301)
+	... 103 more

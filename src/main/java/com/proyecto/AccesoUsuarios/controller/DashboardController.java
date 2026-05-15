@@ -9,6 +9,8 @@ import com.proyecto.AccesoUsuarios.service.CarritoService;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.model.Producto;
+import com.proyecto.AccesoUsuarios.model.DetalleOrden;
+import com.proyecto.AccesoUsuarios.model.Orden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -132,7 +137,68 @@ public class DashboardController {
             return "redirect:/campesino/verificacion";
         }
         
-        model.addAttribute("productos", productoRepo.findByUsuario(campesino)); 
+        // --- DATOS REALES PARA EL DASHBOARD VISUAL ---
+        List<DetalleOrden> misVentas = detalleRepo.findVentasByCampesino(campesino);
+        
+        double ventasHoy = 0.0;
+        double gananciaMes = 0.0;
+        int pedidosPendientes = 0;
+        
+        LocalDate hoy = LocalDate.now();
+        int mesActual = hoy.getMonthValue();
+        int anoActual = hoy.getYear();
+        
+        Set<Long> ordenesPendientesSet = new HashSet<>();
+        Map<String, Integer> ventasPorProducto = new HashMap<>();
+
+        for(DetalleOrden d : misVentas) {
+            Orden o = d.getOrden();
+            if(o != null && o.getFechaCreacion() != null) {
+                LocalDate fechaOrden = o.getFechaCreacion().toLocalDate();
+                
+                // Ganancia del mes
+                if(fechaOrden.getMonthValue() == mesActual && fechaOrden.getYear() == anoActual) {
+                    gananciaMes += d.getTotal();
+                }
+                
+                // Ventas Hoy
+                if(fechaOrden.isEqual(hoy)) {
+                    ventasHoy += d.getTotal();
+                }
+                
+                // Pedidos Pendientes (contamos ordenes unicas)
+                if("PENDIENTE".equalsIgnoreCase(o.getEstado())) {
+                    ordenesPendientesSet.add(o.getId());
+                }
+            }
+            
+            // Conteo para Producto Estrella
+            if(d.getProducto() != null) {
+                String nombreProd = d.getProducto().getNombre();
+                ventasPorProducto.put(nombreProd, ventasPorProducto.getOrDefault(nombreProd, 0) + d.getCantidad());
+            }
+        }
+        
+        pedidosPendientes = ordenesPendientesSet.size();
+        
+        // Determinar el producto estrella
+        String productoEstrella = "Ninguno";
+        int maxVentas = 0;
+        for (Map.Entry<String, Integer> entry : ventasPorProducto.entrySet()) {
+            if (entry.getValue() > maxVentas) {
+                maxVentas = entry.getValue();
+                productoEstrella = entry.getKey();
+            }
+        }
+
+        model.addAttribute("ventasHoy", ventasHoy);
+        model.addAttribute("pedidosPendientes", pedidosPendientes);
+        model.addAttribute("gananciaMes", gananciaMes);
+        model.addAttribute("productoMasVendido", productoEstrella);
+
+        List<Producto> prods = productoRepo.findByUsuario(campesino);
+        model.addAttribute("productos", prods);
+        model.addAttribute("usuario", campesino);
         return "mis_productos";
     }
 
@@ -271,18 +337,23 @@ public class DashboardController {
         // 2. Cargar cantidad del carrito
         model.addAttribute("cantidadCarrito", carritoService.contarItems());
 
-        // 3. LÓGICA NUEVA: Obtener el nombre real del cliente (solo si está logueado)
+        // 3. LÓGICA NUEVA: Obtener el nombre real del cliente y sus favoritos
+        List<Long> favoritosIds = new ArrayList<>();
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
             Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
+                if (usuario.getProductosFavoritos() != null) {
+                    usuario.getProductosFavoritos().forEach(fav -> favoritosIds.add(fav.getId()));
+                }
             } else {
                 model.addAttribute("nombreCliente", "Cliente");
             }
         } else {
             model.addAttribute("nombreCliente", "Invitado");
         }
+        model.addAttribute("favoritosIds", favoritosIds);
 
         return "tienda";
     }
@@ -311,20 +382,25 @@ public class DashboardController {
         model.addAttribute("mensajeFrescura", mensajeFrescura);
         
         // Cargar otros productos del mismo campesino
-        List<Producto> otrosProductos = new ArrayList<>(productoRepo.findByUsuario(producto.getUsuario()));
-        otrosProductos.removeIf(p -> p.getId().equals(producto.getId())); // no mostrar el mismo producto
+        List<Producto> otrosProductos = new ArrayList<>();
+        if (producto.getUsuario() != null) {
+            otrosProductos.addAll(productoRepo.findByUsuario(producto.getUsuario()));
+            otrosProductos.removeIf(p -> p.getId().equals(producto.getId())); // no mostrar el mismo producto
+        }
         model.addAttribute("otrosProductos", otrosProductos);
         
         // Cantidad de items en el carrito
         model.addAttribute("cantidadCarrito", carritoService.contarItems());
 
         boolean puedeComentar = false;
+        Long usuarioLogueadoId = null;
         // LÓGICA: Obtener el nombre real del cliente y verificar si compró el producto
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
             Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
+                usuarioLogueadoId = usuario.getId();
                 
                 // Verificar si tiene alguna orden con este producto
                 List<com.proyecto.AccesoUsuarios.model.Orden> ordenes = ordenRepo.findByUsuario(usuario);
@@ -339,14 +415,50 @@ public class DashboardController {
                     }
                     if (puedeComentar) break;
                 }
+                
+                // Buscar si este usuario ya tiene una reseña para este producto
+                var miResenaOpt = resenaRepo.findByProductoIdAndUsuarioId(producto.getId(), usuario.getId());
+                if (miResenaOpt.isPresent()) {
+                    var miResena = miResenaOpt.get();
+                    model.addAttribute("miResenaId", miResena.getId());
+                    model.addAttribute("miResenaEstrellas", miResena.getEstrellas());
+                    model.addAttribute("miResenaComentario", miResena.getComentario() != null ? miResena.getComentario() : "");
+                    model.addAttribute("yaCalificó", true);
+                } else {
+                    model.addAttribute("miResenaId", null);
+                    model.addAttribute("miResenaEstrellas", 0);
+                    model.addAttribute("miResenaComentario", "");
+                    model.addAttribute("yaCalificó", false);
+                }
+                
+                // Extraer y enviar IDs de productos favoritos para la UI
+                List<Long> favoritosIds = new java.util.ArrayList<>();
+                if (usuario.getProductosFavoritos() != null) {
+                    for (Producto pFav : usuario.getProductosFavoritos()) {
+                        favoritosIds.add(pFav.getId());
+                    }
+                }
+                model.addAttribute("favoritosIds", favoritosIds);
+                
             } else {
                 model.addAttribute("nombreCliente", "Cliente");
+                model.addAttribute("favoritosIds", new java.util.ArrayList<>());
+                model.addAttribute("yaCalificó", false);
+                model.addAttribute("miResenaId", null);
+                model.addAttribute("miResenaEstrellas", 0);
+                model.addAttribute("miResenaComentario", "");
             }
         } else {
             model.addAttribute("nombreCliente", "Invitado");
+            model.addAttribute("favoritosIds", new java.util.ArrayList<>());
+            model.addAttribute("yaCalificó", false);
+            model.addAttribute("miResenaId", null);
+            model.addAttribute("miResenaEstrellas", 0);
+            model.addAttribute("miResenaComentario", "");
         }
         
         model.addAttribute("puedeComentar", puedeComentar);
+        model.addAttribute("usuarioLogueadoId", usuarioLogueadoId);
 
         return "producto_detalle";
     }
@@ -528,6 +640,26 @@ public class DashboardController {
         }
 
         return "coleccion";
+    }
+
+    // 7. MIS FAVORITOS (Nueva vista independiente)
+    @GetMapping("/favoritos")
+    public String misFavoritos(Model model, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+        
+        List<Producto> favoritos = usuario.getProductosFavoritos();
+        model.addAttribute("favoritos", favoritos != null ? favoritos : new ArrayList<>());
+        model.addAttribute("nombreCliente", usuario.getNombreCompleto());
+        model.addAttribute("cantidadCarrito", carritoService.contarItems());
+        
+        return "favoritos";
     }
 
     // --- Helper: Fórmula de Haversine para Distancias Reales ---

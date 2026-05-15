@@ -4,6 +4,7 @@ import com.proyecto.AccesoUsuarios.model.DetalleOrden;
 import com.proyecto.AccesoUsuarios.model.Producto;
 import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.model.Orden;
+import com.proyecto.AccesoUsuarios.model.Resena;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
@@ -367,4 +368,281 @@ public class CampesinoController {
 
         return "campesino_informe";
     }
+
+    // -------------------------------------------------------
+    // REPUTACIÓN Y RESEÑAS
+    // -------------------------------------------------------
+    @Transactional
+    @GetMapping("/reputacion")
+    public String verReputacion(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        
+        List<Producto> productos = productoRepo.findByUsuario(campesino);
+        
+        List<Resena> buenasResenas = new ArrayList<>();
+        List<Resena> oportunidadesMejora = new ArrayList<>();
+        
+        double sumaCalificaciones = 0;
+        int totalResenas = 0;
+        int[] distribucion = new int[5]; // índice 0=1estrella, 4=5estrellas
+        
+        for (Producto p : productos) {
+            if (p.getResenas() != null) {
+                for (Resena r : p.getResenas()) {
+                    totalResenas++;
+                    sumaCalificaciones += r.getEstrellas();
+                    distribucion[r.getEstrellas() - 1]++;
+                    if (r.getEstrellas() >= 4) {
+                        buenasResenas.add(r);
+                    } else {
+                        oportunidadesMejora.add(r);
+                    }
+                }
+            }
+        }
+        
+        double calificacionGeneral = totalResenas > 0 ? sumaCalificaciones / totalResenas : 0.0;
+        calificacionGeneral = Math.round(calificacionGeneral * 10.0) / 10.0;
+        
+        // Porcentaje de reseñas positivas (4-5 estrellas)
+        int porcentajePositivo = totalResenas > 0 ? (int) Math.round((buenasResenas.size() * 100.0) / totalResenas) : 0;
+        
+        // Ordenar reseñas por fecha desc (más recientes primero)
+        buenasResenas.sort((a, b) -> b.getFecha().compareTo(a.getFecha()));
+        oportunidadesMejora.sort((a, b) -> b.getFecha().compareTo(a.getFecha()));
+        
+        // Filtrar solo productos con promedio >= 3.5 y que tengan reseñas, ordenados por calificación desc
+        List<Producto> mejoresProductos = new ArrayList<>();
+        for (Producto p : productos) {
+            if (p.getResenas() != null && !p.getResenas().isEmpty() && p.getPromedioCalificacion() >= 3.5) {
+                mejoresProductos.add(p);
+            }
+        }
+        mejoresProductos.sort((a, b) -> Double.compare(b.getPromedioCalificacion(), a.getPromedioCalificacion()));
+        
+        // Producto estrella (el mejor calificado)
+        String productoEstrella = mejoresProductos.isEmpty() ? "—" : mejoresProductos.get(0).getNombre();
+        
+        model.addAttribute("campesino", campesino);
+        model.addAttribute("productos", productos);
+        model.addAttribute("mejoresProductos", mejoresProductos);
+        model.addAttribute("buenasResenas", buenasResenas);
+        model.addAttribute("oportunidadesMejora", oportunidadesMejora);
+        model.addAttribute("calificacionGeneral", calificacionGeneral);
+        model.addAttribute("totalResenas", totalResenas);
+        model.addAttribute("porcentajePositivo", porcentajePositivo);
+        model.addAttribute("productoEstrella", productoEstrella);
+        model.addAttribute("dist1", distribucion[0]);
+        model.addAttribute("dist2", distribucion[1]);
+        model.addAttribute("dist3", distribucion[2]);
+        model.addAttribute("dist4", distribucion[3]);
+        model.addAttribute("dist5", distribucion[4]);
+        
+        return "campesino_reputacion";
+    }
+    // --- GESTIÓN RÁPIDA DE INVENTARIO ---
+    @GetMapping("/inventario")
+    public String verInventario(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        
+        if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
+            return "redirect:/campesino/verificacion";
+        }
+        
+        List<Producto> productos = productoRepo.findByUsuario(campesino);
+        
+        int stockTotal = 0;
+        int agotados = 0;
+        int bajoStock = 0;
+        
+        for (Producto p : productos) {
+            int stock = p.getStock() != null ? p.getStock() : 0;
+            stockTotal += stock;
+            if (stock == 0) agotados++;
+            else if (stock < 10) bajoStock++; // Umbral de "Poco Inventario"
+        }
+        
+        model.addAttribute("productos", productos);
+        model.addAttribute("usuario", campesino);
+        model.addAttribute("stockTotal", stockTotal);
+        model.addAttribute("agotados", agotados);
+        model.addAttribute("bajoStock", bajoStock);
+        
+        return "campesino_inventario";
+    }
+    
+    @PostMapping("/inventario/actualizar")
+    @ResponseBody
+    public Map<String, Object> actualizarStockRapido(@RequestParam("productoId") Long id, @RequestParam("accion") String accion, @RequestParam(value="valor", defaultValue="1") Integer valor, Authentication auth) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String email = auth.getName();
+            Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+            Producto producto = productoRepo.findById(id).orElseThrow();
+            
+            // Seguridad: verificar que el producto pertenece a este campesino
+            if (!producto.getUsuario().getId().equals(campesino.getId())) {
+                response.put("success", false);
+                response.put("error", "No autorizado");
+                return response;
+            }
+            
+            int stockActual = producto.getStock() != null ? producto.getStock() : 0;
+            
+            if ("sumar".equals(accion)) {
+                producto.setStock(stockActual + valor);
+            } else if ("restar".equals(accion)) {
+                int nuevoStock = Math.max(0, stockActual - valor);
+                producto.setStock(nuevoStock);
+            } else if ("set".equals(accion)) {
+                producto.setStock(Math.max(0, valor));
+            }
+            
+            productoRepo.save(producto);
+            
+            response.put("success", true);
+            response.put("nuevoStock", producto.getStock());
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    // --- PERFIL DE CAMPESINO (STOREFRONT) ---
+    @GetMapping("/perfil")
+    public String verPerfil(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        
+        List<Producto> productos = productoRepo.findByUsuario(campesino);
+        
+        model.addAttribute("usuario", campesino);
+        model.addAttribute("productos", productos);
+        return "campesino_perfil";
+    }
+
+    @PostMapping("/perfil/actualizar")
+    public String actualizarPerfil(
+            @RequestParam("descripcionFinca") String descripcionFinca,
+            @RequestParam("nombreFinca") String nombreFinca,
+            @RequestParam(value = "fotoPerfilFile", required = false) MultipartFile fotoPerfilFile,
+            @RequestParam(value = "fotoPortadaFile", required = false) MultipartFile fotoPortadaFile,
+            Authentication auth) throws IOException {
+            
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        
+        campesino.setDescripcionFinca(descripcionFinca);
+        campesino.setNombreFinca(nombreFinca);
+        
+        if (fotoPerfilFile != null && !fotoPerfilFile.isEmpty()) {
+            String nombreImagen = uploadService.saveImage(fotoPerfilFile);
+            campesino.setFotoPerfil(nombreImagen);
+        }
+        
+        if (fotoPortadaFile != null && !fotoPortadaFile.isEmpty()) {
+            String nombreImagen = uploadService.saveImage(fotoPortadaFile);
+            campesino.setFotoFincaUrl(nombreImagen);
+        }
+        
+        usuarioRepo.save(campesino);
+        return "redirect:/campesino/productos/perfil?exito=true";
+    }
+
+    // -------------------------------------------------------
+    // AGROWALLET — HISTORIAL FINANCIERO
+    // -------------------------------------------------------
+    @GetMapping("/finanzas")
+    public String verFinanzas(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+
+        // --- CÁLCULOS FINANCIEROS ---
+        double ingresosBrutos = 0;
+        double pagoPendiente = 0;
+        int totalTransacciones = 0;
+        int transaccionesCompletadas = 0;
+
+        // Agrupar por mes para gráfica
+        String[] MESES = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
+        Map<Integer, Double> ingresosPorMes = new LinkedHashMap<>();
+
+        // Historial de transacciones (últimas 50)
+        List<Map<String, Object>> historial = new ArrayList<>();
+
+        for (DetalleOrden d : ventas) {
+            Orden o = d.getOrden();
+            if (o == null) continue;
+            totalTransacciones++;
+            double monto = d.getTotal() != null ? d.getTotal() : 0.0;
+
+            String estado = o.getEstado() != null ? o.getEstado().toUpperCase() : "NUEVO";
+
+            if ("ENTREGADO".equals(estado) || "COMPLETADO".equals(estado)) {
+                ingresosBrutos += monto;
+                transaccionesCompletadas++;
+            } else if (!"CANCELADO".equals(estado)) {
+                pagoPendiente += monto;
+            }
+
+            // Agrupar por mes
+            if (o.getFechaCreacion() != null) {
+                int mes = o.getFechaCreacion().getMonthValue();
+                ingresosPorMes.merge(mes, monto, Double::sum);
+            }
+
+            // Construir historial
+            Map<String, Object> tx = new HashMap<>();
+            tx.put("fecha", o.getFechaCreacion() != null ? o.getFechaCreacion().toLocalDate().toString() : "—");
+            tx.put("tipo", "VENTA");
+            tx.put("descripcion", d.getNombre() != null ? d.getNombre() : "Producto");
+            tx.put("cantidad", d.getCantidad() != null ? d.getCantidad() : 0);
+            tx.put("monto", monto);
+            tx.put("estado", estado);
+            historial.add(tx);
+        }
+
+        // Ordenar historial por fecha (más reciente primero)
+        historial.sort((a, b) -> ((String) b.get("fecha")).compareTo((String) a.get("fecha")));
+        if (historial.size() > 50) historial = historial.subList(0, 50);
+
+        // Comisión plataforma (5%)
+        double comisionTotal = ingresosBrutos * 0.05;
+        double ingresosNetos = ingresosBrutos - comisionTotal;
+
+        // Datos para gráfica de ingresos mensuales
+        List<Map<String, Object>> datosMensuales = new ArrayList<>();
+        for (Map.Entry<Integer, Double> entry : ingresosPorMes.entrySet()) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("mes", MESES[entry.getKey() - 1]);
+            m.put("total", entry.getValue());
+            datosMensuales.add(m);
+        }
+
+        // --- PASAR AL MODELO ---
+        model.addAttribute("usuario", campesino);
+        model.addAttribute("ingresosBrutos", ingresosBrutos);
+        model.addAttribute("ingresosNetos", ingresosNetos);
+        model.addAttribute("comisionTotal", comisionTotal);
+        model.addAttribute("pagoPendiente", pagoPendiente);
+        model.addAttribute("totalTransacciones", totalTransacciones);
+        model.addAttribute("transaccionesCompletadas", transaccionesCompletadas);
+        model.addAttribute("historial", historial);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            model.addAttribute("datosMensualesJson", mapper.writeValueAsString(datosMensuales));
+        } catch (Exception e) {
+            model.addAttribute("datosMensualesJson", "[]");
+        }
+
+        return "campesino_finanzas";
+    }
+
 }

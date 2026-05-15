@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface OrdenRepository extends JpaRepository<Orden, Long> {
 
-    // Para que el cliente vea SUS compras
+    // Para que el cliente vea SUS compras ordenadas de la más reciente a la más antigua
+    List<Orden> findByUsuarioOrderByFechaCreacionDesc(Usuario usuario);
+    
+    // Método original (por si se usa en otra parte)
     List<Orden> findByUsuario(Usuario usuario);
     
     // Para ver las ultimas 5 compras

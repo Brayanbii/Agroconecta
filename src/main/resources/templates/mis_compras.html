@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -21,7 +23,6 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Animación para las tarjetas */
         .order-card {
             transition: all 0.3s ease;
         }
@@ -30,7 +31,203 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             border-color: #86efac; /* green-300 */
         }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Apple/macOS Style Alerts */
+        .apple-alert {
+            border-radius: 32px !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+            padding: 2rem !important;
+        }
     </style>
+
+    <!-- ===== TODOS LOS SCRIPTS DE LA PÁGINA (en el HEAD para evitar truncamiento) ===== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1. TABS FILTERS
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            var cards = document.querySelectorAll('.order-card');
+
+            for (var t = 0; t < tabBtns.length; t++) {
+                tabBtns[t].addEventListener('click', function() {
+                    var status = this.getAttribute('data-filter');
+                    
+                    for (var b = 0; b < tabBtns.length; b++) {
+                        tabBtns[b].className = 'tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap';
+                    }
+                    this.className = 'tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap';
+
+                    for (var c = 0; c < cards.length; c++) {
+                        var cardStatus = (cards[c].getAttribute('data-estado') || '').trim();
+                        if (status === 'Todos' || cardStatus === status || cardStatus === status.replace('s', '')) {
+                            cards[c].style.display = 'block';
+                            cards[c].style.animation = 'fadeIn 0.4s ease-out forwards';
+                        } else {
+                            cards[c].style.display = 'none';
+                        }
+                    }
+                });
+            }
+
+            // 2. ACORDEÓN
+            var accordionHeaders = document.querySelectorAll('.accordion-header');
+            for (var a = 0; a < accordionHeaders.length; a++) {
+                accordionHeaders[a].addEventListener('click', function(e) {
+                    var details = this.parentElement.querySelector('.accordion-details');
+                    var icon = this.querySelector('.accordion-icon');
+                    if (details && icon) {
+                        if (details.classList.contains('hidden')) {
+                            details.classList.remove('hidden');
+                            icon.classList.add('rotate-180');
+                        } else {
+                            details.classList.add('hidden');
+                            icon.classList.remove('rotate-180');
+                        }
+                    }
+                });
+            }
+
+            // 3. ESTRELLAS
+            var estrellas = document.querySelectorAll('.estrella-btn');
+            for (var s = 0; s < estrellas.length; s++) {
+                estrellas[s].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var nivel = parseInt(this.getAttribute('data-nivel'));
+                    var contenedor = this.parentElement;
+                    var stars = contenedor.querySelectorAll('i');
+                    for (var x = 0; x < stars.length; x++) {
+                        if (x < nivel) {
+                            stars[x].classList.remove('text-gray-300');
+                            stars[x].classList.add('text-yellow-400');
+                        } else {
+                            stars[x].classList.add('text-gray-300');
+                            stars[x].classList.remove('text-yellow-400');
+                        }
+                    }
+                    
+                    var productoItem = this.closest('.producto-item');
+                    var productoId = productoItem ? productoItem.getAttribute('data-id') : null;
+                    
+                    if (productoId) {
+                        fetch('/api/resenas', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                productoId: productoId,
+                                estrellas: nivel,
+                                comentario: 'Calificación rápida'
+                            })
+                        }).then(function(res) { return res.json(); }).then(function(data) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({ 
+                                    toast: true,
+                                    position: 'bottom-end',
+                                    iconHtml: '<i class="fas fa-star"></i>',
+                                    iconColor: '#facc15',
+                                    title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;">¡Gracias por calificar!</span>`,
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                    didOpen: (toast) => {
+                                        toast.onmouseenter = Swal.stopTimer;
+                                        toast.onmouseleave = Swal.resumeTimer;
+                                        const progressBar = toast.querySelector('.swal2-timer-progress-bar');
+                                        if (progressBar) {
+                                            progressBar.style.backgroundColor = '#facc15';
+                                        }
+                                    }
+                                });
+                            }
+                        }).catch(function(err) { console.error("Error al guardar reseña", err); });
+                    }
+                });
+            }
+
+            // 4. VOLVER A COMPRAR
+            var btnsVolver = document.querySelectorAll('.btn-volver');
+            for (var v = 0; v < btnsVolver.length; v++) {
+                btnsVolver[v].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var card = this.closest('.order-card');
+                    var productos = card.querySelectorAll('.producto-item');
+                    if (productos.length === 0) return;
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ 
+                            html: `
+                                <div class="flex flex-col items-center gap-4">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl border border-green-200/50 shadow-inner flex items-center justify-center relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                        <i class="fas fa-shopping-basket text-green-500 text-2xl relative z-10"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h3 class="text-xl font-extrabold text-gray-900 tracking-tight mb-1">Recuperando carrito</h3>
+                                        <p class="text-sm font-medium text-gray-500">Estamos trasladando todos tus productos...</p>
+                                    </div>
+                                </div>
+                            `,
+                            showConfirmButton: false, 
+                            allowOutsideClick: false,
+                            customClass: { popup: 'apple-alert' },
+                            didOpen: function() { Swal.showLoading(); } 
+                        });
+                    }
+
+                    var fetchPromises = [];
+                    for (var p = 0; p < productos.length; p++) {
+                        var id = productos[p].getAttribute('data-id');
+                        var qty = productos[p].getAttribute('data-qty');
+                        fetchPromises.push(
+                            fetch('/api/carrito/agregar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, cantidad: qty }) }).then(function(res) { return res.json(); })
+                        );
+                    }
+
+                    Promise.all(fetchPromises).then(function(results) {
+                        var errores = [];
+                        for (var r = 0; r < results.length; r++) { if (results[r].error === 'stock_insuficiente') errores.push(results[r]); }
+                        if (errores.length > 0 && typeof Swal !== 'undefined') {
+                            Swal.fire({ 
+                                icon: 'warning', 
+                                title: 'Stock Parcial', 
+                                text: 'Algunos productos se ajustaron al máximo disponible.', 
+                                confirmButtonColor: '#eab308',
+                                customClass: { popup: 'apple-alert', confirmButton: 'rounded-xl font-bold px-6 py-3 shadow-md' }
+                            }).then(function() { window.location.href = '/carrito'; });
+                        } else { window.location.href = '/carrito'; }
+                    }).catch(function() { window.location.href = '/carrito'; });
+                });
+            }
+
+            // 5. RASTREAR
+            var btnsRastrear = document.querySelectorAll('.btn-rastrear');
+            for (var r = 0; r < btnsRastrear.length; r++) {
+                btnsRastrear[r].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ title: 'Rastreo GPS en vivo', html: 'La vista de mapa estará habilitada próximamente.<br><br><span class="text-xs text-gray-400">Desarrollo en curso</span>', icon: 'info', confirmButtonColor: '#3b82f6' });
+                    }
+                });
+            }
+
+            // 6. REPORTAR
+            var btnsReportar = document.querySelectorAll('.btn-reportar');
+            for (var rp = 0; rp < btnsReportar.length; rp++) {
+                btnsReportar[rp].addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var soporteBtn = document.getElementById('soporte-btn');
+                    if (soporteBtn) { soporteBtn.click(); }
+                    else if (typeof Swal !== 'undefined') { Swal.fire('Soporte', 'El módulo de soporte no está disponible.', 'info'); }
+                });
+            }
+        });
+    </script>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
@@ -39,7 +236,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
-                <a th:href="@{/}" class="flex items-center gap-2 cursor-pointer group">
+                <a th:href="@{/tienda}" class="flex items-center gap-2 cursor-pointer group">
                     <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
                         <i class="fas fa-leaf text-xl"></i>
                     </div>
@@ -58,93 +255,176 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         
-        <div class="flex justify-between items-end mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-                    <span class="bg-blue-100 text-blue-600 p-2 rounded-lg">
-                        <i class="fas fa-history"></i>
-                    </span>
-                    Historial de Compras
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                    Mis Compras
                 </h1>
-                <p class="text-gray-500 mt-2 ml-14">Revisa el estado y descarga los recibos de tus pedidos.</p>
+                <p class="text-sm font-medium text-gray-500 mt-2">Gestiona tus pedidos, repite compras y rastrea entregas.</p>
             </div>
+            
+            <!-- Widgets resumen -->
+            <div class="flex items-center gap-3 md:gap-4 overflow-x-auto pb-2 md:pb-0">
+                <!-- Ahorro -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 px-4 sm:px-5 py-2.5 rounded-xl border border-green-200 shadow-sm flex items-center gap-3 shrink-0">
+                    <div class="w-8 h-8 bg-white text-green-600 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fas fa-piggy-bank text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-green-700 uppercase tracking-widest">Ahorro del Mes</p>
+                        <p class="text-sm font-extrabold text-green-900" th:text="'$' + ${#numbers.formatDecimal(ahorroMes != null ? ahorroMes : 0, 1, 'POINT', 0, 'COMMA')}">$0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white px-4 sm:px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3 shrink-0">
+                    <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                        <i class="fas fa-shopping-bag text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Pedidos</p>
+                        <p class="text-sm font-extrabold text-gray-900" th:text="${#lists.size(ordenes)}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS 2026 -->
+        <div class="flex items-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar border-b border-gray-100">
+            <button data-filter="Todos" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap">Todos</button>
+            <button data-filter="Pendiente" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Pendientes</button>
+            <button data-filter="En Camino" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">En Camino</button>
+            <button data-filter="Entregado" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Entregados</button>
+            <button data-filter="Cancelado" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Cancelados</button>
         </div>
 
         <!-- LISTA DE PEDIDOS -->
         <div class="space-y-6" th:if="${!#lists.isEmpty(ordenes)}">
             
-            <!-- Order Card (Loop) -->
-            <div th:each="o : ${ordenes}" class="order-card bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
+            <!-- Order Card (Premium 2026 Accordion) -->
+            <div th:each="o : ${ordenes}" class="order-card bg-white rounded-3xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)] border border-gray-100 relative transition-all duration-300 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 mb-2 group overflow-hidden" th:data-estado="${o.estado}">
                 
-                <!-- Banda lateral de color según estado -->
-                <div class="absolute left-0 top-0 bottom-0 w-1.5"
+                <!-- Banda de Color -->
+                <div class="absolute left-0 top-6 bottom-6 w-1 rounded-r-md opacity-50 transition-opacity"
                      th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-400' : 
                                       (o.estado == 'En Camino' ? 'bg-blue-500' : 
                                       (o.estado == 'Entregado' ? 'bg-green-500' : 'bg-gray-300'))}">
                 </div>
 
-                <div class="flex flex-col md:flex-row justify-between md:items-center gap-6 pl-4">
-                    
-                    <!-- Info Principal -->
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-1">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Orden</span>
-                            <span class="text-lg font-mono font-bold text-gray-900" th:text="${'#' + o.numeroOrden}">#12345</span>
+                <!-- Cabecera Clickable -->
+                <div class="p-5 sm:p-6 cursor-pointer flex flex-col md:flex-row justify-between md:items-center gap-4 ml-2 accordion-header">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
+                             th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-600' : 
+                                              (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-600' : 
+                                              (o.estado == 'Entregado' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-500'))}">
+                            <i class="fas text-xl" th:classappend="${o.estado == 'Pendiente' ? 'fa-clock' : 
+                                              (o.estado == 'En Camino' ? 'fa-truck-fast' : 
+                                              (o.estado == 'Entregado' ? 'fa-box-open' : 'fa-times-circle'))}"></i>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <i class="far fa-calendar-alt text-gray-400"></i>
-                            <span th:text="${#temporals.format(o.fechaCreacion, 'dd ' + 'MMMM' + ' yyyy, h:mm a')}">Fecha</span>
-                        </div>
-                    </div>
-
-                    <!-- Estado Badge -->
-                    <div class="flex flex-col items-start md:items-center min-w-[120px]">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 md:text-center w-full">Estado</span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm"
-                              th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' : 
-                                               (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 
-                                               (o.estado == 'Entregado' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600'))}">
-                            <span class="w-1.5 h-1.5 rounded-full" 
-                                  th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-500' : 
-                                                   (o.estado == 'En Camino' ? 'bg-blue-500' : 
-                                                   (o.estado == 'Entregado' ? 'bg-green-500' : 'bg-gray-400'))}"></span>
-                            <span th:text="${o.estado}">Pendiente</span>
-                        </span>
-                    </div>
-
-                    <!-- Total -->
-                    <div class="flex flex-col items-start md:items-end min-w-[120px]">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Pagado</span>
-                        <span class="text-2xl font-extrabold text-gray-900" th:text="'$' + ${o.total}">$0</span>
-                    </div>
-
-                    <!-- Botón Acción -->
-                    <div class="flex items-center">
-                        <a th:href="@{'/orden/recibo/' + ${o.id}}" 
-                           class="group flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-200 px-5 py-2.5 rounded-xl font-semibold text-sm transition shadow-sm w-full md:w-auto">
-                            <div class="bg-gray-100 group-hover:bg-blue-50 p-1.5 rounded-md transition">
-                                <i class="fas fa-file-pdf"></i>
+                        <div>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">Orden</p>
+                                <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-mono font-bold" th:text="${'#' + o.numeroOrden}">#123</span>
                             </div>
-                            <span>Descargar Recibo</span>
-                        </a>
+                            <p class="text-sm font-bold text-gray-900" th:text="${#temporals.format(o.fechaCreacion, 'dd MMMM yyyy, h:mm a')}">Fecha</p>
+                        </div>
                     </div>
+                    
+                    <div class="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto pointer-events-none">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide"
+                              th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border border-yellow-100' : 
+                                              (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 
+                                              (o.estado == 'Entregado' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-50 text-gray-600 border border-gray-200'))}">
+                            <span class="w-1.5 h-1.5 rounded-full animate-pulse" th:if="${o.estado != 'Cancelado'}"
+                                  th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-500' : 
+                                                  (o.estado == 'En Camino' ? 'bg-blue-500' : 'bg-green-500')}"></span>
+                            <span th:text="${o.estado}"></span>
+                        </span>
+                        
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total</p>
+                            <p class="text-lg font-extrabold text-gray-900 leading-none" th:text="'$' + ${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')}">$0</p>
+                        </div>
+                        
+                        <!-- Icono Expandir -->
+                        <div class="text-gray-400 bg-gray-50 w-8 h-8 rounded-full flex items-center justify-center">
+                            <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Desglose de Productos (Acordeón Oculto) -->
+                <div class="hidden px-5 sm:px-6 pb-5 sm:pb-6 ml-2 animate-[fadeIn_0.3s_ease-out] accordion-details">
+                    <div class="border-t border-gray-100 pt-5">
+                        <p class="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-3">Productos Comprados</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-5">
+                            <div th:each="detalle : ${o.detalles}" th:if="${detalle.producto != null}" class="producto-item flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100" th:data-id="${detalle.producto.id}" th:data-qty="${detalle.cantidad}">
+                                
+                                <!-- Mini Foto -->
+                                <img th:src="${detalle.producto.imagenUrl != null && detalle.producto.imagenUrl.startsWith('http') ? detalle.producto.imagenUrl : '/images/' + (detalle.producto.imagenUrl != null ? detalle.producto.imagenUrl : 'default.png')}" 
+                                     class="w-12 h-12 rounded-xl object-cover bg-white border border-gray-200 shadow-sm shrink-0" alt="Producto" onerror="this.onerror=null; this.src='https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-7359557-6024626.png?f=webp'">
+                                
+                                <!-- Info Producto -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 leading-tight truncate" th:text="${detalle.producto.nombre != null ? detalle.producto.nombre : detalle.nombre}">Nombre</p>
+                                    <p class="text-[10px] font-bold text-gray-500 mt-0.5 truncate">
+                                        <span th:text="${detalle.cantidad}">1</span> unidades a <span th:text="'$' + ${#numbers.formatDecimal(detalle.precio, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                                    </p>
+                                </div>
+                                
+                                <div class="text-right pr-2">
+                                    <p class="text-sm font-extrabold text-gray-900" th:text="'$' + ${#numbers.formatDecimal(detalle.total, 1, 'POINT', 0, 'COMMA')}">$0</p>
+                                </div>
+                                
+                                <!-- Estrellas (Solo Entregado) -->
+                                <div th:if="${o.estado == 'Entregado'}" class="flex gap-1 text-gray-300 pr-2 shrink-0 border-l border-gray-200 pl-3">
+                                    <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="1"></i>
+                                    <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="2"></i>
+                                    <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="3"></i>
+                                    <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="4"></i>
+                                    <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="5"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Actions -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Volver a Comprar -->
+                            <button th:if="${o.estado == 'Entregado'}" class="btn-volver flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md">
+                                <i class="fas fa-rotate-left text-xs"></i> Volver a Comprar
+                            </button>
+
+                            <!-- Rastrear Pedido -->
+                            <button th:if="${o.estado == 'En Camino' or o.estado == 'Pendiente'}" class="btn-rastrear flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md shadow-blue-500/20">
+                                <i class="fas fa-location-arrow text-xs"></i> Rastrear
+                            </button>
+
+                            <!-- Reportar Problema -->
+                            <button class="btn-reportar flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors active:scale-95">
+                                <i class="fas fa-exclamation-triangle text-xs"></i> Reportar
+                            </button>
+
+                            <!-- Recibo -->
+                            <a th:href="@{'/orden/recibo/' + ${o.id}}" target="_blank" class="sm:ml-auto flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors active:scale-95 shadow-sm">
+                                <i class="fas fa-file-invoice text-xs"></i> <span class="hidden sm:inline">Recibo</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </div>
 
         <!-- ESTADO VACÍO (Si no hay compras) -->
-        <div th:if="${#lists.isEmpty(ordenes)}" class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100 text-center">
-            <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                <i class="fas fa-receipt text-4xl text-gray-300"></i>
+        <div th:if="${#lists.isEmpty(ordenes)}" class="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)] border border-gray-100 text-center">
+            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-shopping-basket text-4xl text-green-300"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Aún no tienes pedidos</h2>
-            <p class="text-gray-500 max-w-sm mb-8 mx-auto">Cuando realices tu primera compra, aquí podrás ver el seguimiento y tus recibos.</p>
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Aún no tienes pedidos</h2>
+            <p class="text-gray-500 max-w-sm mb-8 mx-auto text-sm">Cuando realices tu primera compra, aquí podrás rastrear tus entregas y gestionar tus facturas.</p>
             
-            <a th:href="@{/tienda}" class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1">
-                <i class="fas fa-shopping-basket"></i>
-                Ir a la Tienda
+            <a th:href="@{/tienda}" class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-green-600/20 hover:bg-green-700 transition transform hover:-translate-y-1 active:scale-95">
+                Explorar la Tienda
+                <i class="fas fa-arrow-right"></i>
             </a>
         </div>
 
@@ -161,5 +441,6 @@
 
     <!-- Widget de Soporte -->
     <div th:replace="fragments/fragment_soporte :: widget"></div>
+
 </body>
 </html>

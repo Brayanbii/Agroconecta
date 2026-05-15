@@ -1,475 +1,201 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <title>Informe Python - AgroConecta</title>
+    <title>Analíticas - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#064e3b',
-                        },
-                        surface: {
-                            50: '#FDFDFC',
-                            100: '#F4F5F7',
-                        }
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-                        'float': '0 20px 40px -4px rgba(22, 163, 74, 0.12)',
-                        'bento': '0 4px 24px -4px rgba(0, 0, 0, 0.04)',
-                    }
-                }
-            }
-        };
-    </script>
-
+    <!-- Driver.js para Onboarding -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #FDFDFC;
-            -webkit-font-smoothing: antialiased;
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; opacity:0; }
+        .fade-up:nth-child(1){animation-delay:.1s} .fade-up:nth-child(2){animation-delay:.15s}
+        .fade-up:nth-child(3){animation-delay:.2s} .fade-up:nth-child(4){animation-delay:.25s}
+        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+        
+        /* Custom Driver.js Theme (2026 SaaS Style) */
+        .driver-popover.driverjs-theme {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+            border-radius: 1.5rem !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
+            padding: 1.5rem !important;
+            max-width: 420px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
+        .driver-popover.driverjs-theme .driver-popover-title { font-size: 1.25rem !important; font-weight: 800 !important; color: #111827 !important; margin-bottom: 0.5rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-description { font-size: 0.9rem !important; color: #4b5563 !important; font-weight: 500 !important; line-height: 1.6 !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer { margin-top: 1.25rem !important; }
+        .driver-popover.driverjs-theme .driver-popover-footer button { border-radius: 0.75rem !important; font-weight: 700 !important; padding: 0.6rem 1.2rem !important; font-size: 0.85rem !important; transition: all 0.2s !important; text-shadow: none !important; border: none !important; cursor: pointer !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn { background: linear-gradient(135deg, #16a34a, #059669) !important; color: white !important; box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important; }
+        .driver-popover.driverjs-theme .driver-popover-next-btn:hover { transform: translateY(-1px) !important; box-shadow: 0 6px 16px -2px rgba(22, 163, 74, 0.5) !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn { background-color: #f3f4f6 !important; color: #4b5563 !important; }
+        .driver-popover.driverjs-theme .driver-popover-prev-btn:hover { background-color: #e5e7eb !important; color: #1f2937 !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn { color: #9ca3af !important; }
+        .driver-popover.driverjs-theme .driver-popover-close-btn:hover { color: #ef4444 !important; background: #fef2f2 !important; border-radius: 50% !important; }
+        .driver-popover.driverjs-theme .driver-popover-progress-text { font-size: 0.7rem !important; color: #9ca3af !important; font-weight: 600 !important; }
 
-        /* Ambient Background */
-        .ambient-bg {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -2;
-            background: 
-                radial-gradient(circle at 15% 0%, rgba(22, 163, 74, 0.05), transparent 30%),
-                radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.04), transparent 30%);
-            pointer-events: none;
-        }
-
-        /* Tarjetas de estadísticas */
-        .stat-card {
+        .glass-card {
             background: white;
+            border: 1px solid rgba(226, 232, 240, 0.8);
             border-radius: 1.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -4px rgba(22, 163, 74, 0.06);
-            border-color: #dcfce7;
-        }
-
-        /* Tarjetas de gráficas (Bento style) */
-        .chart-card {
-            background: white;
-            border-radius: 1.75rem;
-            padding: 2rem;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-        .chart-card:hover {
-            box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Badge Python Premium */
-        .python-badge {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-            color: #4338ca;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            backdrop-filter: blur(4px);
-        }
-
-        /* Animación de entrada */
-        .fade-up {
-            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        .fade-up:nth-child(1) { animation-delay: 0.1s; }
-        .fade-up:nth-child(2) { animation-delay: 0.15s; }
-        .fade-up:nth-child(3) { animation-delay: 0.2s; }
-        .fade-up:nth-child(4) { animation-delay: 0.25s; }
-        @keyframes fadeUp {
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Separador decorativo Moderno */
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Sin datos Premium */
-        .no-data {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            color: #9ca3af;
-            background: rgba(249, 250, 251, 0.5);
-            border-radius: 1rem;
-            border: 2px dashed #e5e7eb;
-            backdrop-filter: blur(4px);
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
         }
     </style>
 </head>
-<body class="bg-slate-50 relative selection:bg-brand-500 selection:text-white">
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
 
-    <div class="ambient-bg"></div>
+    <!-- SIDEBAR -->
+    <!-- SIDEBAR -->
+    <aside th:replace="~{fragments/campesino_sidebar :: sidebar('informe')}"></aside>
 
-    <!-- ===== NAVEGACIÓN Y CABECERA PREMIUM ===== -->
-    <div class="relative pt-10 pb-20 px-4 bg-gradient-to-br from-brand-900 via-brand-800 to-brand-600 overflow-hidden">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
-        <!-- Elementos decorativos de fondo abstractos -->
-        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <!-- HERO HEADER -->
+        <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-10 py-10 shrink-0 overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-56 h-56 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
 
-        <div class="max-w-7xl mx-auto relative z-10">
-
-            <!-- Navegación -->
-            <div class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
-                <a th:href="@{/campesino/productos}"
-                   class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white shadow-sm border border-white/20 font-bold text-sm transition group">
-                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Mis Productos
-                </a>
-                
-                <div class="flex items-center gap-2 bg-black/20 p-1.5 rounded-full border border-white/10 shadow-sm backdrop-blur-md">
-                    <div class="bg-blue-500/90 text-white p-2 rounded-full shadow-md">
-                        <i class="fab fa-python text-sm"></i>
-                    </div>
-                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-blue-100 pr-3">Inteligencia Artificial</span>
-                </div>
-            </div>
-
-            <!-- Título principal estilo Dashboard Moderno -->
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-                        Analítica Inteligente
-                    </h1>
-                    <p class="text-brand-100 font-medium text-lg">
-                        Resumen financiero en tiempo real generado por <strong class="text-white">Python Analytics</strong>.
-                    </p>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-white/10 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-white/20"><i class="fas fa-chart-network mr-1"></i>Business Intelligence</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Analíticas de Negocio</h1>
+                    <p class="text-slate-300 font-medium text-sm md:text-base">Métricas en tiempo real para escalar tus ventas.</p>
                 </div>
                 
-                <div class="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-sm border border-white/20 text-right">
-                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-brand-200 mb-1">Propietario / Productor</p>
-                    <p class="font-bold text-white text-base flex items-center justify-end gap-2">
-                        <i class="fas fa-user-circle text-brand-300 text-xl"></i>
-                        <span th:text="${resumen?.nombre_campesino}">Campesino</span>
-                    </p>
-                </div>
+                <!-- TUTORIAL BTN -->
+                <button id="btn-tutorial" class="bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20 px-4 py-2 rounded-xl font-bold text-sm transition shadow-sm flex items-center gap-2">
+                    <i class="fas fa-graduation-cap"></i> <span class="hidden sm:inline">Tutorial</span>
+                </button>
             </div>
+        </div>
 
-            <!-- KPIs principales (Flotantes Premium) -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 relative -mb-24 z-20">
+        <!-- SCROLLABLE CONTENT -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50">
+            <div class="max-w-6xl mx-auto space-y-8">
 
-                <div class="stat-card fade-up">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                            Ingresos Totales
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mt-2 relative z-20">
+                    <div class="fade-up glass-card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Ingresos Totales</span>
+                            <div class="bg-emerald-50 text-emerald-500 p-2 rounded-xl"><i class="fas fa-dollar-sign"></i></div>
                         </div>
-                        <div class="bg-green-100/50 text-green-600 p-2 rounded-lg">
-                            <i class="fas fa-dollar-sign"></i>
+                        <p class="text-2xl md:text-3xl font-black text-slate-900" th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">$0</p>
+                    </div>
+                    
+                    <div class="fade-up glass-card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Unidades Vendidas</span>
+                            <div class="bg-blue-50 text-blue-500 p-2 rounded-xl"><i class="fas fa-boxes"></i></div>
                         </div>
+                        <p class="text-2xl md:text-3xl font-black text-slate-900" th:text="${resumen?.total_unidades}">0</p>
                     </div>
-                    <div class="text-2xl md:text-3xl font-black text-gray-900"
-                         th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
-                        $0
+
+                    <div class="fade-up glass-card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Catálogo Activo</span>
+                            <div class="bg-purple-50 text-purple-500 p-2 rounded-xl"><i class="fas fa-seedling"></i></div>
+                        </div>
+                        <p class="text-2xl md:text-3xl font-black text-slate-900" th:text="${resumen?.total_productos}">0</p>
                     </div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500 opacity-20"></div>
+
+                    <div class="fade-up glass-card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Mejor Mes</span>
+                            <div class="bg-amber-50 text-amber-500 p-2 rounded-xl"><i class="fas fa-calendar-star"></i></div>
+                        </div>
+                        <p class="text-xl md:text-2xl font-black text-slate-900 truncate" th:text="${resumen?.mejor_mes}">—</p>
+                    </div>
                 </div>
 
-                <div class="stat-card fade-up">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                            Unidades Vendidas
+                <!-- CHARTS ROW 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    <!-- Top Productos -->
+                    <div class="glass-card p-6 border-t-4 border-t-blue-500">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"><i class="fas fa-chart-bar"></i></div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-800">Top Productos</h2>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Por Volumen de Ventas</p>
+                            </div>
                         </div>
-                        <div class="bg-blue-100/50 text-blue-600 p-2 rounded-lg">
-                            <i class="fas fa-boxes"></i>
+                        <div th:if="${graficoTopProductos != null}" id="chart-top-productos" style="min-height:300px;"></div>
+                        <div th:if="${graficoTopProductos == null}" class="flex flex-col items-center justify-center h-[300px] text-slate-300">
+                            <i class="fas fa-chart-bar text-4xl mb-3"></i><p class="font-bold">Datos insuficientes</p>
                         </div>
                     </div>
-                    <div class="text-2xl md:text-3xl font-black text-gray-900" th:text="${resumen?.total_unidades}">0</div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-10"></div>
+
+                    <!-- Distribución -->
+                    <div class="glass-card p-6 border-t-4 border-t-emerald-500">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500"><i class="fas fa-chart-pie"></i></div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-800">Distribución de Ingresos</h2>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Porcentaje del Total</p>
+                            </div>
+                        </div>
+                        <div th:if="${graficoDistribucion != null}" id="chart-distribucion" class="flex justify-center" style="min-height:300px;"></div>
+                        <div th:if="${graficoDistribucion == null}" class="flex flex-col items-center justify-center h-[300px] text-slate-300">
+                            <i class="fas fa-chart-pie text-4xl mb-3"></i><p class="font-bold">Datos insuficientes</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stat-card fade-up">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                            Producto Estrella
-                        </div>
-                        <div class="bg-amber-100/50 text-amber-600 p-2 rounded-lg">
-                            <i class="fas fa-trophy"></i>
+                <!-- CHARTS ROW 2 -->
+                <div class="glass-card p-6 border-t-4 border-t-purple-500">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500"><i class="fas fa-wave-square"></i></div>
+                        <div>
+                            <h2 class="text-lg font-black text-slate-800">Evolución de Ingresos</h2>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Histórico Anual en COP</p>
                         </div>
                     </div>
-                    <div class="text-lg md:text-xl font-black text-gray-900 truncate" th:text="${resumen?.producto_estrella}">—</div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-yellow-500 opacity-10"></div>
+                    <div th:if="${graficoIngresosMes != null}" id="chart-ingresos-mes" style="min-height:300px;"></div>
+                    <div th:if="${graficoIngresosMes == null}" class="flex flex-col items-center justify-center h-[300px] text-slate-300">
+                        <i class="fas fa-wave-square text-4xl mb-3"></i><p class="font-bold">Datos insuficientes</p>
+                    </div>
                 </div>
 
-                <div class="stat-card fade-up">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                            Mejor Mes
+                <!-- CHARTS ROW 3 -->
+                <div class="glass-card p-6 border-t-4 border-t-amber-500">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500"><i class="fas fa-balance-scale"></i></div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-800">Competitividad del Mercado</h2>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tu Precio vs Promedio Nacional</p>
+                            </div>
                         </div>
-                        <div class="bg-purple-100/50 text-purple-600 p-2 rounded-lg">
-                            <i class="fas fa-calendar-star"></i>
-                        </div>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-widest shadow-sm">SIPSA-DANE</span>
                     </div>
-                    <div class="text-2xl md:text-3xl font-black text-gray-900" th:text="${resumen?.mejor_mes}">—</div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-fuchsia-500 opacity-10"></div>
+                    <div th:if="${graficoVsMercado != null}" id="chart-vs-mercado" style="min-height:300px;"></div>
+                    <div th:if="${graficoVsMercado == null}" class="flex flex-col items-center justify-center h-[300px] text-slate-300">
+                        <i class="fas fa-balance-scale text-4xl mb-3"></i><p class="font-bold">Datos comparativos no disponibles</p>
+                    </div>
                 </div>
 
             </div>
         </div>
-    </div>
-
-    <!-- ===== CONTENIDO PRINCIPAL ===== -->
-    <main class="max-w-7xl mx-auto px-4 pt-8 pb-16 space-y-8 relative z-10">
-
-        <!-- Aviso si Python está apagado -->
-        <div th:if="${graficoTopProductos == null and graficoIngresosMes == null}"
-             class="bg-red-50 border border-red-200 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm">
-            <div class="bg-white text-red-500 rounded-xl p-3 shadow-sm flex-shrink-0">
-                <i class="fas fa-server text-xl"></i>
-            </div>
-            <div class="flex-1">
-                <h3 class="font-black text-red-900 text-lg">Servidor Analítico Inactivo</h3>
-                <p class="text-red-700 text-sm mt-0.5">
-                    Las gráficas avanzadas no se pudieron renderizar. Por favor, asegúrate de haber ejecutado: 
-                    <code class="bg-red-100 text-red-800 px-2 py-0.5 rounded font-mono font-bold text-xs shadow-sm ml-1">python servidor.py</code>
-                </p>
-            </div>
-        </div>
-
-        <!-- ===== FILA 1: Top Productos + Distribución ===== -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            <!-- Gráfica 1: Top Productos -->
-            <div class="chart-card border-t-4 border-t-blue-500">
-                <div class="section-title">
-                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 shadow-sm text-blue-500">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Top Productos</h2>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Por Volumen</p>
-                    </div>
-                    <span class="python-badge ml-auto border-none">Python Engine</span>
-                </div>
-                <div th:if="${graficoTopProductos != null}">
-                    <div id="chart-top-productos" class="mt-4" style="min-height:300px;"></div>
-                </div>
-                <div th:if="${graficoTopProductos == null}" class="no-data h-[300px]">
-                    <i class="fas fa-chart-bar text-4xl mb-3 text-slate-300"></i>
-                    <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
-                </div>
-            </div>
-
-            <!-- Gráfica 3: Distribución de Ingresos -->
-            <div class="chart-card border-t-4 border-t-emerald-500">
-                <div class="section-title">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-sm text-emerald-500">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Distribución de Ingresos</h2>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Porcentaje del total</p>
-                    </div>
-                    <span class="python-badge ml-auto border-none">Python Engine</span>
-                </div>
-                <div th:if="${graficoDistribucion != null}">
-                    <div id="chart-distribucion" class="mt-4 flex justify-center" style="min-height:300px;"></div>
-                </div>
-                <div th:if="${graficoDistribucion == null}" class="no-data h-[300px]">
-                    <i class="fas fa-chart-pie text-4xl mb-3 text-slate-300"></i>
-                    <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ===== FILA 2: Ingresos por Mes (ancho completo) ===== -->
-        <div class="chart-card border-t-4 border-t-purple-500">
-            <div class="section-title">
-                <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center border border-purple-100 shadow-sm text-purple-500">
-                    <i class="fas fa-wave-square"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-black text-slate-800 tracking-tight">Evolución de Ingresos</h2>
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Histórico Anual en COP</p>
-                </div>
-                <span class="python-badge ml-auto border-none">Python Engine</span>
-            </div>
-            <div th:if="${graficoIngresosMes != null}">
-                <div id="chart-ingresos-mes" class="mt-4" style="min-height:300px;"></div>
-            </div>
-            <div th:if="${graficoIngresosMes == null}" class="no-data h-[300px]">
-                <i class="fas fa-wave-square text-4xl mb-3 text-slate-300"></i>
-                <p class="font-bold text-slate-400">Gráfica fuera de línea</p>
-            </div>
-        </div>
-
-        <!-- ===== FILA 3: Tu Precio vs Mercado SIPSA (ancho completo) ===== -->
-        <div class="chart-card relative overflow-hidden border-t-4 border-t-amber-500">
-            <div class="absolute -right-10 -top-10 text-amber-50 opacity-50 z-0 pointer-events-none">
-                <i class="fas fa-balance-scale" style="font-size: 15rem;"></i>
-            </div>
-            <div class="relative z-10">
-                <div class="section-title">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-sm text-amber-500">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-800 tracking-tight">Competitividad (Precios SIPSA)</h2>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Tu Precio Promedio vs Promedio Mercado Nacional</p>
-                    </div>
-                    <span class="bg-slate-900 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-widest ml-auto shadow-sm">SIPSA-DANE</span>
-                </div>
-                <div th:if="${graficoVsMercado != null}">
-                    <div id="chart-vs-mercado" class="mt-4" style="min-height:300px;"></div>
-                </div>
-                <div th:if="${graficoVsMercado == null}" class="no-data h-[300px]">
-                    <i class="fas fa-balance-scale text-4xl mb-3 text-slate-300"></i>
-                    <p class="font-bold text-slate-400">Datos comparativos fuera de línea</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== RESUMEN ESTADÍSTICO DETALLADO ===== -->
-        <div class="bg-slate-900 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
-            <!-- Destello de fondo -->
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-brand-500 rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
-
-            <div class="section-title mb-8 border-b border-slate-800 pb-6">
-                <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700 shadow-sm text-brand-400 text-xl">
-                    <i class="fas fa-layer-group"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black text-white tracking-tight">Cifras Transaccionales Java</h2>
-                    <p class="text-sm font-bold text-slate-400 tracking-wider mt-1">CORE SYSTEM DATABASE</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 relative z-10">
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-brand-500/50 transition">
-                            <i class="fas fa-dollar-sign text-emerald-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Bruto Acumulado</span>
-                    </div>
-                    <p class="text-2xl font-black text-white"
-                       th:text="'$' + ${#numbers.formatDecimal(resumen?.total_ingresos, 0, 'COMMA', 0, 'POINT')}">
-                        $0
-                    </p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-blue-500/50 transition">
-                            <i class="fas fa-boxes text-blue-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Volumen Físico</span>
-                    </div>
-                    <p class="text-2xl font-black text-white" th:text="${resumen?.total_unidades}">0</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-purple-500/50 transition">
-                            <i class="fas fa-receipt text-purple-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Líneas de Venta</span>
-                    </div>
-                    <p class="text-2xl font-black text-white" th:text="${totalVentas}">0</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-yellow-500/50 transition">
-                            <i class="fas fa-trophy text-yellow-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Categoría Top</span>
-                    </div>
-                    <p class="text-lg font-black text-white truncate" th:text="${resumen?.producto_estrella}">—</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-orange-500/50 transition">
-                            <i class="fas fa-calendar-check text-orange-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Pico de Ventas</span>
-                    </div>
-                    <p class="text-xl font-black text-white" th:text="${resumen?.mejor_mes}">—</p>
-                </div>
-
-                <div class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700 hover:border-slate-600 transition group">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-700 group-hover:border-teal-500/50 transition">
-                            <i class="fas fa-seedling text-teal-400"></i>
-                        </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Catálogo Activo</span>
-                    </div>
-                    <p class="text-2xl font-black text-white" th:text="${resumen?.total_productos}">0</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ===== FOOTER ===== -->
-        <div class="text-center py-8">
-            <div class="inline-flex flex-col md:flex-row items-center gap-3 bg-white/50 backdrop-blur-sm rounded-2xl px-6 py-4 shadow border border-gray-100/50">
-                <i class="fab fa-python text-blue-500 text-xl"></i>
-                <span class="text-xs font-bold text-gray-500 tracking-wide uppercase">
-                    Análitica procesada con <strong class="text-gray-800">Python 3 + Flask</strong>
-                    · Visualización: <strong class="text-gray-800">ApexCharts</strong>
-                    · Precios de mercado: <strong class="text-gray-800">SIPSA - DANE Colombia</strong>
-                </span>
-                <i class="fas fa-leaf text-green-500 text-xl"></i>
-            </div>
-            <p class="text-xs font-bold text-gray-300 mt-4">&copy; 2025 AgroConecta · SaaS Edition</p>
-        </div>
-
     </main>
 
-    <!-- DATOS DE PYTHON INYECTADOS POR THYMELEAF -->
+    <!-- INJECT DATA -->
     <script th:inline="javascript">
         var dataTopProd    = /*[[${graficoTopProductos}]]*/ null;
         var dataDistrib    = /*[[${graficoDistribucion}]]*/ null;
@@ -482,110 +208,108 @@
         if (typeof dataVsMercado === 'string') try { dataVsMercado = JSON.parse(dataVsMercado); } catch(e) { dataVsMercado = null; }
     </script>
 
-    <!-- LOGICA APEXCHARTS DEL INFORME -->
+    <!-- APEXCHARTS CONFIG -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
-            var VERDE = '#16a34a';
+            var VERDE = '#10b981';
             var AZUL = '#3b82f6';
             var AMARILLO = '#f59e0b';
             var NARANJA = '#f97316';
             var MORADO = '#8b5cf6';
             var ROSA = '#ec4899';
 
-            // --- 1. Top Productos (Barras horizontales con degradado) ---
-            var el1 = document.getElementById('chart-top-productos');
-            if (el1 && dataTopProd && dataTopProd.labels) {
-                new ApexCharts(el1, {
-                    chart: { type: 'bar', height: 320, toolbar: { show: false },
-                             fontFamily: 'Plus Jakarta Sans',
-                             animations: { enabled: true, easing: 'easeinout', speed: 800 } },
-                    plotOptions: { bar: { horizontal: true, borderRadius: 7,
-                                         dataLabels: { position: 'top' } } },
-                    colors: [VERDE],
-                    fill: { type: 'gradient',
-                            gradient: { shade: 'light', type: 'horizontal',
-                                         gradientToColors: ['#86efac'], stops: [0, 100] } },
+            var baseOptions = {
+                chart: { fontFamily: 'Plus Jakarta Sans', animations: { enabled: true, easing: 'easeinout', speed: 800 }, toolbar: { show: false } }
+            };
+
+            if (document.getElementById('chart-top-productos') && dataTopProd && dataTopProd.labels) {
+                new ApexCharts(document.getElementById('chart-top-productos'), {
+                    ...baseOptions,
+                    chart: { ...baseOptions.chart, type: 'bar', height: 320 },
+                    plotOptions: { bar: { horizontal: true, borderRadius: 6, dataLabels: { position: 'top' } } },
+                    colors: [AZUL],
                     series: dataTopProd.series,
-                    xaxis: { categories: dataTopProd.labels,
-                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
-                    yaxis: { labels: { style: { colors: '#374151', fontWeight: '700', fontSize: '12px' } } },
-                    dataLabels: { enabled: true, style: { colors: ['#1f2937'], fontSize: '11px' },
-                                  formatter: function(v) { return v + ' uds'; }, offsetX: 5 },
-                    grid: { borderColor: '#f3f4f6', xaxis: { lines: { show: true } } },
+                    xaxis: { categories: dataTopProd.labels, labels: { style: { colors: '#64748b', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#334155', fontWeight: '700', fontSize: '12px' } } },
+                    dataLabels: { enabled: true, style: { colors: ['#475569'], fontSize: '11px' }, formatter: function(v) { return v + ' uds'; }, offsetX: 5 },
+                    grid: { borderColor: '#f1f5f9', xaxis: { lines: { show: true } } },
                     tooltip: { theme: 'light', y: { formatter: function(v) { return v + ' unidades'; } } }
                 }).render();
             }
 
-            // --- 2. Distribucion de Ingresos (Donut premium) ---
-            var el2 = document.getElementById('chart-distribucion');
-            if (el2 && dataDistrib && dataDistrib.labels) {
-                new ApexCharts(el2, {
-                    chart: { type: 'donut', height: 320,
-                             fontFamily: 'Plus Jakarta Sans',
-                             animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+            if (document.getElementById('chart-distribucion') && dataDistrib && dataDistrib.labels) {
+                new ApexCharts(document.getElementById('chart-distribucion'), {
+                    ...baseOptions,
+                    chart: { ...baseOptions.chart, type: 'donut', height: 320 },
                     colors: [VERDE, AZUL, AMARILLO, NARANJA, MORADO, ROSA],
                     series: dataDistrib.series,
                     labels: dataDistrib.labels,
-                    plotOptions: { pie: { donut: { size: '65%',
-                                                   labels: { show: true,
-                                                             total: { show: true, label: 'Ingresos',
-                                                                       formatter: function(w) { return '$' + Number(w.globals.seriesTotals.reduce(function(a,b){return a+b;}, 0)).toLocaleString('es-CO'); } } } } } },
+                    plotOptions: { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return '$' + Number(w.globals.seriesTotals.reduce((a,b)=>a+b, 0)).toLocaleString('es-CO'); } } } } } },
                     legend: { position: 'bottom', fontSize: '12px', markers: { radius: 4 } },
-                    dataLabels: { enabled: true, formatter: function(val) { return val.toFixed(1) + '%'; },
-                                  dropShadow: { enabled: false } },
+                    dataLabels: { enabled: true, formatter: function(val) { return val.toFixed(1) + '%'; }, dropShadow: { enabled: false } },
                     tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } }
                 }).render();
             }
 
-            // --- 3. Ingresos por Mes (Area con gradiente) ---
-            var el3 = document.getElementById('chart-ingresos-mes');
-            if (el3 && dataIngMes && dataIngMes.labels) {
-                new ApexCharts(el3, {
-                    chart: { type: 'area', height: 320, toolbar: { show: false },
-                             fontFamily: 'Plus Jakarta Sans',
-                             animations: { enabled: true, easing: 'easeinout', speed: 900 } },
-                    colors: [VERDE],
-                    fill: { type: 'gradient',
-                            gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.02, stops: [0, 100] } },
+            if (document.getElementById('chart-ingresos-mes') && dataIngMes && dataIngMes.labels) {
+                new ApexCharts(document.getElementById('chart-ingresos-mes'), {
+                    ...baseOptions,
+                    chart: { ...baseOptions.chart, type: 'area', height: 320 },
+                    colors: [MORADO],
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] } },
                     stroke: { curve: 'smooth', width: 3 },
                     series: dataIngMes.series,
-                    xaxis: { categories: dataIngMes.labels,
-                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
-                    yaxis: { labels: { style: { colors: '#6b7280', fontSize: '12px' },
-                                       formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
-                    markers: { size: 5, colors: [VERDE], strokeColors: '#fff', strokeWidth: 3,
-                                hover: { size: 7 } },
-                    grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+                    xaxis: { categories: dataIngMes.labels, labels: { style: { colors: '#64748b', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#64748b', fontSize: '12px' }, formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
+                    markers: { size: 5, colors: [MORADO], strokeColors: '#fff', strokeWidth: 2, hover: { size: 7 } },
+                    grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
                     dataLabels: { enabled: false },
                     tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } }
                 }).render();
             }
 
-            // --- 4. Tu Precio vs Mercado SIPSA (Barras agrupadas) ---
-            var el4 = document.getElementById('chart-vs-mercado');
-            if (el4 && dataVsMercado && dataVsMercado.labels) {
-                new ApexCharts(el4, {
-                    chart: { type: 'bar', height: 320, toolbar: { show: false },
-                             fontFamily: 'Plus Jakarta Sans',
-                             animations: { enabled: true, easing: 'easeinout', speed: 700 } },
-                    plotOptions: { bar: { horizontal: false, borderRadius: 5,
-                                         columnWidth: '55%' } },
+            if (document.getElementById('chart-vs-mercado') && dataVsMercado && dataVsMercado.labels) {
+                new ApexCharts(document.getElementById('chart-vs-mercado'), {
+                    ...baseOptions,
+                    chart: { ...baseOptions.chart, type: 'bar', height: 320 },
+                    plotOptions: { bar: { horizontal: false, borderRadius: 4, columnWidth: '50%' } },
                     colors: [VERDE, AZUL],
                     series: dataVsMercado.series,
-                    xaxis: { categories: dataVsMercado.labels,
-                             labels: { style: { colors: '#6b7280', fontSize: '12px' } } },
-                    yaxis: { labels: { style: { colors: '#6b7280', fontSize: '12px' },
-                                       formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
+                    xaxis: { categories: dataVsMercado.labels, labels: { style: { colors: '#64748b', fontSize: '12px' } } },
+                    yaxis: { labels: { style: { colors: '#64748b', fontSize: '12px' }, formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO'); } } },
                     legend: { position: 'top', markers: { radius: 4 } },
-                    grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+                    grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
                     dataLabels: { enabled: false },
                     tooltip: { theme: 'light', y: { formatter: function(v) { return '$' + Number(v).toLocaleString('es-CO') + '/kg'; } } }
                 }).render();
             }
         });
-    </script>
 
+        // --- TUTORIAL ONBOARDING ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const driver = window.driver.js.driver;
+            const driverObj = driver({
+                showProgress: true,
+                nextBtnText: 'Siguiente &rarr;',
+                prevBtnText: '&larr; Anterior',
+                doneBtnText: '¡Entendido!',
+                popoverClass: 'driverjs-theme',
+                steps: [
+                    { popover: { title: 'Tus Métricas 📈', description: 'Bienvenido a tu panel de inteligencia. Aquí verás exactamente cómo va tu negocio con datos reales.', side: "bottom", align: 'start' } },
+                    { element: '.fade-up', popover: { title: 'Resumen Rápido 💵', description: 'Estas tarjetas te muestran de un vistazo tus ingresos totales, el número de pedidos, unidades vendidas y tu catálogo activo.', side: "bottom", align: 'center' } },
+                    { element: '#chart-top-productos', popover: { title: 'Productos Más Vendidos 🏆', description: 'Aquí verás cuáles de tus productos se venden más. ¡Enfócate en esos para ganar más!', side: "top", align: 'center' } },
+                    { element: '#chart-vs-mercado', popover: { title: 'Tú vs El Mercado ⚖️', description: 'Compara tus precios con los del mercado nacional (SIPSA-DANE). Si estás por debajo, ¡venderás más rápido!', side: "top", align: 'center' } },
+                    { popover: { title: '¡Crece tu negocio! 💪', description: 'Usa estos datos para tomar mejores decisiones: ajusta precios, enfoca tu producción y véndele más al campo.', side: "bottom", align: 'center' } }
+                ]
+            });
+
+            const btnTutorial = document.getElementById('btn-tutorial');
+            if (btnTutorial) {
+                btnTutorial.addEventListener('click', () => {
+                    driverObj.drive();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
-

@@ -1,0 +1,524 @@
+﻿    <!-- ========================================== -->
+    <!-- MODAL DE UBICACIÃ“N (Rappi-Clone Premium)   -->
+    <!-- ========================================== -->
+    <div id="locationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="locationModalContent" class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform scale-95 opacity-0 transition-all duration-300 overflow-hidden m-4 relative flex flex-col max-h-[92vh]" style="min-height: 540px;">
+            
+            <!-- Header Rappi Style -->
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-3 bg-white sticky top-0 z-10">
+                <button id="closeLocationModal" class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors hidden">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <h3 class="font-bold text-lg text-gray-900">Agregar direcciÃ³n</h3>
+            </div>
+
+            <!-- Body Scrollable -->
+            <div class="overflow-y-auto flex-1 custom-scrollbar flex flex-col">
+                
+                <!-- Mapa Interactivo -->
+                <div class="relative w-full h-[220px] flex-shrink-0 z-0 bg-gray-100">
+                    <div id="mapContainer" class="w-full h-full relative z-[10]"></div>
+                    <!-- Pin central estÃ¡tico (Fijo por encima del mapa) -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-[1000]">
+                        <div class="flex flex-col items-center -mt-10">
+                            <i class="fas fa-map-marker-alt text-red-600 text-[42px] drop-shadow-md" style="filter: drop-shadow(0 4px 6px rgba(220,38,38,0.5));"></i>
+                            <div class="w-4 h-1.5 bg-black/30 rounded-[100%] mt-1 blur-[1px]"></div>
+                        </div>
+                    </div>
+                    <!-- BotÃ³n GPS flotante (Z-Index alto) -->
+                    <button id="btnCenterGeo" type="button" class="absolute bottom-4 right-4 z-[1000] w-10 h-10 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 font-bold hover:bg-green-50 hover:text-green-600 hover:border-green-200 hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95" title="Centrar mi ubicaciÃ³n">
+                        <i class="fas fa-crosshairs text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Formulario estilo Rappi -->
+                <div class="p-6 flex-1 flex flex-col">
+                    
+                    <!-- SecciÃ³n: DirecciÃ³n (con geocoding overlay) -->
+                    <div class="relative">
+                        <div id="geoWaitOverlay" class="absolute inset-0 bg-white/80 z-10 hidden items-center justify-center rounded-xl backdrop-blur-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-circle-notch fa-spin text-green-500"></i>
+                                <span class="text-xs text-gray-500 font-medium">Buscando direcciÃ³n...</span>
+                            </div>
+                        </div>
+
+                        <label class="text-[13px] font-semibold text-gray-500 mb-2 block">DirecciÃ³n</label>
+                        <div class="relative mb-5 z-20">
+                            <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-200 group hover:border-green-300 transition-colors cursor-text">
+                                <input type="text" id="direccionInput" placeholder="Ej: Carrera 70 # 45-20" autocomplete="off" class="flex-1 bg-transparent text-[14px] font-semibold text-gray-800 outline-none placeholder:text-gray-400 placeholder:font-normal">
+                                <i class="fas fa-search text-gray-400 text-sm ml-3 group-hover:text-green-500 transition-colors"></i>
+                            </div>
+                            <!-- Dropdown predictivo -->
+                            <div id="addressSuggestions" class="absolute left-0 right-0 top-[105%] bg-white border border-gray-100 rounded-xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.15)] z-[100] hidden max-h-48 overflow-y-auto divide-y divide-gray-50 custom-scrollbar">
+                            </div>
+                        </div>
+
+                    <!-- Piso / Oficina / Apto -->
+                    <label class="text-[13px] font-semibold text-gray-500 mb-2 block">Piso / Oficina / Apto / Dpto (opcional)</label>
+                    <input type="text" id="detallesInput" placeholder="DescripciÃ³n de la direcciÃ³n" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 transition outline-none placeholder:text-gray-400 mb-6">
+
+                    <!-- Etiqueta (opcional) -->
+                    <label class="text-[13px] font-semibold text-gray-500 mb-3 block">Etiqueta (opcional)</label>
+                    <div class="flex flex-wrap gap-2 mb-8" id="aliasButtons">
+                        <button type="button" data-alias="Casa" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Casa</button>
+                        <button type="button" data-alias="Oficina" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Oficina</button>
+                        <button type="button" data-alias="Pareja" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Pareja</button>
+                        <button type="button" data-alias="Otro" class="alias-pill px-5 py-2 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-green-400 hover:text-green-700 hover:bg-green-50 transition-all active:scale-95">Otro</button>
+                    </div>
+                    <!-- Hidden input para el alias seleccionado -->
+                    <input type="hidden" id="aliasInput" value="Casa">
+                    <!-- Input custom para "Otro" -->
+                    <div id="customAliasBox" class="hidden mb-6 mt-2 animate-fadeIn">
+                        <input type="text" id="customAliasInput" placeholder="Ej: Finca de mamÃ¡, Casa del abuelo..." maxlength="30" class="w-full px-4 py-3 bg-gray-50 border border-green-300 rounded-xl text-[14px] font-medium focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 transition outline-none placeholder:text-gray-400">
+                    </div>
+
+                    <!-- Guardar direcciÃ³n -->
+                    <button id="btnSaveAddress" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-[15px] rounded-xl py-3.5 transition-all hover:shadow-lg hover:shadow-green-500/30 hover:-translate-y-0.5 active:scale-[0.98] outline-none">
+                        Guardar direcciÃ³n
+                    </button>
+
+                    <!-- Divider: Mis direcciones guardadas -->
+                    <div class="flex items-center gap-3 mt-8 mb-4">
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Mis Direcciones</span>
+                        <div class="h-px bg-gray-100 flex-1"></div>
+                    </div>
+
+                    <!-- DB Addresses List -->
+                    <div id="dbAddressesContainer" class="space-y-2 pb-2">
+                        <div class="text-center py-4 flex flex-col items-center">
+                            <i class="fas fa-circle-notch fa-spin text-gray-300 text-xl mb-2"></i>
+                            <span class="text-xs text-gray-400 font-medium">Cargando tu cuenta...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Overlay Full GPS -->
+            <div id="locLoadingOverlay" class="absolute inset-0 bg-white/95 backdrop-blur-md z-50 hidden items-center justify-center rounded-2xl">
+                <div class="flex flex-col items-center">
+                    <div class="w-14 h-14 rounded-full border-4 border-gray-100 border-t-green-500 animate-spin mb-4 shadow-lg shadow-green-500/20"></div>
+                    <p class="text-[15px] font-bold text-gray-800 tracking-tight">Buscando tu ubicaciÃ³n...</p>
+                    <p class="text-[11px] text-gray-400 font-medium mt-1">Revisa los permisos de tu navegador</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de GeolocalizaciÃ³n y Mapa REST API -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('locationModal');
+            const content = document.getElementById('locationModalContent');
+            const closeBtn = document.getElementById('closeLocationModal');
+            const navAddressText = document.getElementById('nav-address-text');
+            
+            // Formularios JS
+            const direccionInput = document.getElementById('direccionInput');
+            const detallesInput = document.getElementById('detallesInput');
+            const aliasInput = document.getElementById('aliasInput');
+            const btnSaveAddress = document.getElementById('btnSaveAddress');
+            const btnCenterGeo = document.getElementById('btnCenterGeo');
+            const dbAddressesContainer = document.getElementById('dbAddressesContainer');
+            
+            const loadingOverlay = document.getElementById('locLoadingOverlay');
+            const geoWaitOverlay = document.getElementById('geoWaitOverlay');
+
+            let map = null;
+            let currentLat = 4.6097100; // Por defecto BogotÃ¡ si nada funciona
+            let currentLng = -74.0817500;
+            let isMandatoryMode = false;
+            let dbAddresses = [];
+            let initialLoadAddressChecked = false;
+
+            // ALIAS PILL BUTTONS LOGIC
+            const aliasPills = document.querySelectorAll('.alias-pill');
+            const customAliasBox = document.getElementById('customAliasBox');
+            const customAliasInput = document.getElementById('customAliasInput');
+
+            aliasPills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    // Deseleccionar todos
+                    aliasPills.forEach(p => {
+                        p.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                        p.classList.add('border-gray-200', 'text-gray-600');
+                    });
+                    // Seleccionar el clickeado
+                    pill.classList.remove('border-gray-200', 'text-gray-600');
+                    pill.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                    
+                    const selectedAlias = pill.getAttribute('data-alias');
+                    
+                    if (selectedAlias === 'Otro') {
+                        customAliasBox.classList.remove('hidden');
+                        customAliasInput.focus();
+                        aliasInput.value = ''; // Se llenarÃ¡ del input custom al guardar
+                    } else {
+                        customAliasBox.classList.add('hidden');
+                        customAliasInput.value = '';
+                        aliasInput.value = selectedAlias;
+                    }
+                });
+            });
+            // Seleccionar "Casa" por defecto
+            if(aliasPills.length > 0) {
+                aliasPills[0].classList.remove('border-gray-200', 'text-gray-600');
+                aliasPills[0].classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+            }
+
+            // 1. ARRANCAR
+            // Verificar primero si hay direcciÃ³n guardada localmente o en BD
+            const savedAddress = localStorage.getItem('user_address');
+            if (savedAddress) {
+                navAddressText.textContent = savedAddress;
+            }
+
+            // Exponer FunciÃ³n Global
+            window.openLocationModal = function() {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                    
+                    initMap();
+                    fetchMyAddresses(false); // Cargar nube sin bloquear
+                }, 10);
+            };
+
+            // En onDOMContentLoaded, disparar la inicializaciÃ³n condicional obligatoria
+            if (!savedAddress && !initialLoadAddressChecked) {
+                isMandatoryMode = true;
+                closeBtn.classList.add('hidden');
+                // Auto abrir y usar GPS obligatorio
+                openLocationModal();
+                initialLoadAddressChecked = true;
+                requestGPS();
+            }
+
+            function closeLocationModalHandler() {
+                if (isMandatoryMode && !localStorage.getItem('user_address')) {
+                    // AnimaciÃ³n de negarse a cerrar
+                    content.classList.add('translate-x-2');
+                    setTimeout(() => content.classList.remove('translate-x-2'), 100);
+                    setTimeout(() => content.classList.add('-translate-x-2'), 200);
+                    setTimeout(() => content.classList.remove('-translate-x-2'), 300);
+                    return;
+                }
+                modal.classList.remove('opacity-100');
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            closeBtn.addEventListener('click', closeLocationModalHandler);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal && !isMandatoryMode) {
+                    closeLocationModalHandler();
+                }
+            });
+
+            // 2. LOGICA DEL MAPA (Leaflet)
+            function initMap() {
+                if(map) {
+                    map.invalidateSize(); // Refrescar si ya existÃ­a pero cambiÃ³ div
+                    return;
+                }
+
+                // Cargar BogotÃ¡ por defecto, si no hay info
+                if(localStorage.getItem('last_lat') && localStorage.getItem('last_lng')) {
+                    currentLat = parseFloat(localStorage.getItem('last_lat'));
+                    currentLng = parseFloat(localStorage.getItem('last_lng'));
+                }
+
+                map = L.map('mapContainer', {
+                    zoomControl: false // Quitamos botones + - para UI limpia (Rappi style)
+                }).setView([currentLat, currentLng], 16);
+
+                // Capa de OpenStreetMap Blanca/Limpiada (CartoDB Positron va muy bien con este estilo, o estÃ¡ndar OSM)
+                // Usaremos estÃ¡ndar OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(map);
+
+                // Escuchar el movimiento del mapa (Cuando se detiene)
+                map.on('moveend', function() {
+                    const center = map.getCenter();
+                    currentLat = center.lat;
+                    currentLng = center.lng;
+                    doReverseGeocoding(currentLat, currentLng);
+                });
+            }
+
+            // 3. API OPENSTREETMAP (Reverse Geocoding)
+            let geoTimeout;
+            async function doReverseGeocoding(lat, lng) {
+                // Agregar un pequeÃ±o debounce (delay) para no inundar el API nativa
+                clearTimeout(geoTimeout);
+                geoWaitOverlay.classList.remove('hidden');
+                geoWaitOverlay.classList.add('flex');
+                
+                geoTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+                        const data = await res.json();
+                        if(data && data.address) {
+                            const road = data.address.road || '';
+                            const house = data.address.house_number || '';
+                            const suburb = data.address.suburb || data.address.neighbourhood || '';
+                            const city = data.address.city || data.address.town || '';
+                            
+                            let addressString = "";
+                            if(road) {
+                                addressString = `${road} ${house}`.trim();
+                                if(suburb) addressString += ` - ${suburb}`;
+                                else if(city) addressString += `, ${city}`;
+                            } else if (data.display_name) {
+                                // Fallback a texto largo corto
+                                addressString = data.display_name.split(',')[0] + ', ' + data.display_name.split(',')[1];
+                            }
+                            direccionInput.value = addressString;
+                        }
+                    } catch (err) {
+                        console.error('Error Reverse Geocoding', err);
+                    } finally {
+                        geoWaitOverlay.classList.add('hidden');
+                        geoWaitOverlay.classList.remove('flex');
+                    }
+                }, 800); // Esperar 800ms tras soltar mapa
+            }
+
+            // 3.1 BÃšSQUEDA PREDICTIVA DE DIRECCIONES (Autocomplete Nominatim)
+            let autocompleteTimeout;
+            const addressSuggestions = document.getElementById('addressSuggestions');
+            
+            direccionInput.addEventListener('input', function(e) {
+                clearTimeout(autocompleteTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length < 4) {
+                    addressSuggestions.classList.add('hidden');
+                    return;
+                }
+                
+                // Mostrar spinner de carga overlay
+                geoWaitOverlay.classList.remove('hidden');
+                geoWaitOverlay.classList.add('flex');
+                
+                autocompleteTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=co&limit=5&addressdetails=1`);
+                        const data = await res.json();
+                        
+                        addressSuggestions.innerHTML = '';
+                        if (data && data.length > 0) {
+                            addressSuggestions.classList.remove('hidden');
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'px-4 py-3 hover:bg-green-50 cursor-pointer flex flex-col transition-colors border-l-4 border-transparent hover:border-green-500';
+                                
+                                // Parsear la direcciÃ³n para mostrarla mÃ¡s bonita
+                                const parts = item.display_name.split(',');
+                                const namePart = parts[0] + (parts[1] ? ',' + parts[1] : '');
+                                const detailsPart = item.display_name;
+                                
+                                div.innerHTML = `
+                                    <span class="text-sm font-extrabold text-gray-800"><i class="fas fa-map-marker-alt text-gray-400 mr-1 text-xs"></i> ${namePart.trim()}</span>
+                                    <span class="text-[11px] text-gray-500 truncate mt-0.5 pl-4">${detailsPart.trim()}</span>
+                                `;
+                                div.onclick = () => {
+                                    direccionInput.value = namePart.trim();
+                                    addressSuggestions.classList.add('hidden');
+                                    
+                                    // Mover el mapa a esa ubicaciÃ³n de forma suave
+                                    const lat = parseFloat(item.lat);
+                                    const lon = parseFloat(item.lon);
+                                    if(map) {
+                                        map.setView([lat, lon], 17, {animate: true, duration: 1});
+                                    }
+                                    currentLat = lat;
+                                    currentLng = lon;
+                                };
+                                addressSuggestions.appendChild(div);
+                            });
+                        } else {
+                            addressSuggestions.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        console.error('Error autocomplete', err);
+                    } finally {
+                        geoWaitOverlay.classList.add('hidden');
+                        geoWaitOverlay.classList.remove('flex');
+                    }
+                }, 600); // 600ms debounce para el teclado
+            });
+            
+            // Cerrar sugerencias al dar clic afuera
+            document.addEventListener('click', function(e) {
+                if (addressSuggestions && !e.target.closest('#addressSuggestions') && e.target !== direccionInput) {
+                    addressSuggestions.classList.add('hidden');
+                }
+            });
+
+            // 4. GPS NATIVO NAVEGADOR
+            function requestGPS() {
+                if (!navigator.geolocation) return;
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        if(map) {
+                            map.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
+                        } else {
+                            currentLat = lat; currentLng = lng;
+                        }
+                        loadingOverlay.classList.add('hidden');
+                        loadingOverlay.classList.remove('flex');
+                    },
+                    (error) => {
+                        console.warn("GPS denegado o error", error);
+                        loadingOverlay.classList.add('hidden');
+                        loadingOverlay.classList.remove('flex');
+                        
+                        // Si falla, el usuario usa la caja manual o arrastra el mapa actual (por defecto bogotÃ¡).
+                        if(isMandatoryMode && !direccionInput.value) {
+                            direccionInput.placeholder = "Por favor, escribe tu direcciÃ³n...";
+                            direccionInput.focus();
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            }
+
+            btnCenterGeo.addEventListener('click', requestGPS);
+
+            // 5. BD BACKEND INTEGRATION (REST)
+            function saveAddressLocally(addressStr, lat, lng) {
+                localStorage.setItem('user_address', addressStr);
+                localStorage.setItem('last_lat', lat);
+                localStorage.setItem('last_lng', lng);
+                navAddressText.textContent = addressStr.length > 25 ? addressStr.substring(0, 22) + '...' : addressStr;
+                
+                isMandatoryMode = false;
+                closeBtn.classList.remove('hidden');
+                closeLocationModalHandler();
+            }
+
+            btnSaveAddress.addEventListener('click', async () => {
+                const dirVal = direccionInput.value.trim();
+                if(dirVal.length < 4) {
+                    direccionInput.classList.add('border-red-500', 'bg-red-50');
+                    setTimeout(()=> direccionInput.classList.remove('border-red-500', 'bg-red-50'), 2000);
+                    return;
+                }
+                
+                const dataPayload = {
+                    alias: aliasInput.value || customAliasInput.value.trim() || 'Otro',
+                    direccionCompleta: dirVal,
+                    detalles: detallesInput.value.trim(),
+                    latitud: currentLat,
+                    longitud: currentLng,
+                    esPrincipal: true
+                };
+
+                // Optimizar UI primero (Guardar local rÃ¡pido y cerrar)
+                saveAddressLocally(dirVal, currentLat, currentLng);
+
+                // Llamada asÃ­ncrona a la Rest API Backend para que persista
+                try {
+                    const response = await fetch('/api/direcciones', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dataPayload)
+                    });
+                    if(response.ok) {
+                        // Persistido exitoso en base de datos.
+                        fetchMyAddresses(true); // Refrescar lista invisiblemente para la prox vez
+                    } else if(response.status === 401) {
+                        console.log("Usuario anÃ³nimo: DirecciÃ³n guardada en SessionLocal Ãºnicamente.");
+                    }
+                } catch(e) {
+                    console.error("Error al persistir BD:", e);
+                }
+            });
+
+            // 6. OBTENER DIRECCIONES DE BD
+            async function fetchMyAddresses(silent = false) {
+                if(!silent) dbAddressesContainer.innerHTML = '<div class="text-center py-4 text-xs text-gray-400 font-medium">Buscando tu cuenta...</div>';
+                
+                try {
+                    const res = await fetch('/api/direcciones');
+                    if(res.status === 401) {
+                        dbAddressesContainer.innerHTML = `
+                            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-3 mt-2">
+                                <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                <p class="text-[11px] text-blue-700 leading-tight">Inicia sesiÃ³n y todas las direcciones que uses aquÃ­ se guardarÃ¡n permanentemente en tu cuenta.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    if(!res.ok) throw new Error("Error fetching DB");
+                    
+                    const data = await res.json();
+                    dbAddresses = data;
+                    renderDBAddresses();
+
+                } catch(err) {
+                    console.error(err);
+                    dbAddressesContainer.innerHTML = '';
+                }
+            }
+
+            // Exponer global para el onClick
+            window.selectDBAddress = function(id) {
+                const addy = dbAddresses.find(d => d.id === parseInt(id));
+                if(addy) {
+                    currentLat = addy.latitud || currentLat;
+                    currentLng = addy.longitud || currentLng;
+                    
+                    // Call backend to set primary
+                    fetch(`/api/direcciones/${id}/principal`, { method: 'PUT' });
+                    
+                    saveAddressLocally(addy.direccionCompleta, currentLat, currentLng);
+                }
+            }
+
+            function renderDBAddresses() {
+                if(dbAddresses.length === 0) {
+                    dbAddressesContainer.innerHTML = `<p class="text-[11px] text-center text-gray-400 py-3">AÃºn no tienes direcciones en tu cuenta H2.</p>`;
+                    return;
+                }
+                
+                dbAddressesContainer.innerHTML = dbAddresses.map(d => {
+                    const isPrim = (localStorage.getItem('user_address') === d.direccionCompleta);
+                    let iconAlias = 'ðŸ“';
+                    if(d.alias === 'Casa') iconAlias = 'ðŸ ';
+                    if(d.alias === 'Trabajo') iconAlias = 'ðŸ’¼';
+                    if(d.alias === 'Finca') iconAlias = 'ðŸ¡';
+
+                    return `
+                    <div class="flex items-center justify-between py-2 cursor-pointer group hover:bg-gray-50 rounded-xl px-3 transition-colors border border-transparent ${isPrim ? 'bg-green-50' : ''}" onclick="selectDBAddress('${d.id}')">
+                        <div class="flex items-start gap-3">
+                            <div class="text-lg opacity-80 group-hover:scale-110 transition-transform">${iconAlias}</div>
+                            <div>
+                                <h4 class="font-bold text-[13px] ${isPrim ? 'text-green-800' : 'text-gray-800'} leading-none mb-1">${d.alias || 'DirecciÃ³n'}</h4>
+                                <p class="text-[11px] text-gray-500 font-medium tracking-tight truncate max-w-[200px]">${d.direccionCompleta}</p>
+                                ${d.detalles ? `<p class="text-[9px] text-gray-400 mt-0.5">${d.detalles}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="${isPrim ? 'text-green-500' : 'text-gray-200 group-hover:text-green-300'} transition-colors ml-2">
+                            <i class="${isPrim ? 'fas fa-check-circle' : 'far fa-circle'} text-lg"></i>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+        });
