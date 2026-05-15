@@ -179,53 +179,43 @@
                 <div id="historial-section" class="glass-card p-6 border-t-4 border-t-blue-500">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"><i class="fas fa-list-ul"></i></div>
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"><i class="fas fa-exchange-alt"></i></div>
                             <div>
                                 <h2 class="text-lg font-black text-slate-800">Historial de Movimientos</h2>
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Últimas transacciones</p>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Extracto financiero</p>
                             </div>
                         </div>
-                        <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full" th:text="${totalTransacciones} + ' movimientos'">0</span>
+                        <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full" th:text="${historial.size()} + ' movimientos'">0</span>
                     </div>
 
                     <div th:if="${historial.isEmpty()}" class="text-center py-16">
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300 text-3xl"><i class="fas fa-piggy-bank"></i></div>
                         <h3 class="text-lg font-black text-gray-400 mb-2">Sin movimientos aún</h3>
-                        <p class="text-sm text-gray-400 font-medium max-w-md mx-auto">Cuando tus clientes compren tus productos, verás cada transacción aquí con todos los detalles.</p>
+                        <p class="text-sm text-gray-400 font-medium max-w-md mx-auto">Cuando tus clientes compren y reciban tus productos, cada movimiento de dinero aparecerá aquí.</p>
                     </div>
 
-                    <div th:unless="${historial.isEmpty()}" class="overflow-x-auto rounded-2xl border border-gray-100">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/80 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-bold">
-                                    <th class="p-4 pl-6">Fecha</th>
-                                    <th class="p-4">Producto</th>
-                                    <th class="p-4 text-center">Cant.</th>
-                                    <th class="p-4 text-right">Monto</th>
-                                    <th class="p-4 text-right">Comisión</th>
-                                    <th class="p-4 text-right pr-6">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                <tr th:each="tx : ${historial}" class="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                                    <td class="p-4 pl-6">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center text-xs"><i class="fas fa-arrow-down"></i></div>
-                                            <span class="font-bold text-gray-700 text-xs" th:text="${tx.fecha}">2024-01-01</span>
-                                        </div>
-                                    </td>
-                                    <td class="p-4 font-bold text-gray-800" th:text="${tx.descripcion}">Producto</td>
-                                    <td class="p-4 text-center font-bold text-gray-600" th:text="${tx.cantidad}">0</td>
-                                    <td class="p-4 text-right font-black text-green-600" th:text="'$' + ${#numbers.formatDecimal(tx.monto, 0, 'COMMA', 0, 'POINT')}">$0</td>
-                                    <td class="p-4 text-right font-bold text-amber-500 text-xs" th:text="'-$' + ${#numbers.formatDecimal(tx.monto * 0.05, 0, 'COMMA', 0, 'POINT')}">-$0</td>
-                                    <td class="p-4 pr-6 text-right">
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
-                                              th:classappend="${tx.estado == 'ENTREGADO' || tx.estado == 'COMPLETADO'} ? 'bg-green-50 text-green-600 border border-green-100' : (${tx.estado == 'CANCELADO'} ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100')"
-                                              th:text="${tx.estado}">NUEVO</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div th:unless="${historial.isEmpty()}" class="space-y-3">
+                        <div th:each="tx : ${historial}" class="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-gray-100 hover:bg-white hover:shadow-sm transition-all">
+                            <!-- ICONO -->
+                            <div th:classappend="${tx.colorIcono == 'green'} ? 'bg-green-50 text-green-500' : (${tx.colorIcono == 'amber'} ? 'bg-amber-50 text-amber-500' : (${tx.colorIcono == 'red'} ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'))"
+                                 class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                <i th:classappend="'fas ' + ${tx.icono}"></i>
+                            </div>
+                            <!-- DETALLE -->
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-gray-800 truncate" th:text="${tx.descripcion}">Movimiento</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest" th:text="${tx.fecha}">2024-01-01</p>
+                            </div>
+                            <!-- MONTO -->
+                            <div class="text-right shrink-0">
+                                <p class="text-sm font-black"
+                                   th:classappend="${tx.signo == '+'} ? 'text-green-600' : (${tx.signo == '-'} ? 'text-amber-600' : (${tx.signo == 'x'} ? 'text-red-400 line-through' : 'text-blue-600'))"
+                                   th:text="${tx.signo} + '$' + ${#numbers.formatDecimal(tx.monto, 0, 'COMMA', 0, 'POINT')}">$0</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold mt-1"
+                                      th:classappend="${tx.estado == 'COMPLETADO'} ? 'bg-green-50 text-green-600' : (${tx.estado == 'APLICADO'} ? 'bg-amber-50 text-amber-600' : (${tx.estado == 'CANCELADO'} ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-600'))"
+                                      th:text="${tx.estado}">ESTADO</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

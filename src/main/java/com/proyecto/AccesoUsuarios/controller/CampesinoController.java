@@ -569,59 +569,113 @@ public class CampesinoController {
         int totalTransacciones = 0;
         int transaccionesCompletadas = 0;
 
-        // Agrupar por mes para gráfica
         String[] MESES = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
         Map<Integer, Double> ingresosPorMes = new LinkedHashMap<>();
 
-        // Historial de transacciones (últimas 50)
-        List<Map<String, Object>> historial = new ArrayList<>();
-
+        // Agrupar ventas por Orden para generar movimientos financieros
+        Map<Long, List<DetalleOrden>> ventasPorOrden = new LinkedHashMap<>();
         for (DetalleOrden d : ventas) {
-            Orden o = d.getOrden();
-            if (o == null) continue;
-            totalTransacciones++;
-            double monto = d.getTotal() != null ? d.getTotal() : 0.0;
-
-            String estado = o.getEstado() != null ? o.getEstado().toUpperCase() : "NUEVO";
-
-            if ("ENTREGADO".equals(estado) || "COMPLETADO".equals(estado)) {
-                ingresosBrutos += monto;
-                transaccionesCompletadas++;
-            } else if (!"CANCELADO".equals(estado)) {
-                pagoPendiente += monto;
+            if (d.getOrden() != null) {
+                ventasPorOrden.computeIfAbsent(d.getOrden().getId(), k -> new ArrayList<>()).add(d);
             }
-
-            // Agrupar por mes
-            if (o.getFechaCreacion() != null) {
-                int mes = o.getFechaCreacion().getMonthValue();
-                ingresosPorMes.merge(mes, monto, Double::sum);
-            }
-
-            // Construir historial
-            Map<String, Object> tx = new HashMap<>();
-            tx.put("fecha", o.getFechaCreacion() != null ? o.getFechaCreacion().toLocalDate().toString() : "—");
-            tx.put("tipo", "VENTA");
-            tx.put("descripcion", d.getNombre() != null ? d.getNombre() : "Producto");
-            tx.put("cantidad", d.getCantidad() != null ? d.getCantidad() : 0);
-            tx.put("monto", monto);
-            tx.put("estado", estado);
-            historial.add(tx);
         }
 
-        // Ordenar historial por fecha (más reciente primero)
-        historial.sort((a, b) -> ((String) b.get("fecha")).compareTo((String) a.get("fecha")));
-        if (historial.size() > 50) historial = historial.subList(0, 50);
+        // Generar movimientos financieros (estilo extracto bancario)
+        List<Map<String, Object>> historial = new ArrayList<>();
 
-        // Comisión plataforma (5%)
+        for (Map.Entry<Long, List<DetalleOrden>> entry : ventasPorOrden.entrySet()) {
+            List<DetalleOrden> detalles = entry.getValue();
+            Orden orden = detalles.get(0).getOrden();
+            if (orden == null) continue;
+
+            double montoOrden = 0;
+            for (DetalleOrden d : detalles) {
+                montoOrden += d.getTotal() != null ? d.getTotal() : 0.0;
+            }
+
+            String estado = orden.getEstado() != null ? orden.getEstado().toUpperCase() : "NUEVO";
+            String fecha = orden.getFechaCreacion() != null ? orden.getFechaCreacion().toLocalDate().toString() : "—";
+            totalTransacciones++;
+
+            // Agrupar por mes
+            if (orden.getFechaCreacion() != null) {
+                int mes = orden.getFechaCreacion().getMonthValue();
+                ingresosPorMes.merge(mes, montoOrden, Double::sum);
+            }
+
+            if ("ENTREGADO".equals(estado) || "COMPLETADO".equals(estado)) {
+                ingresosBrutos += montoOrden;
+                transaccionesCompletadas++;
+                double comision = montoOrden * 0.05;
+                double neto = montoOrden - comision;
+
+                // Movimiento 1: Ingreso recibido
+                Map<String, Object> txIngreso = new HashMap<>();
+                txIngreso.put("fecha", fecha);
+                txIngreso.put("tipo", "INGRESO");
+                txIngreso.put("icono", "fa-arrow-down");
+                txIngreso.put("colorIcono", "green");
+                txIngreso.put("descripcion", "Pago recibido — Pedido #" + orden.getId());
+                txIngreso.put("monto", montoOrden);
+                txIngreso.put("signo", "+");
+                txIngreso.put("estado", "COMPLETADO");
+                historial.add(txIngreso);
+
+                // Movimiento 2: Comisión descontada
+                Map<String, Object> txComision = new HashMap<>();
+                txComision.put("fecha", fecha);
+                txComision.put("tipo", "COMISION");
+                txComision.put("icono", "fa-percent");
+                txComision.put("colorIcono", "amber");
+                txComision.put("descripcion", "Comisión AgroConecta (5%)");
+                txComision.put("monto", comision);
+                txComision.put("signo", "-");
+                txComision.put("estado", "APLICADO");
+                historial.add(txComision);
+
+            } else if ("CANCELADO".equals(estado)) {
+                // Movimiento: Orden cancelada
+                Map<String, Object> txCancel = new HashMap<>();
+                txCancel.put("fecha", fecha);
+                txCancel.put("tipo", "CANCELADO");
+                txCancel.put("icono", "fa-ban");
+                txCancel.put("colorIcono", "red");
+                txCancel.put("descripcion", "Pedido #" + orden.getId() + " cancelado");
+                txCancel.put("monto", montoOrden);
+                txCancel.put("signo", "x");
+                txCancel.put("estado", "CANCELADO");
+                historial.add(txCancel);
+
+            } else {
+                pagoPendiente += montoOrden;
+                // Movimiento: Pago en espera
+                Map<String, Object> txPend = new HashMap<>();
+                txPend.put("fecha", fecha);
+                txPend.put("tipo", "PENDIENTE");
+                txPend.put("icono", "fa-hourglass-half");
+                txPend.put("colorIcono", "blue");
+                txPend.put("descripcion", "Pago retenido — Pedido #" + orden.getId() + " en proceso");
+                txPend.put("monto", montoOrden);
+                txPend.put("signo", "~");
+                txPend.put("estado", "EN ESPERA");
+                historial.add(txPend);
+            }
+        }
+
+        // Ordenar por fecha descendente
+        historial.sort((a, b) -> ((String) b.get("fecha")).compareTo((String) a.get("fecha")));
+        if (historial.size() > 60) historial = historial.subList(0, 60);
+
+        // Comisión total y neto
         double comisionTotal = ingresosBrutos * 0.05;
         double ingresosNetos = ingresosBrutos - comisionTotal;
 
-        // Datos para gráfica de ingresos mensuales
+        // Datos para gráfica
         List<Map<String, Object>> datosMensuales = new ArrayList<>();
-        for (Map.Entry<Integer, Double> entry : ingresosPorMes.entrySet()) {
+        for (Map.Entry<Integer, Double> e : ingresosPorMes.entrySet()) {
             Map<String, Object> m = new HashMap<>();
-            m.put("mes", MESES[entry.getKey() - 1]);
-            m.put("total", entry.getValue());
+            m.put("mes", MESES[e.getKey() - 1]);
+            m.put("total", e.getValue());
             datosMensuales.add(m);
         }
 
@@ -638,7 +692,7 @@ public class CampesinoController {
         try {
             ObjectMapper mapper = new ObjectMapper();
             model.addAttribute("datosMensualesJson", mapper.writeValueAsString(datosMensuales));
-        } catch (Exception e) {
+        } catch (Exception ex) {
             model.addAttribute("datosMensualesJson", "[]");
         }
 

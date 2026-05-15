@@ -9,7 +9,15 @@
         </div>
     </div>
     
-    <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
+    <style>
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        .sidebar-nav { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
+    </style>
+
+    <nav class="sidebar-nav flex-1 py-6 space-y-2 px-6 overflow-y-auto">
         <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Panel del Productor</p>
         
         <a th:href="@{/campesino/productos}" 
