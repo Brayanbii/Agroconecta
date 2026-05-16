@@ -88,7 +88,8 @@ public class OrdenController {
     public String pagarOrden(Authentication auth, Model model, HttpServletRequest request,
                              @RequestParam(required = false) String direccionEnvio,
                              @RequestParam(required = false) Double latitudEnvio,
-                             @RequestParam(required = false) Double longitudEnvio) {
+                             @RequestParam(required = false) Double longitudEnvio,
+                             @RequestParam(required = false, defaultValue = "0.0") Double propina) {
         if (carritoService.obtenerItems().isEmpty()) {
             return "redirect:/tienda";
         }
@@ -110,11 +111,16 @@ public class OrdenController {
         String email = auth.getName(); 
         Usuario usuario = usuarioRepo.findByEmail(email).orElseThrow();
 
+        Double subtotal = carritoService.obtenerTotal();
+        Double costoEnvio = 3500.0;
+        Double tarifaServicio = subtotal * 0.05;
+        Double granTotal = subtotal + costoEnvio + tarifaServicio + propina;
+
         Orden orden = new Orden();
         orden.setFechaCreacion(LocalDateTime.now());
         orden.setNumeroOrden(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         orden.setUsuario(usuario);
-        orden.setTotal(carritoService.obtenerTotal());
+        orden.setTotal(granTotal);
         orden.setEstado("Pendiente");
         orden.setDireccionEnvio(direccionEnvio != null && !direccionEnvio.isEmpty() ? direccionEnvio : "Dirección no especificada");
         orden.setLatitudEnvio(latitudEnvio);
@@ -143,7 +149,7 @@ public class OrdenController {
         // Fase 2: Mandar preferencia a MP
         try {
             String serverUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-            Preference preference = mercadoPagoService.crearPreferenciaDePago(carritoService.obtenerItems(), serverUrl, orden.getId().toString());
+            Preference preference = mercadoPagoService.crearPreferenciaDePago(carritoService.obtenerItems(), serverUrl, orden.getId().toString(), tarifaServicio, propina);
             
             // Vaciar carrito luego de crear la preferencia (Opcional, en la vida real se vacía en el success)
             carritoService.limpiarCarrito();
@@ -152,8 +158,9 @@ public class OrdenController {
             return "redirect:" + preference.getInitPoint();
             
         } catch (Exception e) {
+            System.err.println("❌ Error en MercadoPago: " + e.getMessage());
             e.printStackTrace();
-            return "redirect:/checkout?error=mercadopago_fallo";
+            return "redirect:/orden/checkout?error=mercadopago_fallo";
         }
     }
     

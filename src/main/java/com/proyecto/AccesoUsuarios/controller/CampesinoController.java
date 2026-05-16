@@ -8,6 +8,8 @@ import com.proyecto.AccesoUsuarios.model.Resena;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
+import com.proyecto.AccesoUsuarios.repository.FavoritoCampesinoRepository;
+import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.service.UploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,12 @@ public class CampesinoController {
 
     @Autowired
     private PythonService pythonService;
+    
+    @Autowired
+    private FavoritoCampesinoRepository favoritoCampesinoRepo;
+
+    @Autowired
+    private FavoritoProductoRepository favoritoProductoRepo;
 
     @GetMapping("/nuevo")
     public String nuevoProducto(Model model, Authentication auth) {
@@ -438,6 +446,13 @@ public class CampesinoController {
         model.addAttribute("dist3", distribucion[2]);
         model.addAttribute("dist4", distribucion[3]);
         model.addAttribute("dist5", distribucion[4]);
+        
+        // --- NUEVO: ESTADÍSTICAS DE FAVORITOS (LIKES) ---
+        int likesPerfil = favoritoCampesinoRepo.countByCampesino(campesino);
+        int likesProductos = favoritoProductoRepo.countByProducto_Usuario(campesino);
+        
+        model.addAttribute("likesPerfil", likesPerfil);
+        model.addAttribute("likesProductos", likesProductos);
         
         return "campesino_reputacion";
     }

@@ -90,7 +90,7 @@
             <div class="max-w-6xl mx-auto space-y-10">
 
                 <!-- ROW 1: KPI CARDS -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mt-10 relative z-20">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5 mt-10 relative z-20">
                     <div class="fade-up bg-white rounded-[1.5rem] p-5 shadow-lg border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Total Reseñas</span>
@@ -122,6 +122,26 @@
                         </div>
                         <p class="text-3xl font-black text-gray-900" th:text="${oportunidadesMejora.size()}">0</p>
                         <div class="w-full h-1 mt-3 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 opacity-30"></div>
+                    </div>
+                    
+                    <!-- LIKES PERFIL -->
+                    <div class="fade-up bg-white rounded-[1.5rem] p-5 shadow-lg border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all" style="animation-delay: .3s">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Likes de Perfil</span>
+                            <div class="bg-red-50 text-red-500 p-2 rounded-xl"><i class="fas fa-heart"></i></div>
+                        </div>
+                        <p class="text-3xl font-black text-gray-900" th:text="${likesPerfil}">0</p>
+                        <div class="w-full h-1 mt-3 rounded-full bg-gradient-to-r from-red-400 to-rose-500 opacity-30"></div>
+                    </div>
+                    
+                    <!-- LIKES PRODUCTOS -->
+                    <div class="fade-up bg-white rounded-[1.5rem] p-5 shadow-lg border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all" style="animation-delay: .35s">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Likes Productos</span>
+                            <div class="bg-fuchsia-50 text-fuchsia-500 p-2 rounded-xl"><i class="fas fa-shopping-bag"></i></div>
+                        </div>
+                        <p class="text-3xl font-black text-gray-900" th:text="${likesProductos}">0</p>
+                        <div class="w-full h-1 mt-3 rounded-full bg-gradient-to-r from-fuchsia-400 to-purple-500 opacity-30"></div>
                     </div>
                 </div>
 

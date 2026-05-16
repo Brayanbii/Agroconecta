@@ -5,6 +5,7 @@ import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.ResenaRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import com.proyecto.AccesoUsuarios.repository.FavoritoCampesinoRepository;
 import com.proyecto.AccesoUsuarios.service.CarritoService;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.model.Usuario;
@@ -57,6 +58,9 @@ public class DashboardController {
 
     @Autowired
     private PythonService pythonService;
+    
+    @Autowired
+    private FavoritoCampesinoRepository favoritoCampesinoRepo;
 
     // 1. PANEL ADMIN
     @GetMapping("/admin/dashboard")
@@ -509,6 +513,19 @@ public class DashboardController {
         }
         
         model.addAttribute("favoritosIds", favoritosIds);
+        
+        // --- NUEVO: FAVORITOS CAMPESINO ---
+        int likesPerfil = favoritoCampesinoRepo.countByCampesino(campesino);
+        model.addAttribute("likesPerfil", likesPerfil);
+        
+        boolean isFavorito = false;
+        if (auth != null && auth.isAuthenticated()) {
+            Usuario usuarioObj = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+            if (usuarioObj != null) {
+                isFavorito = favoritoCampesinoRepo.existsByClienteAndCampesino(usuarioObj, campesino);
+            }
+        }
+        model.addAttribute("isFavorito", isFavorito);
         
         return "campesino_perfil_publico";
     }

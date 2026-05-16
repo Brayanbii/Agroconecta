@@ -37,7 +37,7 @@ public class MercadoPagoService {
      * En este paso simulamos la lógica Marketplace: El total se cobra, 
      * y especificamos un Marketplace Fee simulado.
      */
-    public Preference crearPreferenciaDePago(List<ItemCarrito> itemsCarrito, String serverUrl, String ordenId) throws Exception {
+    public Preference crearPreferenciaDePago(List<ItemCarrito> itemsCarrito, String serverUrl, String ordenId, Double tarifaServicio, Double propina) throws Exception {
         
         List<PreferenceItemRequest> itemsRequest = new ArrayList<>();
         
@@ -64,6 +64,26 @@ public class MercadoPagoService {
             .build();
         itemsRequest.add(envioRequest);
 
+        if (tarifaServicio != null && tarifaServicio > 0) {
+            itemsRequest.add(PreferenceItemRequest.builder()
+                .id("TARIFA-001")
+                .title("Tarifa de Servicio")
+                .quantity(1)
+                .currencyId("COP")
+                .unitPrice(new BigDecimal(tarifaServicio.intValue()))
+                .build());
+        }
+
+        if (propina != null && propina > 0) {
+            itemsRequest.add(PreferenceItemRequest.builder()
+                .id("PROPINA-001")
+                .title("Propina Campesino")
+                .quantity(1)
+                .currencyId("COP")
+                .unitPrice(new BigDecimal(propina.intValue()))
+                .build());
+        }
+
         // 2. Determinar URLs de Retorno (Redirección FrontEnd Fase 3)
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
             .success(serverUrl + "/orden/success")
@@ -74,14 +94,15 @@ public class MercadoPagoService {
         // 3. Simular Marketplace Fee
         // En una app real de MP, marketplace_fee define cuánto nos quedamos y el resto va al vendor.
         // Aquí tomamos $2200 COP de comisión + propinas si las hubiera.
-        BigDecimal comisionAgroconecta = new BigDecimal("2200"); 
+        // NOTA: Comentado porque en cuentas Sandbox sin configurar Marketplace explícitamente, lanza error 400.
+        // BigDecimal comisionAgroconecta = new BigDecimal("2200"); 
 
         // Ensamblar Petición y mandar a Servidores de Mercado Pago
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
             .items(itemsRequest)
             .backUrls(backUrls)
-            .autoReturn("approved") // Autoredireccionar si fue aprobado
-            .marketplaceFee(comisionAgroconecta) 
+            // .autoReturn("approved") // Autoredireccionar si fue aprobado (Falla localmente con localhost)
+            // .marketplaceFee(comisionAgroconecta) 
             .externalReference(ordenId) // <--- CONEXIÓN CON NUESTRA BASE DE DATOS
             .statementDescriptor("AGROCONECTA")
             .build();
