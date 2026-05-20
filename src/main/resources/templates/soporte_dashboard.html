@@ -33,17 +33,48 @@
                 </div>
                 Bandeja de Entrada
             </a>
+            <a href="/soporte/dashboard" class="text-gray-600 flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-all duration-300">
+                    <i class="fas fa-chart-bar text-gray-400 group-hover:text-blue-600"></i> 
+                </div>
+                Estadísticas
+            </a>
+
+            <p class="px-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 mt-8">Navegación</p>
+            <a href="/" class="text-gray-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-all duration-300">
+                    <i class="fas fa-home text-gray-400 group-hover:text-green-600"></i> 
+                </div>
+                Inicio
+            </a>
+            <a href="/tienda" class="text-gray-600 flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl hover:bg-gray-50 transition-all duration-300 group">
+                <div class="bg-gray-100 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-amber-100 transition-all duration-300">
+                    <i class="fas fa-store text-gray-400 group-hover:text-amber-600"></i> 
+                </div>
+                Tienda
+            </a>
         </nav>
 
-        <div class="p-6">
+        <div class="p-6 space-y-4">
+            <!-- Toggle Online/Offline -->
+            <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-satellite-dish text-orange-500"></i>
+                    <span class="text-xs font-bold text-gray-700">Estado del agente</span>
+                </div>
+                <button id="toggle-disponibilidad-btn" onclick="toggleDisponibilidad()" class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none bg-gray-300" title="Cambiar disponibilidad">
+                    <span id="toggle-circle" class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 translate-x-1"></span>
+                </button>
+            </div>
+
             <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-extrabold shadow-sm">
-                        <span th:text="${#authentication.name.substring(0,2).toUpperCase()}">SP</span>
+                        <span id="agente-iniciales">SP</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-gray-800 truncate" th:text="${#authentication.name}">Agente</p>
-                        <p class="text-xs text-green-500 font-bold truncate"><i class="fas fa-circle text-[8px] mr-1"></i> En línea</p>
+                        <p class="text-sm font-bold text-gray-800 truncate" id="agente-nombre">Agente</p>
+                        <p class="text-xs font-bold truncate" id="agente-estado-label"><i class="fas fa-circle text-[8px] mr-1 text-gray-400"></i> Cargando...</p>
                     </div>
                 </div>
                 <form action="/logout" method="post" class="m-0">
@@ -76,81 +107,145 @@
             
             <!-- TARJETAS DE ESTADÍSTICAS -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="bg-gradient-to-br from-white to-red-50/30 p-6 rounded-3xl shadow-sm border border-red-100 flex items-center gap-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-100 to-red-50 text-red-500 flex items-center justify-center text-2xl shrink-0 shadow-inner"><i class="fas fa-exclamation-triangle"></i></div>
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Urgentes (>24h)</p>
-                        <p class="text-2xl font-extrabold text-gray-800" th:text="${urgentesCount}">0</p>
+                        <p class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest">Urgentes (>24h)</p>
+                        <p class="text-3xl font-extrabold text-gray-900" th:text="${urgentesCount}">0</p>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-spinner"></i></div>
+                <div class="bg-gradient-to-br from-white to-blue-50/30 p-6 rounded-3xl shadow-sm border border-blue-100 flex items-center gap-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 text-blue-500 flex items-center justify-center text-2xl shrink-0 shadow-inner"><i class="fas fa-spinner"></i></div>
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">En Progreso</p>
-                        <p class="text-2xl font-extrabold text-gray-800" th:text="${enProgresoCount}">0</p>
+                        <p class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest">En Progreso</p>
+                        <p class="text-3xl font-extrabold text-gray-900" th:text="${enProgresoCount}">0</p>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-check-circle"></i></div>
+                <div class="bg-gradient-to-br from-white to-green-50/30 p-6 rounded-3xl shadow-sm border border-green-100 flex items-center gap-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-100 to-green-50 text-green-500 flex items-center justify-center text-2xl shrink-0 shadow-inner"><i class="fas fa-check-circle"></i></div>
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Resueltos</p>
-                        <p class="text-2xl font-extrabold text-gray-800" th:text="${cerradosCount}">0</p>
+                        <p class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest">Resueltos</p>
+                        <p class="text-3xl font-extrabold text-gray-900" th:text="${cerradosCount}">0</p>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl shrink-0"><i class="fas fa-user-times"></i></div>
-                    <div class="min-w-0">
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Problema Mayor</p>
-                        <p class="text-sm font-extrabold text-gray-800 truncate" th:text="${usuarioProblematico}">Usuario</p>
+                <div class="bg-gradient-to-br from-white to-purple-50/30 p-6 rounded-3xl shadow-sm border border-purple-100 flex items-center gap-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 text-purple-500 flex items-center justify-center text-2xl shrink-0 shadow-inner"><i class="fas fa-star"></i></div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-extrabold uppercase tracking-widest">Satisfacción</p>
+                        <p class="text-3xl font-extrabold text-gray-900">98%</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+            <!-- TABLA DE TICKETS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                    <h2 class="text-lg font-extrabold text-gray-800">Tickets Recientes</h2>
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="Buscar ticket..." class="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                        <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-50 transition"><i class="fas fa-filter mr-1"></i> Filtrar</button>
+                    </div>
+                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-white border-b border-gray-100 text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">
+                        <tr>
                             <th class="p-4 pl-6">ID</th>
                             <th class="p-4">Usuario</th>
+                            <th class="p-4">Tipo</th>
                             <th class="p-4">Asunto</th>
                             <th class="p-4">Estado</th>
                             <th class="p-4">Última Actividad</th>
                             <th class="p-4 pr-6 text-right">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm">
-                        <tr th:each="t : ${tickets}" class="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                            <td class="p-4 pl-6 font-mono text-gray-500 font-bold" th:text="'#' + ${t.id}">#1</td>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr th:each="t : ${tickets}" class="hover:bg-orange-50/30 transition-colors group cursor-pointer" th:onclick="'window.location.href=\'/soporte/ticket/' + ${t.id} + '\''">
+                            <td class="p-4 pl-6 text-gray-500 font-bold">#[[${t.id}]]</td>
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-bold" th:text="${#strings.substring(t.usuario.nombreCompleto,0,1).toUpperCase()}">U</div>
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xs" th:text="${#strings.substring(t.usuario.nombreCompleto,0,1)}">U</div>
                                     <div>
-                                        <p class="font-bold text-gray-900" th:text="${t.usuario.nombreCompleto}">Nombre</p>
-                                        <p class="text-[10px] text-gray-400 font-mono" th:text="${t.usuario.rol}">ROL</p>
+                                        <p class="font-bold text-gray-800" th:text="${t.usuario.nombreCompleto}">Usuario</p>
+                                        <p class="text-[10px] text-gray-400" th:text="${t.usuario.email}">email</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4 font-bold text-gray-800" th:text="${t.asunto}">Asunto</td>
                             <td class="p-4">
-                                <span th:if="${t.estado == 'ABIERTO'}" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-bold border border-red-200">Abierto</span>
-                                <span th:if="${t.estado == 'EN_PROGRESO'}" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold border border-blue-200">En Progreso</span>
-                                <span th:if="${t.estado == 'CERRADO'}" class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs font-bold border border-gray-200">Cerrado</span>
+                                <div class="flex flex-col items-start gap-1">
+                                    <span th:classappend="${t.prioridad == 'CRITICA' ? 'text-red-600 bg-red-50 border-red-100' : (t.prioridad == 'ALTA' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-gray-500 bg-gray-100 border-gray-200')}" 
+                                          class="px-2 py-0.5 rounded border text-[9px] font-extrabold tracking-widest uppercase" th:text="${t.prioridad}">
+                                    </span>
+                                    <span class="text-xs font-bold text-gray-600 uppercase" th:text="${t.tipo}">TIPO</span>
+                                </div>
+                            </td>
+                            <td class="p-4 font-bold text-gray-800 max-w-[200px] truncate" th:text="${t.asunto}">Asunto</td>
+                            <td class="p-4">
+                                <span th:if="${t.estado == 'ABIERTO'}" class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-extrabold border border-red-200 flex items-center gap-1.5 w-max tracking-widest uppercase"><span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Abierto</span>
+                                <span th:if="${t.estado == 'EN_PROGRESO'}" class="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-extrabold border border-blue-200 flex items-center gap-1.5 w-max tracking-widest uppercase"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> En Progreso</span>
+                                <span th:if="${t.estado == 'CERRADO'}" class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-extrabold border border-gray-200 flex items-center gap-1.5 w-max tracking-widest uppercase"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Cerrado</span>
                             </td>
                             <td class="p-4 text-gray-500 text-xs font-medium" th:text="${#temporals.format(t.fechaActualizacion, 'dd/MM/yyyy HH:mm')}">Fecha</td>
                             <td class="p-4 pr-6 text-right">
-                                <a th:href="@{'/soporte/ticket/' + ${t.id}}" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:border-orange-500 hover:text-orange-600 rounded-lg font-bold text-xs transition shadow-sm inline-block">
-                                    Atender <i class="fas fa-arrow-right ml-1"></i>
+                                <a th:href="@{'/soporte/ticket/' + ${t.id}}" class="w-8 h-8 rounded-full bg-gray-50 text-gray-400 hover:bg-orange-500 hover:text-white flex items-center justify-center transition-all inline-flex group-hover:scale-110 shadow-sm">
+                                    <i class="fas fa-chevron-right text-xs"></i>
                                 </a>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(tickets)}">
-                            <td colspan="6" class="p-8 text-center text-gray-400 font-medium">No hay tickets de soporte en este momento.</td>
+                            <td colspan="7" class="p-8 text-center text-gray-400 font-medium">No hay tickets de soporte en este momento.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <script>
+        let isOnline = false;
+
+        // Load agent info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/soporte/mi-info')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('agente-nombre').innerText = data.nombre;
+                    const iniciales = data.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    document.getElementById('agente-iniciales').innerText = iniciales;
+                    
+                    isOnline = data.disponible === true;
+                    updateToggleUI(isOnline);
+                });
+        });
+
+        function toggleDisponibilidad() {
+            fetch('/soporte/toggle-disponibilidad', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    isOnline = data.disponible;
+                    updateToggleUI(isOnline);
+                });
+        }
+
+        function updateToggleUI(online) {
+            const btn = document.getElementById('toggle-disponibilidad-btn');
+            const circle = document.getElementById('toggle-circle');
+            const label = document.getElementById('agente-estado-label');
+            
+            if (online) {
+                btn.classList.remove('bg-gray-300');
+                btn.classList.add('bg-green-500');
+                circle.classList.remove('translate-x-1');
+                circle.classList.add('translate-x-8');
+                label.innerHTML = '<i class="fas fa-circle text-[8px] mr-1 text-green-500 animate-pulse"></i> <span class="text-green-600">En línea</span>';
+            } else {
+                btn.classList.remove('bg-green-500');
+                btn.classList.add('bg-gray-300');
+                circle.classList.remove('translate-x-8');
+                circle.classList.add('translate-x-1');
+                label.innerHTML = '<i class="fas fa-circle text-[8px] mr-1 text-gray-400"></i> <span class="text-gray-500">Desconectado</span>';
+            }
+        }
+    </script>
 
 </body>
 </html>

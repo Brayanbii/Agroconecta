@@ -130,74 +130,106 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             <div th:each="p, iterStat : ${productos}" 
                  class="product-card bg-white rounded-3xl shadow-bento border border-gray-100 overflow-hidden flex flex-col h-full group relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                 th:style="'animation-delay: ' + ${iterStat.index * 60} + 'ms'"
-                 th:classappend="${colorColeccion == 'red' ? 'border-2 border-red-100 hover:border-red-300' : ''}">
+                 th:style="'animation-delay: ' + ${iterStat.index * 60} + 'ms'">
                 
-                <!-- Badge con FontAwesome (sin emojis) -->
-                <span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide z-10 shadow-sm"
-                      th:classappend="${colorColeccion == 'orange' ? 'bg-white/90 backdrop-blur text-orange-600 border border-orange-100' : 
-                                       (colorColeccion == 'green' ? 'bg-green-600 text-white border border-green-500' : 
-                                       (colorColeccion == 'red' ? 'bg-red-600 text-white' : 
+                <!-- Badge para Destacados / Nuevos / Ofertas / Recomendados -->
+                <span th:if="${tipoColeccion == 'destacados' or tipoColeccion == 'nuevos' or tipoColeccion == 'ofertas' or tipoColeccion == 'recomendados'}" 
+                      class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide z-10 shadow-sm"
+                      th:classappend="${tipoColeccion == 'destacados' ? 'bg-white/90 backdrop-blur text-orange-600 border border-orange-100' : 
+                                       (tipoColeccion == 'nuevos' ? 'bg-green-600 text-white border border-green-500' : 
+                                       (tipoColeccion == 'ofertas' ? 'bg-red-600 text-white' : 
                                        'bg-purple-600 text-white'))}">
-                    <i th:classappend="${colorColeccion == 'orange' ? 'fas fa-fire mr-1' : 
-                                        (colorColeccion == 'green' ? 'fas fa-clock mr-1' : 
-                                        (colorColeccion == 'red' ? 'fas fa-bolt mr-1' : 
+                    <i th:classappend="${tipoColeccion == 'destacados' ? 'fas fa-fire mr-1' : 
+                                        (tipoColeccion == 'nuevos' ? 'fas fa-clock mr-1' : 
+                                        (tipoColeccion == 'ofertas' ? 'fas fa-bolt mr-1' : 
                                         'fas fa-star mr-1'))}"></i>
-                    <span th:text="${colorColeccion == 'orange' ? 'TOP VENTAS' : 
-                                    (colorColeccion == 'green' ? 'Nuevo' : 
-                                    (colorColeccion == 'red' ? 'Oferta Flash' : 
+                    <span th:text="${tipoColeccion == 'destacados' ? 'TOP VENTAS' : 
+                                    (tipoColeccion == 'nuevos' ? 'Nuevo' : 
+                                    (tipoColeccion == 'ofertas' ? 'Oferta Flash' : 
                                     'Para ti'))}">Badge</span>
                 </span>
 
                 <!-- Imagen -->
-                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-56 overflow-hidden bg-gray-100 block">
+                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 overflow-hidden bg-gray-100 block">
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
                          alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
+                    <!-- Botón Favorito -->
+                    <button type="button" th:onclick="'toggleFavorito(event, this, ' + ${p.id} + ')'" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm z-10" title="Añadir a favoritos">
+                        <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, p.id)} ? 'fas fa-heart text-red-500 scale-110' : 'far fa-heart'"></i>
+                    </button>
                 </a>
 
-                <!-- Cuerpo -->
-                <div class="p-5 flex-1 flex flex-col">
-                    <!-- Vendedor -->
+                <!-- Cuerpo de tarjeta -->
+                <div class="p-5 flex-1 flex flex-col relative">
+                    <!-- Vendedor (Avatar y Verificado) -->
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shadow-inner shrink-0">
                             <i class="fas fa-tractor"></i>
                         </div>
                         <div class="flex items-center gap-1 min-w-0">
-                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.userName : 'AgroConecta'}">Vendedor</span>
+                            <span class="text-xs text-gray-500 font-bold truncate max-w-[100px]" th:text="${p.usuario != null ? p.usuario.nombreCompleto : 'AgroConecta'}">Vendedor</span>
                             <i class="fas fa-check-circle text-blue-500 text-[11px] shrink-0" title="Productor Verificado"></i>
                         </div>
                     </div>
 
                     <a th:href="@{/tienda/producto/{id}(id=${p.id})}">
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors truncate" th:text="${p.nombre}">Nombre</h3>
+                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-green-700 transition-colors line-clamp-2" th:text="${p.nombre}">Nombre</h3>
                     </a>
                     
+                    <!-- Ubicación y Distancia -->
+                    <div class="flex items-center gap-1 mb-2 mt-1" th:if="${p.municipioOrigen != null}">
+                        <i class="fas fa-map-marker-alt text-red-500 text-[10px] shrink-0"></i>
+                        <span class="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider truncate max-w-[110px]" th:text="${p.municipioOrigen}">Lugar</span>
+                        
+                        <span th:if="${p.distanciaKm != null and p.distanciaKm < 9999}" 
+                              class="ml-auto bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm shrink-0">
+                              A <span th:text="${p.distanciaKm}"></span> km
+                        </span>
+                    </div>
+
                     <!-- Cosechado Hace... -->
-                    <div class="flex items-center gap-1.5 mb-3 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
+                    <div class="flex items-center gap-1.5 mb-2 w-max bg-green-50/80 px-2 py-1 rounded border border-green-100" th:if="${p.fechaCreacion != null}">
                         <i class="fas fa-leaf text-[10px] text-green-600"></i>
                         <span class="text-[10px] font-bold text-green-700 time-ago-badge" th:data-time="${p.fechaCreacion}">Cosechado recientemente</span>
                     </div>
 
-                    <!-- Precio -->
+                    <!-- Estrellas y Stock -->
+                    <div class="flex items-center gap-1 mb-4 mt-1">
+                        <i class="fas fa-star text-amber-400 text-[10px]"></i>
+                        <span class="text-xs font-extrabold text-gray-700" th:text="${p.promedioCalificacion > 0 ? p.promedioCalificacion : 'Nuevo'}">Nuevo</span>
+                        <span class="text-[10px] text-gray-400 font-medium ml-1" th:if="${p.totalResenas > 0}" th:text="'(' + ${p.totalResenas} + ')'">(0)</span>
+                        <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" th:classappend="${p.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}" th:text="${p.stock > 0 ? 'Disp: ' + p.stock + ' ' + p.getUnidadFormateada(p.stock) : 'Agotado'}">Disp: 0</span>
+                    </div>
+                    
                     <div class="mt-auto flex items-end justify-between">
                         <div>
-                            <div th:if="${colorColeccion == 'red'}" class="flex items-center gap-2 mb-1">
+                            <div th:if="${tipoColeccion == 'ofertas'}" class="flex items-center gap-2 mb-1">
                                 <span class="text-xs text-gray-400 line-through font-medium" th:text="'$' + ${#numbers.formatDecimal(p.precio * 1.15, 0, 0)}">$0</span>
                                 <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">-15%</span>
                             </div>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest" th:if="${colorColeccion != 'red'}">Precio</p>
+                            <p class="text-xs text-gray-400 font-semibold uppercase" th:if="${tipoColeccion != 'ofertas'}">Precio</p>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-extrabold" 
-                                      th:classappend="${colorColeccion == 'red' ? 'text-red-600' : 'text-green-600'}" 
-                                      th:text="'$' + ${p.precio}">$0</span>
+                                <span class="text-xl font-extrabold" th:classappend="${tipoColeccion == 'ofertas' ? 'text-red-600' : 'text-gray-900'}" th:text="'$' + ${p.precio}">$0</span>
+                                <span class="text-xs text-gray-500 font-medium" th:text="'/ ' + ${p.unidad}">x un</span>
                             </div>
                         </div>
-                        <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" 
-                                class="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm"
-                                th:classappend="${colorColeccion == 'red' ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-600 hover:text-white'}">
-                            <i class="fas fa-cart-plus text-sm"></i>
-                        </button>
+                        
+                        <div class="flex gap-2">
+                            <!-- Botón Vista Rápida -->
+                            <button type="button" 
+                                    th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
+                                    th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
+                                    th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
+                                    onclick="event.stopPropagation(); abrirModal(this)"
+                                    class="bg-white border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
+                                <i class="fas fa-eye text-sm"></i>
+                            </button>
+                            <!-- Botón Añadir -->
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
+                                <i class="fas fa-plus transition-all text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

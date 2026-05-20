@@ -6,6 +6,12 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import org.springframework.scheduling.annotation.Scheduled;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class PythonService {
@@ -13,60 +19,287 @@ public class PythonService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     // ============================================================
-    // 1. OBTENER PRECIOS (Migrado de Python a Java nativo)
+    // 1. OBTENER PRECIOS (Desde SIPSA DANE Python script con Caché)
     // ============================================================
+    
+    private volatile List<Map<String, Object>> cacheSipsa = null;
+    private volatile LocalDateTime ultimaActualizacion = null;
+    private volatile boolean actualizando = false;
+
+    /**
+     * Al arrancar el servidor, poblar el caché en segundo plano
+     * para que la primera petición del usuario NO se bloquee.
+     */
+    @PostConstruct
+    public void inicializarCacheAlArrancar() {
+        new Thread(() -> {
+            System.out.println("[SIPSA] Poblando caché en segundo plano al arrancar...");
+            actualizarCacheSipsa();
+            System.out.println("[SIPSA] Caché inicial listo.");
+        }, "sipsa-init").start();
+    }
+
     public Map<String, Object> obtenerPreciosDesdePython() {
-        List<Map<String, Object>> baseProducts = Arrays.asList(
-            createBaseProduct("Papa Sabanera", 2500, 400),
-            createBaseProduct("Yuca", 1800, 300),
-            createBaseProduct("Tomate Chonto", 3200, 600),
-            createBaseProduct("Cebolla Junca", 1500, 250),
-            createBaseProduct("Zanahoria", 1200, 200),
-            createBaseProduct("Plátano Hartón", 2000, 300),
-            createBaseProduct("Arroz Blanco", 3500, 250),
-            createBaseProduct("Maíz Amarillo", 1100, 150)
-        );
-
-        List<Map<String, Object>> data = new ArrayList<>();
-        // Semilla horaria: los precios cambian cada hora
-        Random random = new Random((long) LocalDateTime.now().getHour() + LocalDateTime.now().getDayOfYear()); 
+        LocalDateTime ahora = LocalDateTime.now();
         
-        int id = 1;
-        for (Map<String, Object> prod : baseProducts) {
-            String nombre = (String) prod.get("nombre");
-            int base = (int) prod.get("precio_base");
-            int var = (int) prod.get("variacion");
-            
-            int precioActual = base + (random.nextInt(var * 2 + 1) - var);
-            precioActual = Math.max(500, Math.round(precioActual / 50.0f) * 50);
-            
-            String tendencia = "estable";
-            double diff = (precioActual - base) / (double) base * 100;
-            if (diff > 4) tendencia = "alta";
-            else if (diff < -4) tendencia = "baja";
+        // Si no hay caché y no se está actualizando, lanzar actualización async
+        if (cacheSipsa == null && !actualizando) {
+            new Thread(this::actualizarCacheSipsa, "sipsa-async").start();
+        }
 
-            Map<String, Object> item = new HashMap<>();
-            item.put("id", id++);
-            item.put("nombre", nombre);
-            item.put("precio", precioActual);
-            item.put("tendencia", tendencia);
-            data.add(item);
+        // Combinar datos reales de SIPSA con nuestro extenso catálogo base
+        List<Map<String, Object>> baseProducts = obtenerCatalogoBase();
+        List<Map<String, Object>> datosCombinados = new ArrayList<>();
+        Set<String> nombresAgregados = new HashSet<>();
+
+        // 1. Agregar los de SIPSA (tienen prioridad)
+        if (cacheSipsa != null) {
+            for (Map<String, Object> p : cacheSipsa) {
+                String nombre = String.valueOf(p.get("nombre")).toLowerCase().trim();
+                
+                // Asignar categoría si no la tiene
+                if (!p.containsKey("categoria")) {
+                    p.put("categoria", asignarCategoria(nombre));
+                }
+                
+                datosCombinados.add(p);
+                nombresAgregados.add(nombre);
+            }
+        }
+
+        // 2. Agregar los del catálogo base que no estén en SIPSA
+        for (Map<String, Object> p : baseProducts) {
+            String nombre = String.valueOf(p.get("nombre")).toLowerCase().trim();
+            if (!nombresAgregados.contains(nombre)) {
+                // El base ya tiene categoría asignada en createBaseProduct
+                datosCombinados.add(p);
+                nombresAgregados.add(nombre);
+            }
         }
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("data", data);
-        response.put("fuente", "Mercado AgroConecta | Actualizado: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("data", datosCombinados);
+        
+        String fechaAct = ultimaActualizacion != null 
+            ? ultimaActualizacion.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) 
+            : ahora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            
+        response.put("fuente", "DANE Oficial SIPSA | Actualizado: " + fechaAct);
+        response.put("timestamp", ahora.toString());
         return response;
     }
 
-    private Map<String, Object> createBaseProduct(String name, int base, int var) {
+    // Tarea programada: Ejecutar todos los días a las 2:05 PM hora local de Colombia
+    @Scheduled(cron = "0 5 14 * * ?", zone = "America/Bogota")
+    public void scheduleDailySipsaUpdate() {
+        System.out.println("Iniciando actualización diaria programada de SIPSA DANE...");
+        actualizarCacheSipsa();
+    }
+
+    private synchronized void actualizarCacheSipsa() {
+        if (actualizando) return; // Ya hay otro hilo ejecutando
+        actualizando = true;
+        try {
+            // Asumiendo entorno de desarrollo/ejecución donde "python" está en el PATH
+            String scriptPath = "src/main/resources/python/sipsa_etl.py";
+            ProcessBuilder pb = new ProcessBuilder("python", scriptPath);
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    // Capturar solo la línea que parece ser JSON para evitar logs basura
+                    if (line.trim().startsWith("{")) {
+                        sb.append(line);
+                    }
+                }
+            }
+            p.waitFor();
+
+            ObjectMapper mapper = new ObjectMapper();
+            if (sb.length() > 0) {
+                Map<String, Object> jsonMap = mapper.readValue(sb.toString(), Map.class);
+
+                if ("success".equals(jsonMap.get("status"))) {
+                    cacheSipsa = (List<Map<String, Object>>) jsonMap.get("data");
+                    ultimaActualizacion = LocalDateTime.now();
+                    System.out.println("[SIPSA] CACHE ACTUALIZADO EXITOSAMENTE A LAS " + ultimaActualizacion);
+                } else {
+                    System.out.println("[SIPSA] Error en script interno: " + jsonMap.get("message"));
+                }
+            } else {
+                System.out.println("[SIPSA] No se obtuvo JSON válido del script de Python");
+            }
+        } catch (Exception e) {
+            System.err.println("[SIPSA] Error ejecutando sipsa_etl.py: " + e.getMessage());
+        } finally {
+            actualizando = false;
+        }
+    }
+
+    private List<Map<String, Object>> obtenerCatalogoBase() {
+        List<Map<String, Object>> base = new ArrayList<>(Arrays.asList(
+            // --- CAFÉ Y CACAO ---
+            createBaseProduct("Café Pergamino Seco", 18500),
+            createBaseProduct("Café Verde Malla 14", 17000),
+            createBaseProduct("Café Tostado en Grano", 25000),
+            createBaseProduct("Café Molido Tradicional", 22000),
+            createBaseProduct("Café Especial (Gourmet)", 35000),
+            createBaseProduct("Cacao Seco (Grano)", 15000),
+            createBaseProduct("Cacao en Pasta", 18000),
+            
+            // --- TUBÉRCULOS Y RAÍCES ---
+            createBaseProduct("Papa Sabanera", 3500),
+            createBaseProduct("Papa Pastusa", 2200),
+            createBaseProduct("Papa Criolla Lavada", 3800),
+            createBaseProduct("Papa Criolla Sucia", 3000),
+            createBaseProduct("Papa R-12", 2000),
+            createBaseProduct("Papa Rubí", 2100),
+            createBaseProduct("Yuca Llanera", 2000),
+            createBaseProduct("Yuca Armenia", 1800),
+            createBaseProduct("Arracacha Blanca", 3500),
+            createBaseProduct("Arracacha Amarilla", 3200),
+            createBaseProduct("Ñame Espino", 2800),
+            createBaseProduct("Ñame Criollo", 2500),
+            
+            // --- FRUTAS (CÍTRICOS) ---
+            createBaseProduct("Naranja Valencia", 1800),
+            createBaseProduct("Naranja Tangelo", 2500),
+            createBaseProduct("Naranja Sweety", 2200),
+            createBaseProduct("Naranja Ombligona", 2400),
+            createBaseProduct("Limón Tahití", 3500),
+            createBaseProduct("Limón Común", 2800),
+            createBaseProduct("Limón Mandarino", 2500),
+            createBaseProduct("Mandarina Arrayana", 2200),
+            createBaseProduct("Mandarina Oneco", 2400),
+            
+            // --- FRUTAS (TROPICALES) ---
+            createBaseProduct("Mango Tommy", 3000),
+            createBaseProduct("Mango de Azúcar", 4500),
+            createBaseProduct("Mango Yulima", 3200),
+            createBaseProduct("Mango Farchild", 3400),
+            createBaseProduct("Aguacate Hass", 6500),
+            createBaseProduct("Aguacate Papelillo", 5000),
+            createBaseProduct("Aguacate Lorena", 4800),
+            createBaseProduct("Aguacate Choquette", 5200),
+            createBaseProduct("Papaya Melona", 1500),
+            createBaseProduct("Papaya Hawaiana", 2200),
+            createBaseProduct("Papaya Maradol", 1800),
+            createBaseProduct("Banano Criollo", 1500),
+            createBaseProduct("Banano Urabá", 1200),
+            createBaseProduct("Banano Bocadillo", 1800),
+            createBaseProduct("Plátano Hartón Verde", 2500),
+            createBaseProduct("Plátano Maduro", 2200),
+            createBaseProduct("Plátano Guineo", 1500),
+            createBaseProduct("Plátano Dominico", 2000),
+            
+            // --- FRUTAS (OTRAS) ---
+            createBaseProduct("Uva Isabella", 4500),
+            createBaseProduct("Uva Red Globe", 9000),
+            createBaseProduct("Uva Verde Sin Semilla", 8500),
+            createBaseProduct("Fresa", 6000),
+            createBaseProduct("Mora de Castilla", 4200),
+            createBaseProduct("Lulo", 4000),
+            createBaseProduct("Maracuyá", 3800),
+            createBaseProduct("Granadilla", 5000),
+            createBaseProduct("Pitahaya Amarilla", 7000),
+            createBaseProduct("Guanábana", 3500),
+            createBaseProduct("Manzana Royal Gala", 5500),
+            createBaseProduct("Manzana Verde", 6000),
+            createBaseProduct("Melón Cantalupo", 2500),
+            createBaseProduct("Sandía (Patilla)", 1500),
+            createBaseProduct("Tomate de Árbol", 3500),
+            
+            // --- HORTALIZAS Y VERDURAS ---
+            createBaseProduct("Tomate Chonto", 3000),
+            createBaseProduct("Tomate Milano (Larga Vida)", 3200),
+            createBaseProduct("Cebolla Cabezona Blanca", 2000),
+            createBaseProduct("Cebolla Cabezona Roja", 2500),
+            createBaseProduct("Cebolla Larga (Junca)", 1800),
+            createBaseProduct("Zanahoria", 1500),
+            createBaseProduct("Pimentón Rojo", 2800),
+            createBaseProduct("Pimentón Verde", 2500),
+            createBaseProduct("Ají Dulce", 3500),
+            createBaseProduct("Ají Picante", 4000),
+            createBaseProduct("Pepino Cohombro", 1400),
+            createBaseProduct("Lechuga Batavia", 1200),
+            createBaseProduct("Lechuga Crespa", 1500),
+            createBaseProduct("Repollo Verde", 1500),
+            createBaseProduct("Repollo Morado", 1800),
+            createBaseProduct("Brócoli", 2800),
+            createBaseProduct("Coliflor", 2500),
+            createBaseProduct("Cilantro", 800),
+            createBaseProduct("Perejil Liso", 800),
+            createBaseProduct("Perejil Crespo", 900),
+            createBaseProduct("Apio", 1200),
+            createBaseProduct("Espinaca", 1500),
+            createBaseProduct("Habichuela", 2500),
+            createBaseProduct("Arveja Verde en Vaina", 5000),
+            
+            // --- GRANOS Y OTROS ---
+            createBaseProduct("Frijol Bola Roja", 6500),
+            createBaseProduct("Frijol Cargamanto", 7000),
+            createBaseProduct("Frijol Nima", 5500),
+            createBaseProduct("Lenteja Importada", 3800),
+            createBaseProduct("Garbanzo", 4000),
+            createBaseProduct("Maíz Amarillo Cáscara", 1500),
+            createBaseProduct("Maíz Blanco Trillado", 2200),
+            createBaseProduct("Mazorca Tierna", 1100),
+            createBaseProduct("Arroz Blanco Molienda", 3500),
+            createBaseProduct("Panela Cuadrada", 3000),
+            createBaseProduct("Panela Redonda", 3200),
+            createBaseProduct("Miel de Abejas (Litro)", 18000),
+            createBaseProduct("Queso Campesino", 12000),
+            createBaseProduct("Huevos AA (Unidad)", 500)
+        ));
+        return base;
+    }
+
+    private Map<String, Object> createBaseProduct(String name, int base) {
         Map<String, Object> map = new HashMap<>();
         map.put("nombre", name);
-        map.put("precio_base", base);
-        map.put("variacion", var);
+        map.put("precio", base);
+        map.put("tendencia", "estable");
+        map.put("categoria", asignarCategoria(name.toLowerCase()));
         return map;
+    }
+
+    private String asignarCategoria(String nombre) {
+        if (nombre == null) return "Otros";
+        
+        // Frutas
+        if (nombre.matches(".*(naranja|lim[oó]n|mandarina|mango|aguacate|papaya|banano|pl[aá]tano|uva|fresa|mora|lulo|maracuy[aá]|granadilla|pitahaya|guan[aá]bana|manzana|mel[oó]n|sand[ií]a|patilla|tomate de [aá]rbol|pera|durazno|pi[ñn]a).*")) {
+            return "Frutas";
+        }
+        // Tubérculos y Raíces
+        if (nombre.matches(".*(papa|yuca|arracacha|[ñn]ame|batata|ulluco|chugua|rubia).*")) {
+            return "Tubérculos y Raíces";
+        }
+        // Verduras y Hortalizas
+        if (nombre.matches(".*(tomate|cebolla|zanahoria|piment[oó]n|aj[ií]|pepino|lechuga|repollo|br[oó]coli|coliflor|cilantro|perejil|apio|espinaca|habichuela|acelga|ahuyama|calabaza|ajo|remolacha|r[aá]bano).*")) {
+            return "Verduras y Hortalizas";
+        }
+        // Granos y Cereales
+        if (nombre.matches(".*(frijol|fr[ií]jol|lenteja|garbanzo|ma[ií]z|mazorca|arroz|arveja|soya|trigo|cebada|avena).*")) {
+            return "Granos y Cereales";
+        }
+        // Café y Cacao
+        if (nombre.matches(".*(caf[eé]|cacao).*")) {
+            return "Café y Cacao";
+        }
+        // Huevos y Lácteos
+        if (nombre.matches(".*(huevo|leche|queso|mantequilla|cuajada|suero|kumis|yogurt).*")) {
+            return "Huevos y Lácteos";
+        }
+        // Otros procesados y abarrotes
+        if (nombre.matches(".*(panela|miel|az[uú]car|sal|aceite|manteca|harina|pasta|arepa|carne|pescado|pollo|cerdo).*")) {
+            return "Abarrotes y Proteínas";
+        }
+        
+        return "Otros";
     }
 
     // ============================================================

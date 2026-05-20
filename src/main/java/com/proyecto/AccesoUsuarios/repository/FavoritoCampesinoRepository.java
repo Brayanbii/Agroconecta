@@ -12,4 +12,5 @@ public interface FavoritoCampesinoRepository extends JpaRepository<FavoritoCampe
     Optional<FavoritoCampesino> findByClienteAndCampesino(Usuario cliente, Usuario campesino);
     int countByCampesino(Usuario campesino);
     boolean existsByClienteAndCampesino(Usuario cliente, Usuario campesino);
+    java.util.List<FavoritoCampesino> findByCliente(Usuario cliente);
 }

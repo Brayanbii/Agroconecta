@@ -77,7 +77,6 @@ public class CampesinoController {
         // --- CONEXIÓN CON PYTHON: Precios de Referencia ---
         Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
         if (respuesta != null) {
-            model.addAttribute("preciosReferencia", respuesta.get("data"));
             model.addAttribute("fuentePrecios", respuesta.get("fuente"));
         }
         // --------------------------------------------------
@@ -99,11 +98,8 @@ public class CampesinoController {
         model.addAttribute("producto", p);
 
         // --- CONEXIÓN CON SERVICIO DE PRECIOS ---
-        Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
-        if (respuesta != null) {
-            model.addAttribute("preciosReferencia", respuesta.get("data"));
-            model.addAttribute("fuentePrecios", respuesta.get("fuente"));
-        }
+        // Removido a favor de la API en tiempo real en SipsaController (/api/sipsa/precio)
+        // --------------------------------------------------
 
         return "campesino_producto_prueba";
     }
@@ -111,6 +107,9 @@ public class CampesinoController {
     @PostMapping("/guardar")
     public String guardarProducto(@ModelAttribute Producto producto, 
                                   @RequestParam("img") MultipartFile file,
+                                  @RequestParam(value = "img2", required = false) MultipartFile file2,
+                                  @RequestParam(value = "img3", required = false) MultipartFile file3,
+                                  @RequestParam(value = "img4", required = false) MultipartFile file4,
                                   Authentication auth) throws IOException {
         
         String email = auth.getName();
@@ -119,32 +118,101 @@ public class CampesinoController {
 
         // LÓGICA HÍBRIDA (Archivo vs Link)
         
-        // 1. ¿Subió un archivo? (Prioridad Alta)
+        // 1. ¿Subió la primera foto?
         if (!file.isEmpty()) {
             String nombreImagen = uploadService.saveImage(file);
             producto.setImagenUrl(nombreImagen);
-        } 
-        // 2. No subió archivo, ¿pero escribió un Link? (Prioridad Media)
-        else {
-            // Si es nuevo y no puso link -> Default
+        } else {
             if (producto.getId() == null) {
                 if (producto.getImagenUrl() == null || producto.getImagenUrl().isEmpty()) {
                     producto.setImagenUrl("default.jpg");
                 }
-            } 
-            // Si es edición
-            else {
+            } else {
                 Producto p = productoRepo.findById(producto.getId()).get();
-                // Si borró el link y no subió archivo -> Mantenemos la anterior
                 if (producto.getImagenUrl() == null || producto.getImagenUrl().isEmpty()) {
                     producto.setImagenUrl(p.getImagenUrl());
                 }
-                // Si escribió un link nuevo, Spring ya lo asignó automáticamente a 'producto.imagenUrl'
             }
         }
 
+        // --- IMAGEN ADICIONAL 2 ---
+        if (file2 != null && !file2.isEmpty()) {
+            String nombreImagen2 = uploadService.saveImage(file2);
+            producto.setImagenUrl2(nombreImagen2);
+        } else {
+            if (producto.getImagenUrl2() == null || producto.getImagenUrl2().trim().isEmpty()) {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && p.getImagenUrl2() != null && !p.getImagenUrl2().startsWith("http")) {
+                        uploadService.deleteImage(p.getImagenUrl2());
+                    }
+                }
+                producto.setImagenUrl2(null);
+            } else {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && (producto.getImagenUrl2() == null || producto.getImagenUrl2().isEmpty())) {
+                        producto.setImagenUrl2(p.getImagenUrl2());
+                    }
+                }
+            }
+        }
+
+        // --- IMAGEN ADICIONAL 3 ---
+        if (file3 != null && !file3.isEmpty()) {
+            String nombreImagen3 = uploadService.saveImage(file3);
+            producto.setImagenUrl3(nombreImagen3);
+        } else {
+            if (producto.getImagenUrl3() == null || producto.getImagenUrl3().trim().isEmpty()) {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && p.getImagenUrl3() != null && !p.getImagenUrl3().startsWith("http")) {
+                        uploadService.deleteImage(p.getImagenUrl3());
+                    }
+                }
+                producto.setImagenUrl3(null);
+            } else {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && (producto.getImagenUrl3() == null || producto.getImagenUrl3().isEmpty())) {
+                        producto.setImagenUrl3(p.getImagenUrl3());
+                    }
+                }
+            }
+        }
+
+        // --- IMAGEN ADICIONAL 4 ---
+        if (file4 != null && !file4.isEmpty()) {
+            String nombreImagen4 = uploadService.saveImage(file4);
+            producto.setImagenUrl4(nombreImagen4);
+        } else {
+            if (producto.getImagenUrl4() == null || producto.getImagenUrl4().trim().isEmpty()) {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && p.getImagenUrl4() != null && !p.getImagenUrl4().startsWith("http")) {
+                        uploadService.deleteImage(p.getImagenUrl4());
+                    }
+                }
+                producto.setImagenUrl4(null);
+            } else {
+                if (producto.getId() != null) {
+                    Producto p = productoRepo.findById(producto.getId()).orElse(null);
+                    if (p != null && (producto.getImagenUrl4() == null || producto.getImagenUrl4().isEmpty())) {
+                        producto.setImagenUrl4(p.getImagenUrl4());
+                    }
+                }
+            }
+        }
+
+        boolean esNuevo = (producto.getId() == null);
         productoRepo.save(producto);
-        return "redirect:/campesino/productos";
+        
+        String nombreCodificado = java.net.URLEncoder.encode(producto.getNombre(), java.nio.charset.StandardCharsets.UTF_8.toString());
+        if (esNuevo) {
+            return "redirect:/campesino/productos?creadoExito=" + nombreCodificado;
+        } else {
+            return "redirect:/campesino/productos?editadoExito=" + nombreCodificado;
+        }
     }
 
     @GetMapping("/editar/{id}")
@@ -181,6 +249,18 @@ public class CampesinoController {
                 && !p.getImagenUrl().startsWith("http")
                 && !"default.jpg".equals(p.getImagenUrl())) {
             uploadService.deleteImage(p.getImagenUrl());
+        }
+        if (p.getImagenUrl2() != null
+                && !p.getImagenUrl2().startsWith("http")) {
+            uploadService.deleteImage(p.getImagenUrl2());
+        }
+        if (p.getImagenUrl3() != null
+                && !p.getImagenUrl3().startsWith("http")) {
+            uploadService.deleteImage(p.getImagenUrl3());
+        }
+        if (p.getImagenUrl4() != null
+                && !p.getImagenUrl4().startsWith("http")) {
+            uploadService.deleteImage(p.getImagenUrl4());
         }
 
         // 3. Borrar el producto
@@ -351,6 +431,19 @@ public class CampesinoController {
         resumen.put("mejor_mes", mejorMes);
         resumen.put("nombre_campesino", campesino.getNombreCompleto() != null ? campesino.getNombreCompleto() : email);
 
+        // 4.5. Extraer coordenadas para el mapa de calor
+        List<Map<String, Object>> coordenadas = new ArrayList<>();
+        for (DetalleOrden d : ventas) {
+            if (d.getOrden() != null && d.getOrden().getLatitudEnvio() != null && d.getOrden().getLongitudEnvio() != null) {
+                Map<String, Object> coord = new HashMap<>();
+                coord.put("lat", d.getOrden().getLatitudEnvio());
+                coord.put("lng", d.getOrden().getLongitudEnvio());
+                // Usar cantidad como intensidad del calor
+                coord.put("intensidad", d.getCantidad() != null ? d.getCantidad() : 1);
+                coordenadas.add(coord);
+            }
+        }
+
         // 5. Enviar a Python y recibir gráficas
         Map<String, Object> payload = new HashMap<>();
         payload.put("productos", productos);
@@ -369,6 +462,7 @@ public class CampesinoController {
                 model.addAttribute("graficoIngresosMes",  mapper.writeValueAsString(informe.get("grafico_ingresos_mes")));
                 model.addAttribute("graficoDistribucion", mapper.writeValueAsString(informe.get("grafico_distribucion")));
                 model.addAttribute("graficoVsMercado",    mapper.writeValueAsString(informe.get("grafico_vs_mercado")));
+                model.addAttribute("coordenadasVentas",   mapper.writeValueAsString(coordenadas));
             } catch (Exception e) {
                 System.out.println("Error serializando JSON de informe campesino: " + e.getMessage());
             }
@@ -471,19 +565,28 @@ public class CampesinoController {
         int stockTotal = 0;
         int agotados = 0;
         int bajoStock = 0;
+        double valorInventario = 0;
+        int productosConStockSano = 0;
         
         for (Producto p : productos) {
             int stock = p.getStock() != null ? p.getStock() : 0;
+            double precio = p.getPrecio() != null ? p.getPrecio() : 0;
             stockTotal += stock;
+            valorInventario += (precio * stock);
             if (stock == 0) agotados++;
-            else if (stock < 10) bajoStock++; // Umbral de "Poco Inventario"
+            else if (stock < 10) bajoStock++;
+            else productosConStockSano++;
         }
+        
+        int saludInventario = productos.isEmpty() ? 0 : (int) Math.round((productosConStockSano * 100.0) / productos.size());
         
         model.addAttribute("productos", productos);
         model.addAttribute("usuario", campesino);
         model.addAttribute("stockTotal", stockTotal);
         model.addAttribute("agotados", agotados);
         model.addAttribute("bajoStock", bajoStock);
+        model.addAttribute("valorInventario", valorInventario);
+        model.addAttribute("saludInventario", saludInventario);
         
         return "campesino_inventario";
     }
@@ -546,6 +649,8 @@ public class CampesinoController {
             @RequestParam("nombreFinca") String nombreFinca,
             @RequestParam(value = "fotoPerfilFile", required = false) MultipartFile fotoPerfilFile,
             @RequestParam(value = "fotoPortadaFile", required = false) MultipartFile fotoPortadaFile,
+            @RequestParam(value = "borrarFotoPerfil", required = false, defaultValue = "false") boolean borrarFotoPerfil,
+            @RequestParam(value = "borrarFotoPortada", required = false, defaultValue = "false") boolean borrarFotoPortada,
             Authentication auth) throws IOException {
             
         String email = auth.getName();
@@ -554,12 +659,34 @@ public class CampesinoController {
         campesino.setDescripcionFinca(descripcionFinca);
         campesino.setNombreFinca(nombreFinca);
         
-        if (fotoPerfilFile != null && !fotoPerfilFile.isEmpty()) {
+        // 1. Lógica para Foto de Perfil
+        if (borrarFotoPerfil && (fotoPerfilFile == null || fotoPerfilFile.isEmpty())) {
+            // Eliminar físico si existe localmente
+            if (campesino.getFotoPerfil() != null && !campesino.getFotoPerfil().startsWith("http") && !"default.jpg".equals(campesino.getFotoPerfil())) {
+                uploadService.deleteImage(campesino.getFotoPerfil());
+            }
+            campesino.setFotoPerfil(null);
+        } else if (fotoPerfilFile != null && !fotoPerfilFile.isEmpty()) {
+            // Eliminar físico de la imagen anterior para no acumular basura
+            if (campesino.getFotoPerfil() != null && !campesino.getFotoPerfil().startsWith("http") && !"default.jpg".equals(campesino.getFotoPerfil())) {
+                uploadService.deleteImage(campesino.getFotoPerfil());
+            }
             String nombreImagen = uploadService.saveImage(fotoPerfilFile);
             campesino.setFotoPerfil(nombreImagen);
         }
         
-        if (fotoPortadaFile != null && !fotoPortadaFile.isEmpty()) {
+        // 2. Lógica para Foto de Portada
+        if (borrarFotoPortada && (fotoPortadaFile == null || fotoPortadaFile.isEmpty())) {
+            // Eliminar físico si existe localmente
+            if (campesino.getFotoFincaUrl() != null && !campesino.getFotoFincaUrl().startsWith("http")) {
+                uploadService.deleteImage(campesino.getFotoFincaUrl());
+            }
+            campesino.setFotoFincaUrl(null);
+        } else if (fotoPortadaFile != null && !fotoPortadaFile.isEmpty()) {
+            // Eliminar físico de la imagen anterior para no acumular basura
+            if (campesino.getFotoFincaUrl() != null && !campesino.getFotoFincaUrl().startsWith("http")) {
+                uploadService.deleteImage(campesino.getFotoFincaUrl());
+            }
             String nombreImagen = uploadService.saveImage(fotoPortadaFile);
             campesino.setFotoFincaUrl(nombreImagen);
         }

@@ -31,6 +31,15 @@ public class Producto {
     @Column(name = "imagen_url")
     private String imagenUrl; // URL de la imagen del producto
     
+    @Column(name = "imagen_url2")
+    private String imagenUrl2;
+
+    @Column(name = "imagen_url3")
+    private String imagenUrl3;
+
+    @Column(name = "imagen_url4")
+    private String imagenUrl4;
+    
     // Campos traídos de tu proyecto Laravel
     private String categoria; // Ej: Verduras, Frutas
     

@@ -90,6 +90,11 @@ public class UsuarioController {
             return "redirect:/registro?error_username"; 
         }
 
+        // Validar telefono duplicado
+        if (usuario.getTelefono() != null && !usuario.getTelefono().trim().isEmpty() && repo.findByTelefono(usuario.getTelefono()).isPresent()) {
+            return "redirect:/registro?error_telefono";
+        }
+
         if (!"CAMPESINO".equals(usuario.getRol())) {
             usuario.setRol("CLIENTE");
         } else {
@@ -120,6 +125,13 @@ public class UsuarioController {
     @ResponseBody
     public java.util.Map<String, Boolean> checkUsername(@RequestParam String username) {
         boolean exists = repo.findByUserName(username).isPresent();
+        return java.util.Collections.singletonMap("exists", exists);
+    }
+
+    @GetMapping("/api/usuarios/check-telefono")
+    @ResponseBody
+    public java.util.Map<String, Boolean> checkTelefono(@RequestParam String telefono) {
+        boolean exists = repo.findByTelefono(telefono).isPresent();
         return java.util.Collections.singletonMap("exists", exists);
     }
 }

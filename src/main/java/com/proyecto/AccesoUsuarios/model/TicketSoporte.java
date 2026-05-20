@@ -31,6 +31,12 @@ public class TicketSoporte {
     @Column(nullable = false)
     private String estado; // "ABIERTO", "EN_PROGRESO", "CERRADO"
 
+    @Column(nullable = false)
+    private String tipo = "PETICION"; // PETICION, QUEJA, RECLAMO, SUGERENCIA, TECNICO
+
+    @Column(nullable = false)
+    private String prioridad = "BAJA"; // BAJA, MEDIA, ALTA, CRITICA
+
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
 

@@ -20,6 +20,26 @@
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
+
+        /* Animaciones Toast Premium 2026 */
+        @keyframes toast-progress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+        .animate-toast-progress {
+            animation: toast-progress 3.5s linear forwards;
+        }
+        @keyframes slide-in-right {
+            0% { transform: translateX(120%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slide-in-right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes slide-out-right {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-gray-800 antialiased">
@@ -94,8 +114,7 @@
                         <div class="p-3 bg-gray-100 rounded-full group-hover:bg-green-50 transition">
                             <i class="fas fa-shopping-basket text-xl text-gray-600 group-hover:text-green-600"></i>
                         </div>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm transition-transform duration-300"
-                              th:text="${cantidadCarrito != null ? cantidadCarrito : 0}">0</span>
+                        <span id="cart-badge" th:style="${cantidadCarrito == null or cantidadCarrito == 0 ? 'display: none;' : ''}" th:text="${cantidadCarrito}" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm transition-transform duration-300"></span>
                     </a>
 
                     <!-- Perfil -->
@@ -134,101 +153,299 @@
             <span th:text="${producto.nombre}" class="text-gray-800 font-bold">Producto</span>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-12">
+        <div class="flex flex-col lg:flex-row gap-12 items-start">
             
-            <!-- FOTO DEL PRODUCTO (Izquierda) -->
-            <div class="lg:w-1/2">
-                <div class="bg-white p-4 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 relative group overflow-hidden">
+            <!-- FOTO DEL PRODUCTO Y METADATOS TÉCNICOS (Izquierda) -->
+            <div class="lg:w-1/2 flex flex-col space-y-6 w-full">
+                <!-- FOTO DEL PRODUCTO -->
+                <div class="bg-white p-4 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 relative group overflow-hidden w-full">
                     
                     <!-- Badge Frescura -->
-                    <div class="absolute top-6 left-6 z-10 bg-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2">
+                    <div class="absolute top-6 left-6 z-10 bg-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 select-none">
                         <i class="fas fa-clock"></i>
                         <span th:text="${mensajeFrescura}">Frescura</span>
                     </div>
 
                     <!-- Badge Stock -->
-                    <div class="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md border border-gray-100">
+                    <div class="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold shadow-md border border-gray-100 select-none">
                         <span th:text="${producto.stock > 0 ? producto.stock + ' en stock' : 'Agotado'}">Stock</span>
                     </div>
 
-                    <img th:if="${producto.imagenUrl != null}" th:src="${producto.imagenUrl.startsWith('http') ? producto.imagenUrl : '/images/' + producto.imagenUrl}" alt="Producto" onclick="abrirModalImagen(this.src)" class="w-full h-[500px] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 cursor-pointer">
-                    <img th:unless="${producto.imagenUrl != null}" src="https://via.placeholder.com/600x500?text=Sin+Imagen" class="w-full h-[500px] object-cover rounded-2xl opacity-50">
-                </div>
-            </div>
+                    <!-- Slider Container -->
+                    <div class="relative w-full h-[450px] md:h-[500px] rounded-2xl overflow-hidden group/slider">
+                        <!-- Slides Container -->
+                        <div id="productCarousel" class="w-full h-full flex transition-transform duration-500 ease-out">
+                            <!-- Slide 1 (Siempre visible) -->
+                            <div class="w-full h-full shrink-0">
+                                <img th:src="${producto.imagenUrl != null && producto.imagenUrl.startsWith('http') ? producto.imagenUrl : '/images/' + (producto.imagenUrl != null ? producto.imagenUrl : 'default.jpg')}" 
+                                     alt="Foto Principal" onclick="abrirModalImagen(this.src)" class="w-full h-full object-cover cursor-pointer">
+                            </div>
+                            <!-- Slide 2 -->
+                            <div th:if="${producto.imagenUrl2 != null && !producto.imagenUrl2.isEmpty()}" class="w-full h-full shrink-0">
+                                <img th:src="${producto.imagenUrl2.startsWith('http') ? producto.imagenUrl2 : '/images/' + producto.imagenUrl2}" 
+                                     alt="Foto Adicional 1" onclick="abrirModalImagen(this.src)" class="w-full h-full object-cover cursor-pointer">
+                            </div>
+                            <!-- Slide 3 -->
+                            <div th:if="${producto.imagenUrl3 != null && !producto.imagenUrl3.isEmpty()}" class="w-full h-full shrink-0">
+                                <img th:src="${producto.imagenUrl3.startsWith('http') ? producto.imagenUrl3 : '/images/' + producto.imagenUrl3}" 
+                                     alt="Foto Adicional 2" onclick="abrirModalImagen(this.src)" class="w-full h-full object-cover cursor-pointer">
+                            </div>
+                            <!-- Slide 4 -->
+                            <div th:if="${producto.imagenUrl4 != null && !producto.imagenUrl4.isEmpty()}" class="w-full h-full shrink-0">
+                                <img th:src="${producto.imagenUrl4.startsWith('http') ? producto.imagenUrl4 : '/images/' + producto.imagenUrl4}" 
+                                     alt="Foto Adicional 3" onclick="abrirModalImagen(this.src)" class="w-full h-full object-cover cursor-pointer">
+                            </div>
+                        </div>
 
-            <!-- DETALLES DEL PRODUCTO (Derecha) -->
-            <div class="lg:w-1/2 flex flex-col">
-                
-                <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2" th:text="${producto.nombre}">Nombre Producto</h1>
-                
-                <!-- Estrellas y Reseñas -->
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="flex text-amber-400 text-lg">
-                        <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= producto.promedioCalificacion} ? '' : ' text-gray-200'"></i>
+                        <!-- Navigation Controls (only render if there's >1 image) -->
+                        <div th:if="${(producto.imagenUrl2 != null && !producto.imagenUrl2.isEmpty()) || (producto.imagenUrl3 != null && !producto.imagenUrl3.isEmpty()) || (producto.imagenUrl4 != null && !producto.imagenUrl4.isEmpty())}">
+                            <!-- Prev Button -->
+                            <button type="button" onclick="prevSlide()" 
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/80 hover:bg-white backdrop-blur text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105 active:scale-95 z-20">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <!-- Next Button -->
+                            <button type="button" onclick="nextSlide()" 
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/80 hover:bg-white backdrop-blur text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105 active:scale-95 z-20">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+
+                            <!-- Glassmorphic Indicator Capsule -->
+                            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-20 bg-black/45 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 select-none">
+                                <!-- Text dynamic indicator -->
+                                <span id="carouselText" class="text-[10px] md:text-xs font-black text-white uppercase tracking-wider leading-none">
+                                    Está en la 1
+                                </span>
+                                <!-- Dots -->
+                                <div class="flex gap-1.5 items-center justify-center" id="carouselDots">
+                                    <!-- Dot 1 -->
+                                    <button type="button" onclick="goToSlide(0)" class="w-2.5 h-2.5 rounded-full transition-all duration-300 bg-white shadow-xs" id="dot-0"></button>
+                                    <!-- Dot 2 -->
+                                    <button type="button" th:if="${producto.imagenUrl2 != null && !producto.imagenUrl2.isEmpty()}" onclick="goToSlide(1)" class="w-2 h-2 rounded-full transition-all duration-300 bg-white/50 hover:bg-white/80" id="dot-1"></button>
+                                    <!-- Dot 3 -->
+                                    <button type="button" th:if="${producto.imagenUrl3 != null && !producto.imagenUrl3.isEmpty()}" onclick="goToSlide(2)" class="w-2 h-2 rounded-full transition-all duration-300 bg-white/50 hover:bg-white/80" id="dot-2"></button>
+                                    <!-- Dot 4 -->
+                                    <button type="button" th:if="${producto.imagenUrl4 != null && !producto.imagenUrl4.isEmpty()}" onclick="goToSlide(3)" class="w-2 h-2 rounded-full transition-all duration-300 bg-white/50 hover:bg-white/80" id="dot-3"></button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <span class="text-gray-500 font-medium text-sm">
-                        <span class="font-bold text-gray-800" th:text="${producto.promedioCalificacion}">0.0</span> 
-                        (<span th:text="${producto.totalResenas}">0</span> reseñas)
-                    </span>
                 </div>
 
-                <div class="text-4xl font-extrabold text-green-600 mb-6">
-                    <span th:text="'$' + ${producto.precio}">$0</span>
-                    <span class="text-lg text-gray-400 font-medium ml-1" th:text="'/ ' + ${producto.unidad}">/ Kg</span>
+                <!-- BENTO GRID FICHA TÉCNICA -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Tarjeta Productor -->
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-2xs flex items-center gap-3 hover:shadow-md transition-all duration-300">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+                            <i class="fa-solid fa-tractor"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none block mb-1">Productor</span>
+                            <p class="text-xs font-black text-gray-800 truncate leading-tight" th:text="${producto.usuario != null ? producto.usuario.nombreCompleto : 'AgroConecta'}">Nombre</p>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Procedencia -->
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-2xs flex items-center gap-3 hover:shadow-md transition-all duration-300">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none block mb-1">Origen</span>
+                            <p class="text-xs font-black text-gray-800 truncate leading-tight" th:text="${producto.municipioOrigen != null ? producto.municipioOrigen : 'Colombia'}">Municipio</p>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Cosecha -->
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-2xs flex items-center gap-3 hover:shadow-md transition-all duration-300">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none block mb-1">Cosechado</span>
+                            <p class="text-xs font-black text-gray-800 truncate leading-tight" th:text="${mensajeFrescura}">Hace poco</p>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Tipo Cultivo -->
+                    <div class="bg-white border border-gray-100 p-4 rounded-2xl shadow-2xs flex items-center gap-3 hover:shadow-md transition-all duration-300">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest leading-none block mb-1">Cultivo</span>
+                            <p class="text-xs font-black text-gray-800 truncate leading-tight">Tradicional Ecológico</p>
+                        </div>
+                    </div>
                 </div>
 
-                <p class="text-gray-600 leading-relaxed mb-8 text-lg" th:text="${producto.descripcion}">
-                    Descripción detallada del producto.
-                </p>
-
-                <!-- PERFIL DEL CAMPESINO -->
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 mb-8 flex items-center justify-between">
+                <!-- PERFIL DEL CAMPESINO CARD (GLASS) -->
+                <div class="bg-gradient-to-r from-emerald-50/50 to-green-50/50 p-5 rounded-3xl border border-emerald-100/50 flex items-center justify-between hover:shadow-md transition-all duration-300">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center border-2 border-green-400 shadow-sm text-green-600 text-xl">
-                            <i class="fas fa-tractor"></i>
+                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-emerald-200 shadow-xs text-emerald-600 text-lg">
+                            <i class="fas fa-farm"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-green-600 font-bold uppercase tracking-wider mb-1">Campesino Productor</p>
-                            <p class="text-lg font-bold text-gray-900" th:text="${producto.usuario != null ? producto.usuario.nombreCompleto : 'AgroConecta'}">Nombre Campesino</p>
-                            <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                <i class="fas fa-map-marker-alt"></i> 
+                            <span class="text-[9px] text-emerald-600 font-extrabold uppercase tracking-widest flex items-center gap-1 mb-0.5">
+                                Campesino Aliado
+                                <i class="fas fa-check-circle text-emerald-500 text-[9px]" title="Verificado"></i>
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <p class="text-base font-black text-gray-900 leading-none" th:text="${producto.usuario != null ? producto.usuario.nombreCompleto : 'AgroConecta'}">Nombre Campesino</p>
+                                <i class="fas fa-check-circle text-emerald-500 text-xs shrink-0" title="Productor Verificado por AgroConecta"></i>
+                            </div>
+                            <p class="text-[11px] text-gray-500 font-bold flex items-center gap-1 mt-0.5">
+                                <i class="fas fa-map-marker-alt text-red-500"></i> 
                                 <span th:text="${producto.municipioOrigen != null ? producto.municipioOrigen : 'Colombia'}">Ubicación</span>
                             </p>
                         </div>
                     </div>
-                    <a th:if="${producto.usuario != null}" th:href="@{/tienda/campesino/{id}(id=${producto.usuario.id})}" class="hidden sm:block text-green-600 bg-white border border-green-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50 transition shadow-sm">Ver Perfil</a>
-                </div>
-
-                <!-- ADD TO CART ACCIONES -->
-                <div class="mt-auto pt-6 border-t border-gray-100">
-                    <form onsubmit="añadirAlCarritoDetalle(event)" class="flex flex-col sm:flex-row gap-4">
-                        <input type="hidden" id="detalleProductoId" th:value="${producto.id}">
-                        <input type="hidden" id="detalleProductoNombre" th:value="${producto.nombre}">
-                        
-                        <!-- Selector de Cantidad -->
-                        <div class="flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-2">
-                            <button type="button" onclick="decrementar()" class="w-12 h-14 flex items-center justify-center text-gray-500 hover:text-green-600 transition font-bold text-xl">-</button>
-                            <input type="number" id="cantidadInput" value="1" min="1" th:max="${producto.stock}" class="w-16 h-14 bg-transparent text-center font-bold text-lg text-gray-900 focus:outline-none appearance-none">
-                            <button type="button" onclick="incrementar()" class="w-12 h-14 flex items-center justify-center text-gray-500 hover:text-green-600 transition font-bold text-xl">+</button>
-                        </div>
-
-                        <!-- Botón Agregar y Favorito -->
-                        <div class="flex flex-1 gap-3">
-                            <button type="submit" id="btnAñadirDetalle" th:disabled="${producto.stock <= 0}" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-2xl h-14 flex items-center justify-center gap-3 transition shadow-lg shadow-green-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="fas fa-cart-plus"></i>
-                                <span th:text="${producto.stock > 0 ? 'Añadir al Carrito' : 'Agotado'}">Añadir al Carrito</span>
-                            </button>
-                            
-                            <button type="button" th:onclick="'toggleFavoritoDetalle(event, this, ' + ${producto.id} + ')'" class="w-14 h-14 rounded-2xl border-2 border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:border-red-400 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm flex-shrink-0 group" title="Añadir a favoritos">
-                                <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, producto.id)} ? 'fas fa-heart text-red-500 text-2xl scale-110' : 'far fa-heart text-2xl group-hover:scale-110 transition-transform'"></i>
-                            </button>
-                        </div>
-
-                    </form>
-                    <p class="text-xs text-gray-400 mt-4 text-center"><i class="fas fa-shield-alt text-green-500 mr-1"></i> Transacción 100% Segura con Mercado Pago.</p>
+                    <a th:if="${producto.usuario != null}" th:href="@{/tienda/campesino/{id}(id=${producto.usuario.id})}" class="text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-200/80 px-4 py-2 rounded-xl text-xs font-extrabold hover:shadow-xs transition duration-200">Ver Finca</a>
                 </div>
             </div>
+
+            <!-- DETALLES DEL PRODUCTO (Derecha) -->
+            <div class="lg:w-1/2 flex flex-col space-y-6 w-full">
+                
+                <!-- Cabecera de Producto Premium -->
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span th:text="${producto.categoria}" class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest border border-emerald-100/60 shadow-sm">Categoria</span>
+                    </div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-2" th:text="${producto.nombre}">Nombre Producto</h1>
+                    
+                    <!-- Calificación y Reseñas con Efecto Micro-Card -->
+                    <div class="flex items-center gap-3 bg-white/60 border border-gray-100 py-1.5 px-3 rounded-2xl shadow-sm self-start mb-2">
+                        <div class="flex text-amber-400 text-sm gap-0.5">
+                            <i class="fas fa-star" th:each="i : ${#numbers.sequence(1, 5)}" th:classappend="${i <= producto.promedioCalificacion} ? '' : ' text-gray-200'"></i>
+                        </div>
+                        <span class="text-gray-500 font-bold text-xs tracking-tight flex items-center gap-1">
+                            <span class="text-gray-900 font-extrabold text-sm" th:text="${producto.promedioCalificacion}">0.0</span> 
+                            <span>•</span>
+                            <span th:text="${producto.totalResenas} + ' opiniones'">0 opiniones</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Compra Premium (Glassmorphism & Shadows) -->
+                <div class="bg-white/85 backdrop-blur-md border border-gray-100 p-6 rounded-[2.5rem] shadow-xl shadow-green-950/[0.02] flex flex-col relative overflow-hidden">
+                    <div class="absolute -right-16 -top-16 w-36 h-36 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-green-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- Fila de Precio -->
+                    <div class="flex items-baseline justify-between mb-6">
+                        <div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Precio Unitario</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-emerald-600 tracking-tight" th:text="'$' + ${producto.precio}">$0</span>
+                                <span class="text-sm text-gray-400 font-bold tracking-tight" th:text="'/ ' + ${producto.unidad}">/ Kg</span>
+                            </div>
+                        </div>
+
+                        <span th:unless="${producto.stock > 0}" class="text-xs font-extrabold bg-red-50 text-red-500 border border-red-100 px-3 py-1.5 rounded-xl">
+                            Agotado temporalmente
+                        </span>
+                    </div>
+
+                    <!-- Descripción Corta -->
+                    <p class="text-gray-600 leading-relaxed text-sm mb-6 border-b border-gray-100 pb-5" th:text="${producto.descripcion}">
+                        Descripción detallada del producto.
+                    </p>
+
+                    <!-- Acciones Añadir al Carrito -->
+                    <form onsubmit="añadirAlCarritoDetalle(event)" class="space-y-4">
+                        <input type="hidden" id="detalleProductoId" th:value="${producto.id}">
+                        <input type="hidden" id="detalleProductoNombre" th:value="${producto.nombre}">
+                        <input type="hidden" id="detalleProductoUnidad" th:value="${producto.unidad}">
+                        <input type="hidden" id="detalleProductoPrecio" th:value="${producto.precio}">
+                        
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <!-- Selector de Cantidad Premium -->
+                            <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-2xl px-2 py-1 flex-1 sm:max-w-[160px] shadow-inner">
+                                <button type="button" onclick="decrementar()" class="w-10 h-12 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:scale-110 active:scale-95 transition-all font-black text-xl select-none">-</button>
+                                <input type="number" id="cantidadInput" value="1" min="1" th:max="${producto.stock}" class="w-12 h-12 bg-transparent text-center font-extrabold text-base text-gray-900 focus:outline-none appearance-none cursor-default" readonly>
+                                <button type="button" onclick="incrementar()" class="w-10 h-12 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:scale-110 active:scale-95 transition-all font-black text-xl select-none">+</button>
+                            </div>
+
+                            <!-- Botón Añadir y Favorito -->
+                            <div class="flex flex-1 gap-3">
+                                <button type="submit" id="btnAñadirDetalle" th:disabled="${producto.stock <= 0}" class="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-extrabold text-base rounded-2xl h-14 flex items-center justify-center gap-3 transition-all hover:shadow-lg hover:shadow-emerald-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-shopping-basket"></i>
+                                    <span th:text="${producto.stock > 0 ? 'Añadir al Pedido' : 'Agotado'}">Añadir al Pedido</span>
+                                </button>
+                                
+                                <button type="button" th:onclick="'toggleFavoritoDetalle(event, this, ' + ${producto.id} + ')'" class="w-14 h-14 rounded-2xl border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:border-red-400 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm flex-shrink-0 group" title="Añadir a favoritos">
+                                    <i th:class="${favoritosIds != null and #lists.contains(favoritosIds, producto.id)} ? 'fas fa-heart text-red-500 text-xl scale-110' : 'far fa-heart text-xl group-hover:scale-110 transition-transform'"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+
+                </div>
+
+                <!-- DYNAMIC WEIGHT EQUIVALENTS WIDGET (Conversor de Medidas) -->
+                <!-- th:if condicional para mostrar solo si la unidad es de peso -->
+                <div id="conversorPesosContainer" th:if="${producto.unidad != null and (#strings.contains(#strings.toLowerCase(producto.unidad), 'kg') or #strings.contains(#strings.toLowerCase(producto.unidad), 'kilogramo') or #strings.contains(#strings.toLowerCase(producto.unidad), 'libra') or #strings.contains(#strings.toLowerCase(producto.unidad), 'lb') or #strings.contains(#strings.toLowerCase(producto.unidad), 'g') or #strings.contains(#strings.toLowerCase(producto.unidad), 'gramo'))}" 
+                     class="bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-6 rounded-[2.5rem] shadow-sm">
+                    
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-sm border border-emerald-100">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-[14px] text-gray-900 leading-tight">Ficha de Equivalencias</h4>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Conversor Métrico de Venta</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Switcher de Medida -->
+                    <div class="flex gap-2 mb-4 p-1 bg-gray-100/80 rounded-2xl">
+                        <button type="button" id="tabBtn-kg" onclick="seleccionarTabEquivalencia('kg')" class="flex-1 py-2 px-3 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md transition-all scale-105">Kilogramos</button>
+                        <button type="button" id="tabBtn-libra" onclick="seleccionarTabEquivalencia('libra')" class="flex-1 py-2 px-3 bg-white text-gray-500 hover:bg-gray-50 rounded-xl font-semibold text-xs border border-gray-100 transition-all">Libras (500g)</button>
+                        <button type="button" id="tabBtn-gramo" onclick="seleccionarTabEquivalencia('gramo')" class="flex-1 py-2 px-3 bg-white text-gray-500 hover:bg-gray-50 rounded-xl font-semibold text-xs border border-gray-100 transition-all">Gramos</button>
+                    </div>
+
+                    <!-- Tarjeta de Enfoque Principal -->
+                    <div class="bg-white border border-gray-100/80 p-5 rounded-2xl shadow-sm mb-4 relative overflow-hidden flex items-center justify-between">
+                        <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex flex-col">
+                            <span id="focusEquivLabel" class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Peso en Kilogramos (Kg)</span>
+                            <span id="focusEquivValue" class="text-2xl font-black text-gray-900 tracking-tight">1 Kilogramo</span>
+                            <span id="focusEquivScale" class="text-[10px] text-gray-400 font-semibold mt-1">Medida estándar internacional</span>
+                        </div>
+                        <div class="text-right flex flex-col justify-end items-end border-l border-gray-50 pl-4">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Precio Equivalente</span>
+                            <span id="focusEquivPrice" class="text-base font-black text-emerald-600 tracking-tight" th:text="'$' + ${producto.precio} + ' por Kg'">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Desglose Completo (Bento Scale) -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-2xs">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest block mb-1">En Kilos</span>
+                            <span id="eqKilosCant" class="text-sm font-black text-gray-800 tracking-tight">1 Kg</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-2xs">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest block mb-1">En Libras</span>
+                            <span id="eqLibrasCant" class="text-sm font-black text-gray-800 tracking-tight">2 Lb</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-2xs">
+                            <span class="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest block mb-1">En Gramos</span>
+                            <span id="eqGramosCant" class="text-sm font-black text-gray-800 tracking-tight">1.000 g</span>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-gray-400 font-bold mt-4 text-center leading-relaxed">
+                        <i class="fas fa-circle-info text-emerald-500 mr-1"></i>
+                        Tu compra de <span id="calcCantidadBase" class="text-emerald-600 font-extrabold">1</span> <span id="calcUnidadBase" class="text-emerald-600 font-extrabold" th:text="${producto.unidad}">Kg</span> equivale a <span id="calcTotalEquiv" class="text-emerald-600 font-extrabold">1 Kg (2 Libras)</span>.
+                    </p>
+            </div>
         </div>
+    </div>
 
         <hr class="my-16 border-gray-200">
 
@@ -395,6 +612,22 @@
 
         // Pre-fill estrellas si ya calificó
         document.addEventListener('DOMContentLoaded', () => {
+            // Mostrar notificaciones pendientes de recargas previas (Estilo Apple)
+            const storedType = sessionStorage.getItem('toastType');
+            const storedTitle = sessionStorage.getItem('toastTitle');
+            const storedMessage = sessionStorage.getItem('toastMessage');
+            if (storedType && storedTitle && storedMessage) {
+                // Pequeño delay para que la página renderice suavemente antes del slide-in
+                setTimeout(() => {
+                    if (typeof showModernToast === 'function') {
+                        showModernToast(storedType, storedTitle, storedMessage);
+                    }
+                }, 400);
+                sessionStorage.removeItem('toastType');
+                sessionStorage.removeItem('toastTitle');
+                sessionStorage.removeItem('toastMessage');
+            }
+
             const existing = parseInt(document.getElementById('reviewEstrellas')?.value || 0);
             if (existing > 0) paintStars(existing);
             // Pre-fill comment toggle si ya tiene texto
@@ -435,6 +668,12 @@
             if (e.target.tagName === 'I') {
                 const rating = parseInt(e.target.getAttribute('data-val'));
                 paintStars(rating);
+                
+                // Mostrar brindis moderno (Estilo Apple)
+                if (typeof showModernToast === 'function') {
+                    const labelText = ratingLabels[rating] || 'Calificado';
+                    showModernToast('rating', '¡Gracias por tu Calificación! ⭐', `Marcaste ${rating} ${rating === 1 ? 'estrella' : 'estrellas'} (${labelText}).`);
+                }
             }
         });
 
@@ -478,7 +717,11 @@
             const texto = document.getElementById('reviewTexto')?.value || '';
             
             if (estrellas < 1) {
-                Swal.fire('Atención', 'Por favor selecciona al menos una estrella', 'warning');
+                if (typeof showModernToast === 'function') {
+                    showModernToast('warning', 'Calificación Requerida ⚠️', 'Por favor selecciona al menos 1 estrella antes de enviar.');
+                } else {
+                    Swal.fire('Atención', 'Por favor selecciona al menos una estrella', 'warning');
+                }
                 return;
             }
             
@@ -494,12 +737,21 @@
             .then(r => r.json())
             .then(data => {
                 if (data.error) throw new Error(data.error);
-                Swal.fire({ icon: 'success', title: data.actualizada ? '¡Actualizada!' : '¡Gracias!', text: data.mensaje || 'Tu opinión fue guardada', confirmButtonColor: '#16a34a' }).then(() => window.location.reload());
+                
+                // Guardar notificación para después de recargar
+                sessionStorage.setItem('toastType', 'success');
+                sessionStorage.setItem('toastTitle', data.actualizada ? '¡Reseña Actualizada! 📝' : '¡Gracias por tu Reseña! 💚');
+                sessionStorage.setItem('toastMessage', data.actualizada ? 'Tu opinión ha sido actualizada con éxito.' : '¡Gracias por compartir tu reseña con la comunidad!');
+                window.location.reload();
             })
             .catch(e => {
                 btn.innerHTML = '<i class="fas fa-paper-plane text-xs"></i> Publicar';
                 btn.disabled = false;
-                Swal.fire('Error', e.message || 'No se pudo publicar', 'error');
+                if (typeof showModernToast === 'function') {
+                    showModernToast('error', 'Error al Guardar', e.message || 'No se pudo guardar tu reseña.');
+                } else {
+                    Swal.fire('Error', e.message || 'No se pudo publicar', 'error');
+                }
             });
         }
 
@@ -514,35 +766,269 @@
         function eliminarResena(resenaId) {
             Swal.fire({
                 title: '¿Eliminar tu reseña?',
-                text: 'Se borrarán tu calificación y comentario de este producto.',
+                html: '<p class="text-sm text-gray-500 font-medium leading-relaxed">Se borrarán de forma permanente tu calificación y comentario de este producto. Esta acción no se puede deshacer.</p>',
                 icon: 'warning',
+                iconColor: '#ef4444',
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'rounded-3xl border border-gray-100/80 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] bg-white/95 backdrop-blur-md p-6 max-w-sm sm:max-w-md font-sans text-center',
+                    title: 'text-xl font-extrabold text-gray-900 tracking-tight pt-2 pb-1',
+                    htmlContainer: 'py-2 px-1',
+                    confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2.5 rounded-xl transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-sm mx-2 cursor-pointer shadow-sm active:scale-95',
+                    cancelButton: 'bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-6 py-2.5 rounded-xl transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 text-sm mx-2 cursor-pointer active:scale-95 border border-gray-200/50',
+                    actions: 'flex justify-center gap-1 mt-5 w-full'
+                },
+                buttonsStyling: false
             }).then(result => {
                 if (!result.isConfirmed) return;
                 fetch('/api/resenas/' + resenaId, { method: 'DELETE' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.error) throw new Error(data.error);
-                    Swal.fire({ icon: 'success', title: 'Eliminada', text: 'Tu reseña fue removida.', confirmButtonColor: '#16a34a' }).then(() => window.location.reload());
+                    
+                    // Guardar notificación para después de recargar
+                    sessionStorage.setItem('toastType', 'success');
+                    sessionStorage.setItem('toastTitle', 'Reseña Removida 🗑️');
+                    sessionStorage.setItem('toastMessage', 'Tu opinión y calificación han sido eliminadas correctamente.');
+                    window.location.reload();
                 })
-                .catch(e => Swal.fire('Error', e.message || 'No se pudo eliminar', 'error'));
+                .catch(e => {
+                    if (typeof showModernToast === 'function') {
+                        showModernToast('error', 'Error al Eliminar', e.message || 'No se pudo eliminar la reseña.');
+                    } else {
+                        Swal.fire('Error', e.message || 'No se pudo eliminar', 'error');
+                    }
+                });
             });
+        }
+
+        let activeUnitTab = 'kg';
+
+        function actualizarEquivalencias() {
+            const precioInput = document.getElementById('detalleProductoPrecio');
+            const unidadInput = document.getElementById('detalleProductoUnidad');
+            const cantidadInput = document.getElementById('cantidadInput');
+            
+            if (!precioInput || !unidadInput || !cantidadInput) return;
+            
+            const basePrecio = parseFloat(precioInput.value) || 0;
+            const baseUnidad = unidadInput.value.toLowerCase().trim();
+            const cantidad = parseInt(cantidadInput.value) || 1;
+            
+            // Determinar si la unidad de medida es pesable
+            const isWeight = baseUnidad.includes('kg') || baseUnidad.includes('kilogramo') || 
+                             baseUnidad.includes('libra') || baseUnidad.includes('lb') || 
+                             baseUnidad.includes('g') || baseUnidad.includes('gramo');
+                             
+            const container = document.getElementById('conversorPesosContainer');
+            if (!container) return;
+            
+            if (!isWeight) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            
+            // Relación de conversión respecto a gramos (Libra colombiana de mercado = 500 gramos, Kg = 1000 gramos)
+            let gramosPorUnidad = 1000;
+            if (baseUnidad.includes('libra') || baseUnidad.includes('lb')) {
+                gramosPorUnidad = 500;
+            } else if (baseUnidad.includes('kg') || baseUnidad.includes('kilogramo')) {
+                gramosPorUnidad = 1000;
+            } else if (baseUnidad.includes('g') || baseUnidad.includes('gramo')) {
+                gramosPorUnidad = 1;
+            }
+            
+            const totalGramos = gramosPorUnidad * cantidad;
+            const totalKilos = totalGramos / 1000;
+            const totalLibras = totalGramos / 500;
+            
+            const formatCOP = (num) => '$' + Math.round(num).toLocaleString('es-CO');
+            const formatWeight = (num) => Number(num.toFixed(2)).toLocaleString('es-CO');
+            
+            // Actualizar desglose bento de equivalencias
+            const eqKilos = document.getElementById('eqKilosCant');
+            const eqLibras = document.getElementById('eqLibrasCant');
+            const eqGramos = document.getElementById('eqGramosCant');
+            
+            if (eqKilos) eqKilos.textContent = formatWeight(totalKilos) + ' Kg';
+            if (eqLibras) eqLibras.textContent = formatWeight(totalLibras) + ' Lb';
+            if (eqGramos) eqGramos.textContent = totalGramos.toLocaleString('es-CO') + ' g';
+            
+            // Precios equivalentes proporcionales
+            const eqPrecioKg = document.getElementById('eqPrecioKg');
+            const eqPrecioLibra = document.getElementById('eqPrecioLibra');
+            const eqPrecio100g = document.getElementById('eqPrecio100g');
+            
+            const precioPorKg = (basePrecio / gramosPorUnidad) * 1000;
+            const precioPorLibra = (basePrecio / gramosPorUnidad) * 500;
+            const precioPor100g = (basePrecio / gramosPorUnidad) * 100;
+            
+            if (eqPrecioKg) eqPrecioKg.textContent = formatCOP(precioPorKg);
+            if (eqPrecioLibra) eqPrecioLibra.textContent = formatCOP(precioPorLibra);
+            if (eqPrecio100g) eqPrecio100g.textContent = formatCOP(precioPor100g);
+            
+            // Actualizar etiqueta del resumen de equivalencias inferior
+            const calcCant = document.getElementById('calcCantidadBase');
+            const calcTotal = document.getElementById('calcTotalEquiv');
+            
+            if (calcCant) calcCant.textContent = cantidad;
+            if (calcTotal) calcTotal.textContent = formatWeight(totalKilos) + ' Kg (' + formatWeight(totalLibras) + ' Libras)';
+        }
+
+        function seleccionarTabEquivalencia(unit) {
+            activeUnitTab = unit;
+            
+            // Estilizar tabs del switcher
+            const tabs = ['kg', 'libra', 'gramo'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if (btn) {
+                    if (t === unit) {
+                        btn.className = 'flex-1 py-2 px-3 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md transition-all scale-105 border-transparent';
+                    } else {
+                        btn.className = 'flex-1 py-2 px-3 bg-white text-gray-500 hover:bg-gray-50 rounded-xl font-semibold text-xs border border-gray-100 transition-all';
+                    }
+                }
+            });
+            
+            const precioInput = document.getElementById('detalleProductoPrecio');
+            const unidadInput = document.getElementById('detalleProductoUnidad');
+            const cantidadInput = document.getElementById('cantidadInput');
+            
+            if (!precioInput || !unidadInput || !cantidadInput) return;
+            
+            const basePrecio = parseFloat(precioInput.value) || 0;
+            const baseUnidad = unidadInput.value.toLowerCase().trim();
+            const cantidad = parseInt(cantidadInput.value) || 1;
+            
+            let gramosPorUnidad = 1000;
+            if (baseUnidad.includes('libra') || baseUnidad.includes('lb')) {
+                gramosPorUnidad = 500;
+            } else if (baseUnidad.includes('kg') || baseUnidad.includes('kilogramo')) {
+                gramosPorUnidad = 1000;
+            } else if (baseUnidad.includes('g') || baseUnidad.includes('gramo')) {
+                gramosPorUnidad = 1;
+            }
+            
+            const totalGramos = gramosPorUnidad * cantidad;
+            const formatCOP = (num) => '$' + Math.round(num).toLocaleString('es-CO');
+            const formatWeight = (num) => Number(num.toFixed(2)).toLocaleString('es-CO');
+            
+            const focusValSpan = document.getElementById('focusEquivValue');
+            const focusLabelSpan = document.getElementById('focusEquivLabel');
+            const focusPriceSpan = document.getElementById('focusEquivPrice');
+            const focusScaleSpan = document.getElementById('focusEquivScale');
+            
+            if (!focusValSpan || !focusLabelSpan || !focusPriceSpan || !focusScaleSpan) return;
+            
+            if (unit === 'kg') {
+                const totalKilos = totalGramos / 1000;
+                const precioPorKg = (basePrecio / gramosPorUnidad) * 1000;
+                focusValSpan.textContent = formatWeight(totalKilos) + ' Kilogramos';
+                focusLabelSpan.textContent = 'Peso en Kilogramos (Kg)';
+                focusPriceSpan.textContent = formatCOP(precioPorKg) + ' por Kg';
+                focusScaleSpan.textContent = 'Medida estándar internacional (1 Kg = 1000g)';
+            } else if (unit === 'libra') {
+                const totalLibras = totalGramos / 500;
+                const precioPorLibra = (basePrecio / gramosPorUnidad) * 500;
+                focusValSpan.textContent = formatWeight(totalLibras) + ' Libras';
+                focusLabelSpan.textContent = 'Peso en Libras de mercado (500g)';
+                focusPriceSpan.textContent = formatCOP(precioPorLibra) + ' por Libra';
+                focusScaleSpan.textContent = 'Medida tradicional del campo (1 Lb = 0.5 Kg)';
+            } else if (unit === 'gramo') {
+                focusValSpan.textContent = totalGramos.toLocaleString('es-CO') + ' Gramos';
+                focusLabelSpan.textContent = 'Peso en Gramos netos (g)';
+                focusPriceSpan.textContent = formatCOP((basePrecio / gramosPorUnidad) * 100) + ' por 100g';
+                focusScaleSpan.textContent = 'Medida fraccionaria de precisión';
+            }
         }
 
         const input = document.getElementById('cantidadInput');
         function incrementar() {
-            if(parseInt(input.value) < parseInt(input.max)) {
+            if(input && parseInt(input.value) < parseInt(input.max)) {
                 input.value = parseInt(input.value) + 1;
+                actualizarEquivalencias();
+                seleccionarTabEquivalencia(activeUnitTab);
             }
         }
         function decrementar() {
-            if(parseInt(input.value) > parseInt(input.min)) {
+            if(input && parseInt(input.value) > parseInt(input.min)) {
                 input.value = parseInt(input.value) - 1;
+                actualizarEquivalencias();
+                seleccionarTabEquivalencia(activeUnitTab);
             }
+        }
+
+        // Registrar hooks en la inicialización de la página
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarEquivalencias();
+            
+            // Inicializar por defecto la pestaña de peso equivalente que coincida con la unidad del producto
+            const baseUnidad = document.getElementById('detalleProductoUnidad')?.value?.toLowerCase() || '';
+            if (baseUnidad.includes('libra') || baseUnidad.includes('lb')) {
+                seleccionarTabEquivalencia('libra');
+            } else if (baseUnidad.includes('g') || baseUnidad.includes('gramo')) {
+                seleccionarTabEquivalencia('gramo');
+            } else {
+                seleccionarTabEquivalencia('kg');
+            }
+        });
+
+        // --- LOGICA DEL CARRUSEL PREMIUM DE MULTI-FOTOS ---
+        let currentSlide = 0;
+        
+        function getSlideCount() {
+            const carousel = document.getElementById('productCarousel');
+            return carousel ? carousel.children.length : 0;
+        }
+
+        function updateCarousel() {
+            const carousel = document.getElementById('productCarousel');
+            const totalSlides = getSlideCount();
+            if (!carousel || totalSlides === 0) return;
+            
+            carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Actualizar texto del indicador
+            const carouselText = document.getElementById('carouselText');
+            if (carouselText) {
+                carouselText.textContent = `Está en la ${currentSlide + 1}`;
+            }
+            
+            // Actualizar dots activos
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (dot) {
+                    if (i === currentSlide) {
+                        dot.className = "w-2.5 h-2.5 rounded-full transition-all duration-300 bg-white shadow-xs";
+                    } else {
+                        dot.className = "w-2 h-2 rounded-full transition-all duration-300 bg-white/50 hover:bg-white/80";
+                    }
+                }
+            }
+        }
+
+        function nextSlide() {
+            const totalSlides = getSlideCount();
+            if (totalSlides === 0) return;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        }
+
+        function prevSlide() {
+            const totalSlides = getSlideCount();
+            if (totalSlides === 0) return;
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
         }
 
         // Logic Modal Image
@@ -571,14 +1057,87 @@
             }, 300);
         }
 
+        window.showModernToast = function(type, title, message, imageUrl = null) {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-[1000] flex flex-col gap-3 pointer-events-none';
+                document.body.appendChild(container);
+            }
+            
+            const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 
+                              (type === 'error' ? 'fas fa-trash-alt text-red-500' : 
+                              (type === 'rating' ? 'fas fa-star text-amber-500' :
+                              'fas fa-exclamation-triangle text-amber-500'));
+            const bgIconClass = type === 'success' ? 'bg-green-50 border-green-100' : 
+                               (type === 'error' ? 'bg-red-50 border-red-100' : 
+                               (type === 'rating' ? 'bg-amber-50 border-amber-100' :
+                               'bg-amber-50 border-amber-100'));
+            const barClass = type === 'success' ? 'bg-green-500' : 
+                             (type === 'error' ? 'bg-red-500' : 
+                             (type === 'rating' ? 'bg-amber-400' :
+                             'bg-amber-500'));
+            const titleClass = type === 'success' ? 'text-green-600' : 
+                               (type === 'error' ? 'text-red-600' : 
+                               (type === 'rating' ? 'text-amber-500' :
+                               'text-amber-600'));
+            
+            const toast = document.createElement('div');
+            toast.className = 'bg-white/95 backdrop-blur-2xl border border-gray-100 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl p-4 pr-8 flex items-center gap-4 relative overflow-hidden pointer-events-auto min-w-[320px] sm:min-w-[360px] max-w-md animate-slide-in';
+            
+            let iconOrImageHtml = '';
+            if (imageUrl) {
+                iconOrImageHtml = `<img src="${imageUrl}" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-gray-200 shrink-0" alt="Producto">`;
+            } else {
+                iconOrImageHtml = `
+                <div class="w-12 h-12 ${bgIconClass} rounded-xl flex items-center justify-center shrink-0 border">
+                    <i class="${iconClass} text-2xl drop-shadow-sm"></i>
+                </div>`;
+            }
+
+            toast.innerHTML = `
+                <!-- Progress Bar -->
+                <div class="absolute bottom-0 left-0 h-1 ${barClass} animate-toast-progress"></div>
+                
+                <!-- Ícono / Imagen -->
+                ${iconOrImageHtml}
+                
+                <!-- Texto -->
+                <div class="flex flex-col flex-1">
+                    <span class="text-[11px] font-extrabold ${titleClass} uppercase tracking-widest mb-0.5">${title}</span>
+                    <span class="text-[14px] font-bold text-gray-800 leading-tight line-clamp-2">${message}</span>
+                </div>
+                
+                <!-- Botón cerrar -->
+                <button onclick="this.parentElement.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards'; setTimeout(() => this.parentElement.remove(), 400)" class="absolute right-3 top-4 text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if(toast.parentElement) {
+                    toast.style.animation = 'slide-out-right 0.4s cubic-bezier(0.4, 0, 1, 1) forwards';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 3500);
+        };
+
         // Add to Cart via API
         function añadirAlCarritoDetalle(event) {
             event.preventDefault();
             const id = document.getElementById('detalleProductoId').value;
             const cantidad = parseInt(document.getElementById('cantidadInput').value);
             const nombre = document.getElementById('detalleProductoNombre').value;
+            const unidad = document.getElementById('detalleProductoUnidad').value || 'unidad';
             const btn = document.getElementById('btnAñadirDetalle');
             const icon = btn.querySelector('i');
+            
+            // Obtener imagen del producto principal
+            const mainImgElement = document.querySelector('#productCarousel img');
+            const imageUrl = mainImgElement ? mainImgElement.src : null;
             
             icon.className = 'fas fa-circle-notch fa-spin';
             btn.classList.add('pointer-events-none');
@@ -591,12 +1150,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.error === "stock_insuficiente") {
-                    Swal.fire({
-                        icon: 'info',
-                        title: '¡Límite alcanzado!',
-                        text: 'No hay más unidades disponibles de ' + nombre + '. El stock restante es ' + data.stock + '.',
-                        confirmButtonColor: '#eab308'
-                    });
+                    showModernToast('warning', 'Límite alcanzado', 'Ya tienes en el carrito todas las unidades disponibles (' + data.stock + ') de ' + nombre + '.', imageUrl);
                     icon.className = 'fas fa-cart-plus';
                     btn.classList.remove('pointer-events-none');
                     return;
@@ -609,20 +1163,25 @@
                     btn.classList.remove('pointer-events-none');
                 }, 1200);
 
-                Swal.fire({
-                    toast: true,
-                    position: 'bottom-end',
-                    icon: 'success',
-                    title: `<span style="font-family: 'Inter', sans-serif;">${cantidad}x ${nombre} al carrito</span>`,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
+                // Mensaje personalizado solicitado por el usuario
+                let mensajeToast = '';
+                if (cantidad === 1) {
+                    mensajeToast = `Añadiste 1 ${unidad} de ${nombre}`;
+                } else {
+                    mensajeToast = `Añadiste ${cantidad} unidades de ${nombre}`;
+                }
                 
-                // Actualizar badge del carrito (si existe en la cabecera actual)
-                setTimeout(() => {
-                    window.location.reload(); // Recarga para actualizar el navbar 
-                }, 1500);
+                showModernToast('success', 'Agregado al carrito', mensajeToast, imageUrl);
+                
+                // Actualizar badge del carrito (si existe en la cabecera actual) de forma reactiva sin recargar la página
+                const badge = document.getElementById('cart-badge');
+                if (badge) {
+                    const nuevaCantidad = data.cantidadItems || (parseInt(badge.innerText || 0) + cantidad);
+                    badge.innerText = nuevaCantidad;
+                    badge.style.display = 'flex';
+                    badge.classList.add('scale-125');
+                    setTimeout(() => badge.classList.remove('scale-125'), 300);
+                }
             })
             .catch(err => {
                 icon.className = 'fas fa-cart-plus';
@@ -1503,5 +2062,7 @@
             });
         }
     </script>
+    <!-- Widget de Soporte -->
+    <div th:replace="fragments/fragment_soporte :: widget"></div>
 </body>
 </html>
