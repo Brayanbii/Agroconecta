@@ -26,6 +26,15 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
+
+        /* Image Carousel in Cards */
+        .img-carousel-wrap { position: relative; }
+        .img-carousel-wrap .carousel-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; }
+        .img-carousel-wrap .carousel-img.active-slide { opacity: 1; z-index: 1; }
+        .img-carousel-wrap .carousel-img:not(.active-slide) { opacity: 0; z-index: 0; }
+        .img-carousel-wrap .card-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; z-index: 15; pointer-events: none; }
+        .img-carousel-wrap .card-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: all 0.3s ease; pointer-events: auto; cursor: pointer; border: 1px solid rgba(255,255,255,0.8); }
+        .img-carousel-wrap .card-dot.active { background: white; width: 18px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
@@ -84,7 +93,7 @@
             <!-- Tarjeta Producto Favorito -->
             <div th:each="p : ${favoritos}" th:id="'fav-card-' + ${p.id}" class="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full group relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 
-                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 overflow-hidden bg-gray-100 block rounded-t-3xl transform-gpu">
+                <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="relative h-48 overflow-hidden bg-gray-100 block rounded-t-3xl transform-gpu img-carousel-wrap" th:data-img2="${p.imagenUrl2}" th:data-img3="${p.imagenUrl3}" th:data-img4="${p.imagenUrl4}">
                     <img th:src="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}" 
                          class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out" 
                          alt="Producto" onerror="this.onerror=null; this.src=window.fallbackImg">
@@ -323,6 +332,49 @@
             });
         });
     </script>
+
+    <!-- Image Carousel Init -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.img-carousel-wrap').forEach(wrap => {
+            const mainImg = wrap.querySelector('img');
+            if (!mainImg) return;
+            const extraUrls = [];
+            ['img2','img3','img4'].forEach(k => {
+                const val = wrap.dataset[k];
+                if (val && val.trim() !== '') extraUrls.push(val.startsWith('http') ? val : '/images/' + val);
+            });
+            if (extraUrls.length === 0) return;
+            mainImg.classList.add('carousel-img', 'active-slide');
+            extraUrls.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'carousel-img';
+                img.alt = 'Producto';
+                img.onerror = function(){ this.onerror=null; this.src=window.fallbackImg; };
+                mainImg.parentElement.insertBefore(img, mainImg.nextSibling);
+            });
+            const dotsBar = document.createElement('div');
+            dotsBar.className = 'card-dots';
+            const totalSlides = 1 + extraUrls.length;
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'card-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    wrap.querySelectorAll('.carousel-img').forEach(im => im.classList.remove('active-slide'));
+                    wrap.querySelectorAll('.card-dot').forEach(d => d.classList.remove('active'));
+                    const imgs = wrap.querySelectorAll('.carousel-img');
+                    if (imgs[i]) imgs[i].classList.add('active-slide');
+                    dot.classList.add('active');
+                });
+                dotsBar.appendChild(dot);
+            }
+            wrap.appendChild(dotsBar);
+        });
+    });
+    </script>
+
     <!-- Widget de Soporte -->
     <div th:replace="fragments/fragment_soporte :: widget"></div>
 </body>

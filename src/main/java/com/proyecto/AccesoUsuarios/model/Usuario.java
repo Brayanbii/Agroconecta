@@ -57,10 +57,6 @@ public class Usuario {
     @Column(columnDefinition = "numeric(10,2) default 0.0")
     private Double creditos = 0.0; // AgroCréditos
 
-    // Estado online para agentes de soporte
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private Boolean disponibleSoporte = false;
-
     // --- VERIFICACIÓN DE IDENTIDAD Y SEGURIDAD (KYC) ---
     // Valores posibles: "PENDIENTE_DATOS", "EN_REVISION", "APROBADO", "RECHAZADO"
     @Column(columnDefinition = "varchar(20) default 'APROBADO'")

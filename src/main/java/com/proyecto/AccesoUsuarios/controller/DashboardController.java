@@ -224,40 +224,98 @@ public class DashboardController {
             model.addAttribute("busqueda", "");
         }
 
-        // Agrupar por Categorías para las secciones independientes
-        List<Producto> verduras = new ArrayList<>();
-        List<Producto> frutas = new ArrayList<>();
-        List<Producto> tuberculos = new ArrayList<>();
-        List<Producto> lacteos = new ArrayList<>();
-        List<Producto> granos = new ArrayList<>();
-        List<Producto> otros = new ArrayList<>();
-
-        for (Producto p : productosList) {
-            String cat = p.getCategoria() != null ? p.getCategoria().toLowerCase() : "";
-            if (cat.contains("verdura")) {
-                verduras.add(p);
-            } else if (cat.contains("fruta")) {
-                frutas.add(p);
-            } else if (cat.contains("tubérculo") || cat.contains("tuberculo") || cat.contains("papa") || cat.contains("yuca")) {
-                tuberculos.add(p);
-            } else if (cat.contains("lácteo") || cat.contains("lacteo") || cat.contains("queso") || cat.contains("leche")) {
-                lacteos.add(p);
-            } else if (cat.contains("grano") || cat.contains("frijol") || cat.contains("arroz") || cat.contains("lenteja")) {
-                granos.add(p);
-            } else {
-                otros.add(p);
+        // 1.5 ALGORITMO DE PRODUCTOS MÁS DESTACADOS (Más vendidos)
+        List<com.proyecto.AccesoUsuarios.model.DetalleOrden> todosLosDetalles = detalleRepo.findAll();
+        Map<Producto, Integer> ventasPorProducto = new HashMap<>();
+        for (com.proyecto.AccesoUsuarios.model.DetalleOrden d : todosLosDetalles) {
+            if (d.getProducto() != null && d.getCantidad() != null) {
+                ventasPorProducto.put(d.getProducto(), ventasPorProducto.getOrDefault(d.getProducto(), 0) + d.getCantidad());
             }
         }
-
-        model.addAttribute("verduras", verduras);
-        model.addAttribute("frutas", frutas);
-        model.addAttribute("tuberculos", tuberculos);
-        model.addAttribute("lacteos", lacteos);
-        model.addAttribute("granos", granos);
-        model.addAttribute("otros", otros);
+        
+        List<Producto> productosDestacados = new ArrayList<>(productosList);
+        productosDestacados.sort((p1, p2) -> {
+            int v1 = ventasPorProducto.getOrDefault(p1, 0);
+            int v2 = ventasPorProducto.getOrDefault(p2, 0);
+            if (v1 != v2) {
+                return Integer.compare(v2, v1); // Orden descendente por ventas
+            }
+            // Si empatan en ventas, desempatar por calificación
+            return Double.compare(p2.getPromedioCalificacion(), p1.getPromedioCalificacion());
+        });
+        
+        // Limitar a los 8 mejores
+        if (productosDestacados.size() > 8) {
+            productosDestacados = productosDestacados.subList(0, 8);
+        }
+        model.addAttribute("productosDestacados", productosDestacados);
 
         // 1.6 ALGORITMO DE RECOMENDACIÓN (Machine Learning Heurístico)
-        // Ya no necesitamos recomendaciones por defecto aquí, la tienda mostrará secciones categorizadas
+        List<Producto> productosRecomendados = new ArrayList<>();
+        if (auth != null && auth.isAuthenticated()) {
+            Usuario usuarioObj = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+            if (usuarioObj != null) {
+                // Algoritmo de Recomendación Basado en Compras Históricas (Content-Based Filtering)
+                List<com.proyecto.AccesoUsuarios.model.Orden> ordenes = ordenRepo.findByUsuario(usuarioObj);
+                if (ordenes != null && !ordenes.isEmpty()) {
+                    Map<String, Integer> catFrecuencia = new HashMap<>();
+                    List<Long> productosCompradosIds = new ArrayList<>();
+
+                    for (com.proyecto.AccesoUsuarios.model.Orden o : ordenes) {
+                        if (o.getDetalles() != null) {
+                            for (com.proyecto.AccesoUsuarios.model.DetalleOrden d : o.getDetalles()) {
+                                if (d.getProducto() != null) {
+                                    productosCompradosIds.add(d.getProducto().getId());
+                                    String cat = d.getProducto().getCategoria();
+                                    if (cat != null) {
+                                        catFrecuencia.put(cat, catFrecuencia.getOrDefault(cat, 0) + d.getCantidad());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Ordenar categorías favoritas descendentemente
+                    List<Map.Entry<String, Integer>> catsOrdenadas = new ArrayList<>(catFrecuencia.entrySet());
+                    catsOrdenadas.sort((a, b) -> b.getValue().compareTo(a.getValue())); 
+
+                    // Extraer las top 2 categorías de interés del cliente
+                    List<String> topCategorias = new ArrayList<>();
+                    if (catsOrdenadas.size() > 0) topCategorias.add(catsOrdenadas.get(0).getKey());
+                    if (catsOrdenadas.size() > 1) topCategorias.add(catsOrdenadas.get(1).getKey());
+
+                    // Filtrar productos del catálogo que encajen con sus gustos, PERO que NO haya comprado antes
+                    for (Producto p : productosList) {
+                        if (!productosCompradosIds.contains(p.getId()) && topCategorias.contains(p.getCategoria())) {
+                            productosRecomendados.add(p);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fallback: Si no hay suficientes datos para perfilar al cliente (Cold Start Problem),
+        // usamos los mejores calificados que no estén en Destacados.
+        if (productosRecomendados.size() < 4) {
+            List<Producto> fallback = new ArrayList<>(productosList);
+            fallback.removeAll(productosDestacados); 
+            fallback.sort((p1, p2) -> Double.compare(p2.getPromedioCalificacion(), p1.getPromedioCalificacion()));
+            
+            for (Producto p : fallback) {
+                if (!productosRecomendados.contains(p)) {
+                    productosRecomendados.add(p);
+                }
+                if (productosRecomendados.size() >= 15) break; 
+            }
+        } else {
+            // Ordenamos las recomendaciones personalizadas por calidad (rating)
+            productosRecomendados.sort((p1, p2) -> Double.compare(p2.getPromedioCalificacion(), p1.getPromedioCalificacion()));
+            if (productosRecomendados.size() > 15) {
+                productosRecomendados = productosRecomendados.subList(0, 15);
+            }
+        }
+        
+        model.addAttribute("productosRecomendados", productosRecomendados);
 
         // 2. Lógica de Distancia Matemática (Haversine)
         if (latCliente != null && lonCliente != null) {

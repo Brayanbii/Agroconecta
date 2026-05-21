@@ -8,7 +8,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts (Ultra Premium Startup Vibe) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -596,19 +596,43 @@
                         </div>
                         <span class="text-2xl font-extrabold tracking-tight text-gray-900">Agro<span class="text-brand-600">Conecta</span></span>
                     </a>
-                    <p class="text-gray-500 text-sm leading-relaxed pr-8 mb-6 font-medium">
+                    <p class="text-gray-500 text-sm leading-relaxed pr-8 mb-5 font-medium">
                         La plataforma tecnológica que une al campo con la ciudad. Transformando el consumo de alimentos en una experiencia justa, rápida y moderna.
                     </p>
+                    
+                    <!-- App Download Buttons (Sleek & Transparent) -->
+                    <div class="flex flex-wrap gap-2.5 mb-6">
+                        <a href="#" class="flex items-center gap-2 bg-gray-950/[0.03] hover:bg-gray-950/[0.06] text-gray-900 border border-gray-200/60 px-3.5 py-1.5 rounded-xl transition duration-300">
+                            <i class="fab fa-apple text-base"></i>
+                            <div class="text-[9px] leading-tight text-left">
+                                <p class="text-[7px] text-gray-400 uppercase tracking-wider font-semibold">Consíguelo en el</p>
+                                <p class="font-extrabold text-gray-950">App Store</p>
+                            </div>
+                        </a>
+                        <a href="#" class="flex items-center gap-2 bg-gray-950/[0.03] hover:bg-gray-950/[0.06] text-gray-900 border border-gray-200/60 px-3.5 py-1.5 rounded-xl transition duration-300">
+                            <i class="fab fa-google-play text-xs text-brand-600"></i>
+                            <div class="text-[9px] leading-tight text-left">
+                                <p class="text-[7px] text-gray-400 uppercase tracking-wider font-semibold">Consíguelo en</p>
+                                <p class="font-extrabold text-gray-950">Google Play</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Social Icons Ordered: Instagram, Facebook, X -->
                     <div class="flex gap-3">
-                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-brand-600 transition shadow-sm border border-gray-100 hover:-translate-y-1"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-pink-600 transition shadow-sm border border-gray-100 hover:-translate-y-1"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-blue-600 transition shadow-sm border border-gray-100 hover:-translate-y-1"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-pink-600 transition shadow-sm border border-gray-100 hover:-translate-y-1" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-blue-600 transition shadow-sm border border-gray-100 hover:-translate-y-1" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-400 hover:text-black transition shadow-sm border border-gray-100 hover:-translate-y-1" title="X (Twitter)">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
                 
                 <!-- Links Cols -->
                 <div class="md:col-span-2 md:col-start-7">
-                    <h4 class="text-xs font-bold text-gray-900 mb-5 uppercase tracking-widest">Red Oficial</h4>
+                    <h4 class="text-xs font-bold text-gray-900 mb-5 uppercase tracking-widest">Enlaces de interés</h4>
                     <ul class="space-y-3 text-sm text-gray-500 font-medium">
                         <li><a href="https://www.minagricultura.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition flex items-center gap-2">MinAgricultura <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
                         <li><a href="https://www.ica.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition flex items-center gap-2">Portal ICA <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
@@ -620,23 +644,27 @@
                     <ul class="space-y-3 text-sm text-gray-500 font-medium">
                         <li><a href="#" class="hover:text-brand-600 transition">Sobre Nosotros</a></li>
                         <li><a href="#" class="hover:text-brand-600 transition">Impacto Social</a></li>
-                        <li><a href="#" class="hover:text-brand-600 transition">Noticias</a></li>
+                        <li><a href="#como-funciona" class="hover:text-brand-600 transition">Cómo funciona</a></li>
                     </ul>
                 </div>
                 <div class="md:col-span-2">
                     <h4 class="text-xs font-bold text-gray-900 mb-5 uppercase tracking-widest">Soporte</h4>
                     <ul class="space-y-3 text-sm text-gray-500 font-medium">
                         <li><a href="#" class="hover:text-brand-600 transition">Centro de Ayuda</a></li>
+                        <li><a href="#" class="hover:text-brand-600 transition">Contacto</a></li>
+                        <li><a href="#" class="hover:text-brand-600 transition">Términos y Condiciones</a></li>
                         <li><a href="#" class="hover:text-brand-600 transition">Privacidad</a></li>
-                        <li><a href="#" class="hover:text-brand-600 transition">Términos</a></li>
                     </ul>
                 </div>
             </div>
 
+            <!-- Divider Line -->
+            <hr class="border-gray-200/40 my-6">
+
             <!-- Bottom Footer -->
-            <div class="border-t border-gray-200/80 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-gray-400 text-sm flex items-center gap-1 font-medium">
-                    &copy; 2026 AgroConecta. Hecho con <span class="text-brand-500 mx-1">♥</span> en Colombia.
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-400 text-sm font-medium">
+                    &copy; 2026 AgroConecta. Todos los derechos reservados. Hecho con <span class="text-brand-500 mx-1">💚</span> en Colombia.
                 </p>
                 <div class="flex items-center gap-6 text-sm text-gray-400 font-medium">
                     <span>Español (CO)</span>

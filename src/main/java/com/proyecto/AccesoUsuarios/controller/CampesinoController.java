@@ -77,6 +77,7 @@ public class CampesinoController {
         // --- CONEXIÓN CON PYTHON: Precios de Referencia ---
         Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
         if (respuesta != null) {
+            model.addAttribute("preciosReferencia", respuesta.get("data"));
             model.addAttribute("fuentePrecios", respuesta.get("fuente"));
         }
         // --------------------------------------------------

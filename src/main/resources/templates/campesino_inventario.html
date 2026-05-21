@@ -16,10 +16,49 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
-        /* Animaciones para alertas */
+
+        /* Animaciones */
         @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .alert-pulse { animation: pulseAlert 2s infinite; }
-        
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .stat-value { animation: countUp 0.4s ease-out; }
+
+        /* Salud Ring */
+        .health-ring {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .health-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+        .health-ring .ring-bg { stroke: #e5e7eb; }
+        .health-ring .ring-fill { transition: stroke-dashoffset 1s ease, stroke 0.5s ease; stroke-linecap: round; }
+
+        /* Toast Notification */
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to   { transform: translateX(120%); opacity: 0; }
+        }
+        .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .toast-exit  { animation: slideOutRight 0.3s ease-in forwards; }
+
+        /* KPI Card hover */
+        .kpi-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -8px rgba(0,0,0,0.1);
+        }
+
         /* Custom Driver.js Theme (2026 SaaS Style) */
         .driver-popover.driverjs-theme {
             background: rgba(255, 255, 255, 0.98) !important;
@@ -47,18 +86,17 @@
 <body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
 
     <!-- SIDEBAR -->
-    <!-- SIDEBAR -->
     <aside th:replace="~{fragments/campesino_sidebar :: sidebar('inventario')}"></aside>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
         <!-- HERO HEADER -->
-        <div class="relative bg-gradient-to-br from-blue-800 via-indigo-700 to-violet-600 px-10 py-10 shrink-0 overflow-hidden">
+        <div class="relative bg-gradient-to-br from-blue-800 via-indigo-700 to-violet-600 px-10 py-8 shrink-0 overflow-hidden">
             <div class="absolute top-0 right-0 -mt-16 -mr-16 w-72 h-72 bg-violet-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse"></div>
             <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-56 h-56 bg-blue-300 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
 
-            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border border-white/30"><i class="fas fa-warehouse mr-1"></i>Bodega Virtual</span>
@@ -77,7 +115,7 @@
                         <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow-inner" th:unless="${agotados > 0}"><i class="fas fa-check-circle text-xl"></i></div>
                         <div>
                             <p class="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Agotados</p>
-                            <p class="text-2xl font-black text-white"><span th:text="${agotados}">0</span></p>
+                            <p class="text-2xl font-black text-white" id="header-agotados"><span th:text="${agotados}">0</span></p>
                         </div>
                     </div>
                 </div>
@@ -88,18 +126,81 @@
         <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50">
             <div class="max-w-6xl mx-auto space-y-6">
 
+                <!-- ============================
+                     KPI STAT CARDS
+                     ============================ -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-section">
+
+                    <!-- Salud del Inventario -->
+                    <div class="kpi-card bg-white rounded-[1.5rem] p-5 border border-gray-100 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)]">
+                        <div class="flex items-center gap-4">
+                            <div class="health-ring" id="healthRing">
+                                <svg width="56" height="56" viewBox="0 0 56 56">
+                                    <circle class="ring-bg" cx="28" cy="28" r="24" fill="none" stroke-width="5"/>
+                                    <circle class="ring-fill" id="healthCircle" cx="28" cy="28" r="24" fill="none" stroke-width="5" stroke="#22c55e"
+                                            th:attr="stroke-dasharray='150.8', stroke-dashoffset=${150.8 - (saludInventario * 150.8 / 100)}"/>
+                                </svg>
+                                <span class="text-sm font-black text-gray-800" id="healthPercent" th:text="${saludInventario} + '%'">0%</span>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Salud</p>
+                                <p class="text-sm font-extrabold text-gray-800" id="healthLabel"
+                                   th:text="${saludInventario >= 75} ? 'Excelente' : (${saludInventario >= 50} ? 'Buena' : (${saludInventario >= 25} ? 'Regular' : 'Crítica'))">—</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Productos -->
+                    <div class="kpi-card bg-white rounded-[1.5rem] p-5 border border-gray-100 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)]">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-2xl shadow-inner"><i class="fas fa-boxes-stacked"></i></div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Productos</p>
+                                <p class="text-2xl font-black text-gray-800 stat-value" id="kpi-totalProductos" th:text="${productos.size()}">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Total -->
+                    <div class="kpi-card bg-white rounded-[1.5rem] p-5 border border-gray-100 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)]">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-2xl shadow-inner"><i class="fas fa-cubes"></i></div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Stock Total</p>
+                                <p class="text-2xl font-black text-gray-800 stat-value" id="kpi-stockTotal" th:text="${stockTotal}">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Valor del Inventario -->
+                    <div class="kpi-card bg-white rounded-[1.5rem] p-5 border border-gray-100 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)]">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-2xl shadow-inner"><i class="fas fa-coins"></i></div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Valor Inventario</p>
+                                <p class="text-xl font-black text-gray-800 stat-value" id="kpi-valorInventario">
+                                    $<span th:text="${#numbers.formatDecimal(valorInventario, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
                 <!-- FILTROS RAPIDOS -->
-                <div id="filtros-stock" class="flex flex-wrap items-center gap-3 mb-6">
-                    <button onclick="filtrar('todos')" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-700 transition">Todos (<span th:text="${productos.size()}">0</span>)</button>
-                    <button onclick="filtrar('agotado')" class="bg-white border border-gray-200 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-50 hover:border-red-200 transition"><i class="fas fa-times-circle mr-1"></i>Agotados (<span th:text="${agotados}">0</span>)</button>
-                    <button onclick="filtrar('bajo')" class="bg-white border border-gray-200 text-orange-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-50 hover:border-orange-200 transition"><i class="fas fa-exclamation-circle mr-1"></i>Poco Stock (<span th:text="${bajoStock}">0</span>)</button>
-                    <button onclick="filtrar('bien')" class="bg-white border border-gray-200 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-200 transition"><i class="fas fa-check-circle mr-1"></i>Suficiente (<span th:text="${productos.size() - agotados - bajoStock}">0</span>)</button>
+                <div id="filtros-stock" class="flex flex-wrap items-center gap-3">
+                    <button onclick="filtrar('todos')" class="filter-btn bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-700 transition">Todos (<span th:text="${productos.size()}" id="count-todos">0</span>)</button>
+                    <button onclick="filtrar('agotado')" class="filter-btn bg-white border border-gray-200 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-50 hover:border-red-200 transition"><i class="fas fa-times-circle mr-1"></i>Agotados (<span th:text="${agotados}" id="count-agotados">0</span>)</button>
+                    <button onclick="filtrar('bajo')" class="filter-btn bg-white border border-gray-200 text-orange-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-50 hover:border-orange-200 transition"><i class="fas fa-exclamation-circle mr-1"></i>Poco Stock (<span th:text="${bajoStock}" id="count-bajo">0</span>)</button>
+                    <button onclick="filtrar('bien')" class="filter-btn bg-white border border-gray-200 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-50 hover:border-green-200 transition"><i class="fas fa-check-circle mr-1"></i>Suficiente (<span th:text="${productos.size() - agotados - bajoStock}" id="count-bien">0</span>)</button>
                 </div>
 
                 <!-- CARDS INVENTARIO -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="grid-inventario">
                     <div th:each="p : ${productos}" 
                          th:data-stock="${p.stock != null ? p.stock : 0}"
+                         th:data-precio="${p.precio != null ? p.precio : 0}"
+                         th:data-id="${p.id}"
                          th:class="'prod-card bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-all duration-300 ' + (${p.stock == null || p.stock == 0} ? 'border-red-200 shadow-red-100/50' : (${p.stock < 10} ? 'border-orange-200 shadow-orange-100/50' : 'border-gray-100 hover:border-blue-200 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)]'))">
                         
                         <!-- Header Card -->
@@ -172,24 +273,124 @@
         </div>
     </main>
 
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none" style="max-width: 380px;"></div>
+
     <!-- AJAX LOGIC -->
     <script>
+        // =========================================
+        // TOAST NOTIFICATIONS
+        // =========================================
+        function showToast(productName, newStock, delta) {
+            const container = document.getElementById('toast-container');
+
+            const isAdd = delta > 0;
+            const icon = isAdd ? 'fa-arrow-up' : 'fa-arrow-down';
+            const iconColor = isAdd ? 'text-green-500' : 'text-red-500';
+            const bgAccent = isAdd ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100';
+            const action = isAdd ? `+${delta} unidades` : `${delta} unidades`;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto ${bgAccent} border rounded-2xl p-4 shadow-[0_16px_40px_-6px_rgba(0,0,0,0.12)] backdrop-blur-md flex items-center gap-3 toast-enter`;
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-xl ${isAdd ? 'bg-green-100' : 'bg-red-100'} flex items-center justify-center ${iconColor} shrink-0 shadow-inner">
+                    <i class="fas ${icon} text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-extrabold text-gray-800 truncate">${productName}</p>
+                    <p class="text-xs font-bold ${iconColor}">${action} → Stock: ${newStock}</p>
+                </div>
+                <div class="text-[10px] text-gray-400 font-bold shrink-0">Ahora</div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-remove after 3.5s
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 350);
+            }, 3500);
+        }
+
+        // =========================================
+        // LIVE KPI RECALCULATOR
+        // =========================================
+        function recalcKPIs() {
+            const cards = document.querySelectorAll('.prod-card');
+            let totalProducts = cards.length;
+            let stockTotal = 0;
+            let agotados = 0;
+            let bajoStock = 0;
+            let sano = 0;
+            let valorInventario = 0;
+
+            cards.forEach(card => {
+                const stock = parseInt(card.getAttribute('data-stock')) || 0;
+                const precio = parseFloat(card.getAttribute('data-precio')) || 0;
+                stockTotal += stock;
+                valorInventario += (precio * stock);
+                if (stock === 0) agotados++;
+                else if (stock < 10) bajoStock++;
+                else sano++;
+            });
+
+            const salud = totalProducts === 0 ? 0 : Math.round((sano * 100) / totalProducts);
+            const bien = totalProducts - agotados - bajoStock;
+
+            // Update KPI values
+            document.getElementById('kpi-totalProductos').textContent = totalProducts;
+            document.getElementById('kpi-stockTotal').textContent = stockTotal.toLocaleString('es-CO');
+            document.getElementById('kpi-valorInventario').textContent = '$' + valorInventario.toLocaleString('es-CO', {maximumFractionDigits: 0});
+            document.getElementById('healthPercent').textContent = salud + '%';
+
+            // Update health label
+            const healthLabel = document.getElementById('healthLabel');
+            if (salud >= 75) healthLabel.textContent = 'Excelente';
+            else if (salud >= 50) healthLabel.textContent = 'Buena';
+            else if (salud >= 25) healthLabel.textContent = 'Regular';
+            else healthLabel.textContent = 'Crítica';
+
+            // Update health ring
+            const circumference = 150.8; // 2 * PI * 24
+            const offset = circumference - (salud * circumference / 100);
+            const circle = document.getElementById('healthCircle');
+            circle.setAttribute('stroke-dashoffset', offset);
+            if (salud >= 75) circle.setAttribute('stroke', '#22c55e');
+            else if (salud >= 50) circle.setAttribute('stroke', '#f59e0b');
+            else circle.setAttribute('stroke', '#ef4444');
+
+            // Update filter counts
+            document.getElementById('count-todos').textContent = totalProducts;
+            document.getElementById('count-agotados').textContent = agotados;
+            document.getElementById('count-bajo').textContent = bajoStock;
+            document.getElementById('count-bien').textContent = bien;
+
+            // Update header agotados
+            document.getElementById('header-agotados').textContent = agotados;
+        }
+
+        // =========================================
+        // STOCK MANAGEMENT
+        // =========================================
         function cambiarStock(id, cantidad) {
             let input = document.getElementById('stock-input-' + id);
             let val = parseInt(input.value) || 0;
             let nuevo = Math.max(0, val + cantidad);
             input.value = nuevo;
-            enviarUpdate(id, 'set', nuevo);
+            enviarUpdate(id, 'set', nuevo, cantidad);
         }
 
         function guardarStockManual(id) {
             let input = document.getElementById('stock-input-' + id);
+            let oldVal = parseInt(input.getAttribute('data-prev') || input.defaultValue) || 0;
             let nuevo = Math.max(0, parseInt(input.value) || 0);
             input.value = nuevo;
-            enviarUpdate(id, 'set', nuevo);
+            let delta = nuevo - oldVal;
+            enviarUpdate(id, 'set', nuevo, delta);
         }
 
-        function enviarUpdate(id, accion, valor) {
+        function enviarUpdate(id, accion, valor, delta) {
             let savingEl = document.getElementById('saving-' + id);
             savingEl.style.display = 'inline-block';
             
@@ -216,12 +417,19 @@
                 savingEl.style.display = 'none';
                 if(data.success) {
                     actualizarUI(id, data.nuevoStock);
+                    // Get product name for toast
+                    const card = document.querySelector(`.prod-card[data-id='${id}']`);
+                    const productName = card ? card.querySelector('h3').textContent : 'Producto';
+                    if (delta !== 0) showToast(productName, data.nuevoStock, delta);
+                    // Update data-stock and recalc KPIs
+                    if (card) card.setAttribute('data-stock', data.nuevoStock);
+                    recalcKPIs();
                 } else {
-                    alert('Error guardando el inventario: ' + data.error);
+                    showToast('Error', 0, 0);
                 }
             }).catch(e => {
                 savingEl.style.display = 'none';
-                alert('Error de conexión');
+                showToast('Error de conexión', 0, 0);
             });
         }
 
@@ -309,6 +517,7 @@
                 popoverClass: 'driverjs-theme',
                 steps: [
                     { popover: { title: 'Tu Bodega Inteligente 📦', description: 'Bienvenido al control de inventario. Aquí manejas cuántos productos tienes disponibles para vender, de forma fácil y rápida.', side: "bottom", align: 'start' } },
+                    { element: '#kpi-section', popover: { title: 'Panel de Métricas 📊', description: 'Estas tarjetas muestran la Salud de tu inventario, el total de productos, las unidades totales y el valor monetario de tu bodega. ¡Se actualizan en vivo!', side: "bottom", align: 'center' } },
                     { element: '#filtros-stock', popover: { title: 'Filtros Rápidos 🎯', description: 'Usa estos botones de colores para ver al instante cuáles productos están Agotados (rojo), con Poco Stock (naranja) o con buen inventario (verde).', side: "bottom", align: 'center' } },
                     { element: '#grid-inventario', popover: { title: 'Tus Productos 🔢', description: 'Cada tarjeta es un producto. Usa los botones + y - para sumar o restar unidades rápidamente, o escribe el número directamente.', side: "top", align: 'center' } },
                     { element: '.prod-card', popover: { title: 'Estado por Color 🚥', description: 'El borde de cada tarjeta te dice su estado: Verde = buen inventario, Naranja = poco stock, Rojo = agotado. ¡Así lo ves de un vistazo!', side: "right", align: 'start' } },

@@ -14,15 +14,14 @@
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-slate-100">
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-gray-50">
 
-    <div class="flex h-screen max-w-7xl mx-auto border-x border-gray-200 bg-white shadow-2xl overflow-hidden relative">
+    <div class="flex h-screen max-w-7xl mx-auto border-x border-gray-200 bg-white shadow-2xl overflow-hidden">
         
         <!-- MAIN CHAT AREA -->
-        <main class="flex-1 flex flex-col h-full border-r border-gray-100 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
-            <div class="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-0 pointer-events-none"></div>
+        <main class="flex-1 flex flex-col h-full border-r border-gray-100">
             <!-- HEADER TICKET -->
-            <header class="bg-white/90 backdrop-blur-md border-b border-gray-100 p-6 flex items-center justify-between shrink-0 z-10 shadow-sm relative">
+            <header class="bg-white border-b border-gray-100 p-6 flex items-center justify-between shrink-0 z-10 shadow-sm">
                 <div class="flex items-center gap-4">
                     <a href="/soporte/dashboard" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition">
                         <i class="fas fa-arrow-left"></i>
@@ -30,17 +29,9 @@
                     <div>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-xs font-bold text-gray-400 font-mono" th:text="'Ticket #' + ${ticket.id}">#1</span>
-                            
-                            <!-- PQRS Badges -->
-                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-bold border border-gray-200 uppercase" th:text="${ticket.tipo != null ? ticket.tipo : 'PETICION'}">PETICION</span>
-                            <span th:if="${ticket.prioridad == 'CRITICA' || ticket.prioridad == 'ALTA'}" class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold border border-red-200 uppercase animate-pulse shadow-sm shadow-red-500/20" th:text="${ticket.prioridad}">ALTA</span>
-                            <span th:if="${ticket.prioridad != 'CRITICA' && ticket.prioridad != 'ALTA'}" class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold border border-gray-200 uppercase" th:text="${ticket.prioridad != null ? ticket.prioridad : 'BAJA'}">BAJA</span>
-
-                            <span class="w-1 h-1 bg-gray-300 rounded-full mx-1"></span>
-
-                            <span th:if="${ticket.estado == 'ABIERTO'}" class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-[10px] font-bold border border-red-200 uppercase flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Abierto</span>
-                            <span th:if="${ticket.estado == 'EN_PROGRESO'}" class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold border border-blue-200 uppercase flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> En Progreso</span>
-                            <span th:if="${ticket.estado == 'CERRADO'}" class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold border border-gray-200 uppercase flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Cerrado</span>
+                            <span th:if="${ticket.estado == 'ABIERTO'}" class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-[10px] font-bold border border-red-200 uppercase">Abierto</span>
+                            <span th:if="${ticket.estado == 'EN_PROGRESO'}" class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold border border-blue-200 uppercase">En Progreso</span>
+                            <span th:if="${ticket.estado == 'CERRADO'}" class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold border border-gray-200 uppercase">Cerrado</span>
                         </div>
                         <h1 class="text-xl font-extrabold text-gray-900 tracking-tight" th:text="${ticket.asunto}">Asunto</h1>
                     </div>
@@ -80,38 +71,38 @@
             </header>
 
             <!-- CHAT AREA -->
-            <div class="flex-1 overflow-y-auto p-6 chat-container space-y-6 relative z-10" id="chatContainer">
+            <div class="flex-1 overflow-y-auto p-6 bg-slate-50 chat-container space-y-6" id="chatContainer">
                 
                 <div th:each="m : ${mensajes}" class="msg-bubble flex w-full" th:classappend="${m.remitente != null and m.remitente.rol == 'SOPORTE'} ? 'justify-end' : 'justify-start'">
                     
                     <!-- Mensaje del Sistema / Cliente -->
-                    <div th:if="${m.remitente == null or m.remitente.rol != 'SOPORTE'}" class="flex gap-4 max-w-[75%]">
-                        <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold mt-auto shadow-sm"
-                             th:classappend="${m.remitente == null} ? 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'">
+                    <div th:if="${m.remitente == null or m.remitente.rol != 'SOPORTE'}" class="flex gap-3 max-w-[70%]">
+                        <div class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold mt-auto"
+                             th:classappend="${m.remitente == null} ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-600'">
                             <i th:if="${m.remitente == null}" class="fas fa-robot"></i>
                             <span th:if="${m.remitente != null}" th:text="${#strings.substring(m.remitente.nombreCompleto,0,1).toUpperCase()}">U</span>
                         </div>
                         <div>
-                            <p class="text-[11px] text-gray-500 ml-1 mb-1 font-semibold tracking-wide" th:text="${m.remitente == null ? 'AgroBot (Sistema)' : m.remitente.nombreCompleto}">Remitente</p>
-                            <div class="p-4 rounded-3xl rounded-bl-sm shadow-md text-sm leading-relaxed"
-                                 th:classappend="${m.remitente == null} ? 'bg-white/90 backdrop-blur border border-indigo-100 text-indigo-900' : 'bg-white/90 backdrop-blur border border-gray-100 text-gray-800'">
+                            <p class="text-[10px] text-gray-400 ml-1 mb-1 font-medium" th:text="${m.remitente == null ? 'AgroBot (Automático)' : m.remitente.nombreCompleto}">Remitente</p>
+                            <div class="p-4 rounded-2xl rounded-bl-none shadow-sm text-sm"
+                                 th:classappend="${m.remitente == null} ? 'bg-indigo-50 border border-indigo-100 text-indigo-900' : 'bg-white border border-gray-100 text-gray-800'">
                                 <p class="whitespace-pre-wrap" th:text="${m.contenido}">Contenido</p>
                             </div>
-                            <p class="text-[10px] text-gray-400 mt-1.5 ml-1 font-medium" th:text="${#temporals.format(m.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</p>
+                            <p class="text-[9px] text-gray-400 mt-1 ml-1" th:text="${#temporals.format(m.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</p>
                         </div>
                     </div>
 
                     <!-- Mensaje del Soporte (Mio) -->
-                    <div th:if="${m.remitente != null and m.remitente.rol == 'SOPORTE'}" class="flex gap-4 max-w-[75%] flex-row-reverse">
-                        <div class="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white flex items-center justify-center text-sm font-bold mt-auto shadow-orange-500/30 shadow-md">
+                    <div th:if="${m.remitente != null and m.remitente.rol == 'SOPORTE'}" class="flex gap-3 max-w-[70%] flex-row-reverse">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold mt-auto">
                             <i class="fas fa-headset"></i>
                         </div>
                         <div class="flex flex-col items-end">
-                            <p class="text-[11px] text-gray-500 mr-1 mb-1 font-semibold tracking-wide">Yo (AgroSoporte)</p>
-                            <div class="p-4 rounded-3xl rounded-br-sm bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 text-sm leading-relaxed">
+                            <p class="text-[10px] text-gray-400 mr-1 mb-1 font-medium" th:text="${m.remitente.nombreCompleto}">Yo</p>
+                            <div class="p-4 rounded-2xl rounded-br-none bg-orange-500 text-white shadow-md text-sm">
                                 <p class="whitespace-pre-wrap" th:text="${m.contenido}">Contenido</p>
                             </div>
-                            <p class="text-[10px] text-gray-400 mt-1.5 mr-1 font-medium" th:text="${#temporals.format(m.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</p>
+                            <p class="text-[9px] text-gray-400 mt-1 mr-1" th:text="${#temporals.format(m.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</p>
                         </div>
                     </div>
 
@@ -126,26 +117,19 @@
             </div>
 
             <!-- ZONA DE INPUT -->
-            <div class="p-5 bg-white/90 backdrop-blur-md border-t border-gray-100 shrink-0 z-10 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)] relative" th:if="${ticket.estado != 'CERRADO'}">
+            <div class="p-4 bg-white border-t border-gray-100 shrink-0" th:if="${ticket.estado != 'CERRADO'}">
                 
                 <!-- Quick Replies -->
                 <div class="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
-                    <button type="button" onclick="insertText('Hola, soy tu agente de AgroSoporte. ¿En qué te puedo colaborar el día de hoy?')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-hand-sparkles mr-1 text-orange-400"></i> Saludo</button>
-                    <button type="button" onclick="insertText('Comprendo tu situación. Permíteme un momento mientras reviso la información en nuestro sistema, por favor.')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-hourglass-half mr-1 text-orange-400"></i> Espera</button>
-                    <button type="button" onclick="insertText('Para entender mejor la situación, ¿podrías adjuntar una captura de pantalla del inconveniente que presentas?')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-camera mr-1 text-orange-400"></i> Pedir Captura</button>
-                    <button type="button" onclick="insertText('¿Me podrías brindar más detalles o el número de tu orden para revisarlo con mayor precisión?')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-search-plus mr-1 text-orange-400"></i> Más Detalles</button>
-                </div>
-                <div class="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-                    <button type="button" onclick="insertText('Tu pedido ya se encuentra en camino. Puedes ver el detalle y seguimiento en la sección de tus compras.')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-truck mr-1 text-blue-400"></i> Estado Envío</button>
-                    <button type="button" onclick="insertText('Lamentamos mucho la mala experiencia. Hemos iniciado el proceso de reembolso, el cual puede tardar de 3 a 5 días hábiles en reflejarse.')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-hand-holding-usd mr-1 text-green-500"></i> Reembolso</button>
-                    <button type="button" onclick="insertText('Pedimos disculpas por los inconvenientes causados. Estamos trabajando para solucionar tu caso lo antes posible.')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-heart mr-1 text-pink-400"></i> Disculpas</button>
-                    <button type="button" onclick="insertText('He escalado tu caso al equipo especializado. Recibirás una respuesta en las próximas 24 horas. Gracias por tu paciencia.')" class="whitespace-nowrap px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-full text-[11px] font-semibold text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 hover:shadow-sm transition-all duration-200"><i class="fas fa-level-up-alt mr-1 text-indigo-400"></i> Escalar</button>
-                    <button type="button" onclick="insertText('Me alegra haber podido resolver tu solicitud. Si no tienes más dudas, procederé a cerrar este ticket. ¡Gracias por preferir AgroConecta!')" class="whitespace-nowrap px-3.5 py-2 bg-green-50 border border-green-200 rounded-full text-[11px] font-semibold text-green-700 hover:bg-green-100 hover:shadow-sm transition-all duration-200"><i class="fas fa-check-circle mr-1 text-green-500"></i> Solucionado</button>
+                    <button type="button" onclick="insertText('Hola, soy tu agente de soporte. ¿En qué puedo ayudarte hoy?')" class="whitespace-nowrap px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition">👋 Saludo</button>
+                    <button type="button" onclick="insertText('Estamos revisando tu caso, te pedimos un poco de paciencia por favor.')" class="whitespace-nowrap px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition">⏳ Espera</button>
+                    <button type="button" onclick="insertText('Para poder ayudarte mejor, ¿podrías enviarnos una captura de pantalla del problema?')" class="whitespace-nowrap px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition">📷 Pedir Captura</button>
+                    <button type="button" onclick="insertText('He solucionado tu inconveniente. Si no necesitas más ayuda, procederé a cerrar el ticket. ¡Gracias por usar AgroConecta!')" class="whitespace-nowrap px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition">✅ Solucionado</button>
                 </div>
 
                 <form th:action="@{'/soporte/ticket/' + ${ticket.id} + '/responder'}" method="post" class="flex gap-3">
-                    <textarea name="mensaje" id="mensajeInput" rows="2" required placeholder="Escribe tu respuesta aquí..." class="flex-1 resize-none border border-gray-300 rounded-2xl p-4 text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 bg-gray-50/50 transition-all"></textarea>
-                    <button type="submit" class="w-14 h-auto shrink-0 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl flex items-center justify-center transition-all duration-300 shadow-[0_4px_15px_-3px_rgba(249,115,22,0.4)] hover:shadow-[0_8px_20px_-3px_rgba(249,115,22,0.5)] transform hover:-translate-y-0.5">
+                    <textarea name="mensaje" id="mensajeInput" rows="2" required placeholder="Escribe tu respuesta aquí..." class="flex-1 resize-none border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-gray-50"></textarea>
+                    <button type="submit" class="w-14 h-auto shrink-0 bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center justify-center transition shadow-lg shadow-orange-500/30">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
@@ -153,110 +137,78 @@
         </main>
 
         <!-- SIDEBAR DE CONTEXTO DEL USUARIO -->
-        <aside class="w-80 bg-gradient-to-b from-gray-50 to-white overflow-y-auto hidden md:block shrink-0 border-l border-gray-100">
+        <aside class="w-80 bg-gray-50 overflow-y-auto hidden md:block shrink-0">
             <div class="p-6">
-                <h3 class="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em] mb-6">Perfil del Cliente</h3>
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Perfil del Cliente</h3>
                 
                 <!-- Avatar y Nombre -->
                 <div class="flex flex-col items-center mb-8">
-                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-orange-500 font-extrabold text-3xl mb-4 border-4 border-white shadow-lg shadow-orange-100/50 relative">
+                    <div class="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-extrabold text-3xl mb-4 border-4 border-white shadow-sm">
                         <span th:text="${#strings.substring(ticket.usuario.nombreCompleto,0,1).toUpperCase()}">U</span>
-                        <span class="absolute bottom-0 right-0 w-5 h-5 bg-green-400 border-2 border-white rounded-full shadow-sm"></span>
                     </div>
-                    <h2 class="text-lg font-extrabold text-gray-900 text-center" th:text="${ticket.usuario.nombreCompleto}">Nombre Completo</h2>
-                    <span class="mt-1.5 px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-extrabold text-gray-500 uppercase tracking-widest shadow-sm" th:text="${ticket.usuario.rol}">ROL</span>
+                    <h2 class="text-lg font-bold text-gray-900 text-center" th:text="${ticket.usuario.nombreCompleto}">Nombre Completo</h2>
+                    <span class="mt-1 px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-gray-500 uppercase tracking-wide shadow-sm" th:text="${ticket.usuario.rol}">ROL</span>
                 </div>
 
                 <!-- Info de Contacto -->
-                <div class="space-y-4 mb-6 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                <div class="space-y-4 mb-8 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                     <div class="flex items-start gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-orange-400 shrink-0"><i class="fas fa-envelope text-xs"></i></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"><i class="fas fa-envelope text-xs"></i></div>
                         <div class="min-w-0">
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-0.5">Correo</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Correo</p>
                             <p class="text-sm font-medium text-gray-800 truncate" th:text="${ticket.usuario.email}">email@test.com</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-400 shrink-0"><i class="fas fa-phone text-xs"></i></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0"><i class="fas fa-phone text-xs"></i></div>
                         <div class="min-w-0">
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-0.5">Teléfono</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Teléfono</p>
                             <p class="text-sm font-medium text-gray-800" th:text="${ticket.usuario.telefono != null ? ticket.usuario.telefono : 'No registrado'}">300...</p>
                         </div>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-green-400 shrink-0"><i class="fas fa-user-tag text-xs"></i></div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-0.5">Usuario</p>
-                            <p class="text-sm font-medium text-gray-800 truncate" th:text="${ticket.usuario.userName}">usuario123</p>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Info del Ticket -->
-                <h3 class="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em] mb-4">Datos del Ticket</h3>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mb-6">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Tipo</p>
-                            <span class="px-2.5 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-extrabold border border-orange-100 uppercase" th:text="${ticket.tipo}">PETICION</span>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Prioridad</p>
-                            <span th:classappend="${ticket.prioridad == 'CRITICA' ? 'text-red-600 bg-red-50 border-red-100' : (ticket.prioridad == 'ALTA' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-gray-500 bg-gray-50 border-gray-200')}" 
-                                  class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold border uppercase" th:text="${ticket.prioridad}">BAJA</span>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Creado</p>
-                            <p class="text-xs font-bold text-gray-700" th:text="${#temporals.format(ticket.fechaCreacion, 'dd/MM/yy HH:mm')}">fecha</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mb-1">Actualizado</p>
-                            <p class="text-xs font-bold text-gray-700" th:text="${#temporals.format(ticket.fechaActualizacion, 'dd/MM/yy HH:mm')}">fecha</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Historial Reciente -->
-                <h3 class="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em] mb-4">Compras Recientes</h3>
+                <!-- Historial Reciente (Ultimas 5 compras/ventas) -->
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Actividad Reciente</h3>
                 
-                <div th:if="${#lists.isEmpty(ultimasCompras)}" class="bg-white p-6 rounded-2xl border border-gray-100 text-center shadow-sm">
-                    <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 text-xl mx-auto mb-3"><i class="fas fa-box-open"></i></div>
-                    <p class="text-xs text-gray-500 font-bold">No tiene pedidos recientes.</p>
+                <div th:if="${#lists.isEmpty(ultimasCompras)}" class="bg-white p-4 rounded-2xl border border-gray-100 text-center shadow-sm">
+                    <i class="fas fa-box-open text-gray-300 text-2xl mb-2"></i>
+                    <p class="text-xs text-gray-500 font-medium">No tiene pedidos recientes.</p>
                 </div>
 
                 <div th:if="${!#lists.isEmpty(ultimasCompras)}" class="space-y-3">
-                    <details th:each="compra : ${ultimasCompras}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-                        <summary class="p-4 cursor-pointer select-none flex flex-col gap-2 hover:bg-orange-50/30 transition">
+                    <details th:each="compra : ${ultimasCompras}" class="group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+                        <summary class="p-3.5 cursor-pointer select-none flex flex-col gap-2 hover:bg-orange-50/50 transition">
                             <div class="flex justify-between items-start">
-                                <p class="font-bold text-gray-800 text-xs flex items-center gap-1.5 group-open:text-orange-600 transition">
+                                <p class="font-bold text-gray-800 text-xs flex items-center gap-1 group-open:text-orange-600 transition">
                                     <i class="fas fa-chevron-right text-[10px] text-gray-400 group-open:rotate-90 transition-transform"></i>
                                     <span th:text="'Orden #' + ${compra.id}">#123</span>
                                 </p>
-                                <span th:if="${compra.estado == 'PENDIENTE'}" class="text-[9px] font-extrabold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-md border border-yellow-200">Pendiente</span>
-                                <span th:if="${compra.estado == 'PAGADO'}" class="text-[9px] font-extrabold text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-200">Pagado</span>
-                                <span th:if="${compra.estado == 'ENVIADO'}" class="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">Enviado</span>
+                                <span th:if="${compra.estado == 'PENDIENTE'}" class="text-[9px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200">Pendiente</span>
+                                <span th:if="${compra.estado == 'PAGADO'}" class="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">Pagado</span>
+                                <span th:if="${compra.estado == 'ENVIADO'}" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Enviado</span>
                             </div>
-                            <div class="flex justify-between items-end pl-4">
+                            <div class="flex justify-between items-end pl-3">
                                 <p class="text-[10px] text-gray-400"><i class="far fa-calendar-alt"></i> <span th:text="${#temporals.format(compra.fechaCreacion, 'dd/MM/yyyy HH:mm')}">12/05</span></p>
                                 <p class="text-xs font-extrabold text-orange-600" th:text="'$' + ${#numbers.formatDecimal(compra.total, 0, 'COMMA', 0, 'POINT')}">$50,000</p>
                             </div>
                         </summary>
                         
-                        <!-- Contenido Desplegable -->
-                        <div class="p-4 bg-gray-50/80 border-t border-gray-100">
-                            <h4 class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">Productos en esta orden</h4>
+                        <!-- Contenido Desplegable (Detalles del Pedido) -->
+                        <div class="p-3 bg-gray-50 border-t border-gray-100">
+                            <h4 class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Productos en esta orden</h4>
                             <div class="space-y-2">
-                                <div th:each="detalle : ${compra.detalles}" class="flex justify-between items-center text-xs bg-white p-2.5 rounded-xl border border-gray-50">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
-                                            <i class="fas fa-box text-orange-400 text-[10px]"></i>
+                                <div th:each="detalle : ${compra.detalles}" class="flex justify-between items-center text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                                            <i class="fas fa-box text-gray-400 text-[10px]"></i>
                                         </div>
                                         <div class="min-w-0">
                                             <p class="font-bold text-gray-700 truncate" th:text="${detalle.nombre}">Producto</p>
                                             <p class="text-[9px] text-gray-500" th:text="${detalle.cantidad} + 'x $' + ${#numbers.formatDecimal(detalle.precio, 0, 'COMMA', 0, 'POINT')}">1x $1000</p>
                                         </div>
                                     </div>
-                                    <p class="font-extrabold text-gray-800" th:text="'$' + ${#numbers.formatDecimal(detalle.total, 0, 'COMMA', 0, 'POINT')}">$1000</p>
+                                    <p class="font-bold text-gray-800" th:text="'$' + ${#numbers.formatDecimal(detalle.total, 0, 'COMMA', 0, 'POINT')}">$1000</p>
                                 </div>
                             </div>
                         </div>

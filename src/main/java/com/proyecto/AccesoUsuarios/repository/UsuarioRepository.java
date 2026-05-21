@@ -15,10 +15,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // NUEVO MÉTODO: Buscar por Teléfono
     Optional<Usuario> findByTelefono(String telefono);
 
-    // Contar agentes de soporte disponibles
-    long countByRolAndDisponibleSoporte(String rol, Boolean disponibleSoporte);
-
-    // Listar agentes de soporte disponibles
-    java.util.List<Usuario> findByRolAndDisponibleSoporte(String rol, Boolean disponibleSoporte);
-
 }

@@ -1,312 +1,162 @@
 <div th:fragment="widget" th:if="${#authorization.expression('isAuthenticated()')}">
-    <!-- BURBUJA DE SOPORTE FLOTANTE (Premium) -->
+    <!-- BURBUJA DE SOPORTE FLOTANTE -->
     <div id="soporte-widget" class="fixed bottom-6 right-6 z-[9999] font-sans antialiased">
         
         <!-- BOTÓN PRINCIPAL -->
-        <button id="soporte-btn" class="w-16 h-16 bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-400 rounded-full shadow-[0_10px_30px_-10px_rgba(234,88,12,0.8)] flex items-center justify-center text-white text-3xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden border-2 border-white/20">
-            <div class="absolute inset-0 w-full h-full bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+        <button id="soporte-btn" class="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform relative group">
             <i class="fas fa-headset" id="soporte-icon"></i>
-            <span class="absolute top-0 right-0 flex h-4 w-4">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white shadow-sm"></span>
+            <span class="absolute -top-1 -right-1 flex h-4 w-4">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 hidden" id="soporte-ping"></span>
+              <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white hidden" id="soporte-dot"></span>
             </span>
-            <div class="absolute right-20 bg-gray-900/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none shadow-xl border border-white/10">
-                AgroSoporte y PQRS
-                <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-gray-900/90 rotate-45 border-r border-t border-white/10"></div>
+            <!-- Tooltip Hover -->
+            <div class="absolute right-16 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none shadow-lg">
+                Soporte en línea
             </div>
         </button>
 
-        <!-- PANEL DE CHAT (Glassmorphism Premium) -->
-        <div id="soporte-panel" class="absolute bottom-24 right-0 w-[400px] sm:w-[420px] bg-white/70 backdrop-blur-2xl rounded-[32px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] border border-white/60 overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) origin-bottom-right flex flex-col h-[650px] max-h-[85vh]">
+        <!-- PANEL DE CHAT -->
+        <div id="soporte-panel" class="absolute bottom-20 right-0 w-[360px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-orange-900/20 border border-white overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-300 origin-bottom-right flex flex-col h-[520px]">
             
-            <!-- Header con onda y blur -->
-            <div class="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 p-6 text-white shrink-0 relative overflow-hidden shadow-md z-10">
-                <div class="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-                <div class="absolute bottom-0 left-10 w-24 h-24 bg-amber-300/20 rounded-full blur-xl"></div>
-                <div class="relative z-10 flex justify-between items-start">
-                    <div class="flex gap-3 items-center">
-                        <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                            <i class="fas fa-robot text-2xl text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-extrabold text-2xl flex items-center gap-2 drop-shadow-lg tracking-tight leading-none">
-                                AgroBot <i class="fas fa-check-circle text-[10px] text-blue-300" title="Asistente Verificado"></i>
-                            </h3>
-                            <p id="soporte-header-status" class="text-orange-100 text-xs font-medium mt-1 flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-gray-400"></span> Verificando...
-                            </p>
-                        </div>
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 p-5 text-white shrink-0 relative overflow-hidden">
+                <!-- Decoración -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-extrabold text-xl flex items-center gap-2 drop-shadow-md tracking-tight">
+                            <i class="fas fa-headset text-orange-200"></i> AgroSoporte
+                        </h3>
+                        <p class="text-orange-100 text-xs font-medium mt-0.5 opacity-90">Hola <span th:text="${#authentication.name}">Usuario</span>, ¿en qué te ayudamos?</p>
                     </div>
-                    <button id="soporte-close" class="w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center transition-all duration-300 hover:rotate-90">
-                        <i class="fas fa-times"></i>
+                    <button id="soporte-close" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-all duration-300 hover:rotate-90">
+                        <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- VISTA 0: INICIO Y FAQ -->
-            <div id="soporte-view-faq" class="flex-1 flex flex-col overflow-hidden hidden bg-gradient-to-b from-white/60 to-gray-50/90">
-                <div class="p-6 pb-2 text-center shrink-0">
-                    <h4 class="font-extrabold text-gray-800 text-xl tracking-tight">¡Hola, <span id="soporte-user-name">Usuario</span>! 👋</h4>
-                    <p class="text-sm text-gray-500 mt-1">¿En qué podemos ayudarte hoy?</p>
-                    <!-- Estado Real del Soporte -->
-                    <div id="soporte-status-banner" class="mt-3 flex items-center justify-center gap-2 py-2 px-4 rounded-full text-xs font-bold mx-auto w-max border transition-all">
-                        <!-- Se llena por JS -->
-                    </div>
+            <!-- VISTA 0: FAQ -->
+            <div id="soporte-view-faq" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <h4 class="font-bold text-gray-700 text-sm">Preguntas Frecuentes</h4>
+                    <button id="soporte-btn-mis-tickets" class="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-300 transition">Mis Consultas</button>
                 </div>
-                
-                <div class="px-6 py-4 grid grid-cols-2 gap-3 shrink-0">
-                    <button id="soporte-btn-nuevo-from-faq" class="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl p-4 shadow-sm border border-orange-100 hover:shadow-md hover:border-orange-300 transition-all group">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fas fa-comment-dots"></i>
-                        </div>
-                        <span class="text-xs font-bold text-gray-700">Nueva PQRS</span>
-                    </button>
-                    <button id="soporte-btn-mis-tickets" class="flex flex-col items-center justify-center gap-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-300 transition-all group">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <span class="text-xs font-bold text-gray-700">Mis Casos</span>
-                    </button>
-                </div>
-
-                <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 scroller">
-                    <h5 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">Preguntas Frecuentes</h5>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
                     
-                    <div class="space-y-2">
-                        <!-- FAQ CLIENTE -->
-                        <div th:if="${#authorization.expression('hasRole(''CLIENTE'')')}">
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-truck text-orange-400 mr-2"></i> Mi pedido no llegó</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Verifica el estado en "Mis Compras". Si aparece como ENVIADO pero pasaron los días hábiles, abre una QUEJA y AgroBot lo escalará rápidamente.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-ban text-red-400 mr-2"></i> Quiero cancelar una compra</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Puedes cancelar un pedido mientras esté en estado PENDIENTE. Si ya fue PAGADO o ENVIADO, deberás abrir un RECLAMO solicitando reembolso.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-user-slash text-yellow-500 mr-2"></i> El campesino no responde</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Los campesinos pueden tardar hasta 24h en procesar. Si no recibes respuesta, abre un ticket tipo QUEJA y nosotros escalaremos el caso de inmediato.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-credit-card text-blue-400 mr-2"></i> Mi pago fue rechazado</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Verifica tus fondos y contacta a tu banco. Si el problema persiste, abre un ticket tipo TÉCNICO y nuestro equipo revisará el estado de la transacción.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-undo text-green-500 mr-2"></i> ¿Cómo solicitar un reembolso?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Abre un ticket tipo RECLAMO, adjunta el número de tu pedido y describe el motivo. Un asesor evaluará tu caso en menos de 48 horas hábiles.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-star text-amber-400 mr-2"></i> ¿Cómo califico a un campesino?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Después de recibir tu pedido, ve a "Mis Compras", selecciona la orden y podrás dejar una reseña con estrellas. ¡Tu opinión ayuda a otros compradores!
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-shield-alt text-indigo-400 mr-2"></i> ¿Es seguro comprar aquí?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Sí. AgroConecta verifica la identidad de cada campesino (KYC) y cuenta con un sistema de protección al comprador con reembolso garantizado en caso de incumplimiento.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-map-marker-alt text-pink-500 mr-2"></i> ¿Cómo cambio mi dirección de entrega?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Antes de finalizar la compra, puedes agregar nuevas direcciones o seleccionar una diferente en el paso de "Datos de Envío" (Checkout).
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-leaf text-green-600 mr-2"></i> ¿Los productos son siempre orgánicos?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Cada campesino detalla en la página de su producto las técnicas de cultivo. Te sugerimos leer la descripción o contactarnos si tienes dudas sobre un producto en particular.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-mobile-alt text-gray-600 mr-2"></i> ¿Hay aplicación móvil de AgroConecta?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Actualmente somos una plataforma web progresiva (PWA). Puedes guardar AgroConecta en el inicio de tu teléfono desde el navegador para usarla como una app nativa.
-                                </div>
-                            </details>
-                        </div>
+                    <!-- FAQ CLIENTE -->
+                    <div th:if="${#authorization.expression('hasRole(''CLIENTE'')')}">
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Mi pedido no llegó, ¿qué hago?</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Por favor verifica el estado del pedido en la sección "Mis Compras". Si aparece como ENVIADO pero pasaron los días hábiles, abre una consulta y nuestro equipo te ayudará.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Quiero cancelar una compra</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Puedes cancelar un pedido siempre y cuando su estado sea PENDIENTE. Si ya fue PAGADO o ENVIADO, deberás solicitar un reembolso abriendo un ticket.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">El campesino no responde</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Recuerda que los campesinos pueden tardar hasta 24h en procesar la orden. Si no obtienes respuesta, nosotros podemos escalar el caso.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Mi pago fue rechazado</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Esto suele pasar por fondos insuficientes o bloqueos bancarios temporales. Intenta con otra tarjeta o contacta a tu banco. El dinero no fue descontado.
+                            </div>
+                        </details>
+                    </div>
 
-                        <!-- FAQ CAMPESINO -->
-                        <div th:if="${#authorization.expression('hasRole(''CAMPESINO'')')}">
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-wallet text-green-500 mr-2"></i> ¿Cómo retirar mi dinero?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Los pagos son procesados quincenalmente hacia tu cuenta bancaria registrada. Si hay retrasos, abre una PETICIÓN y revisaremos tu caso.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-lock text-red-400 mr-2"></i> Mi cuenta está bloqueada</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Si tu cuenta fue vetada, es porque se detectó un incumplimiento. Abre un ticket tipo RECLAMO para solicitar revisión y posible reactivación.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-box-open text-blue-400 mr-2"></i> No puedo cumplir un pedido</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Contacta a Soporte de inmediato abriendo un ticket TÉCNICO. Nosotros reembolsaremos al cliente sin afectar tu reputación si actúas rápido.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-camera text-purple-400 mr-2"></i> ¿Cómo mejorar mis fotos?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Sube fotos con buena iluminación natural, enfocadas y con fondo limpio. Los productos con buenas fotos se venden hasta 3x más rápido.
-                                </div>
-                            </details>
-                            <details class="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                <summary class="p-4 text-sm font-bold text-gray-700 cursor-pointer select-none flex justify-between items-center group-open:text-orange-600">
-                                    <span><i class="fas fa-chart-line text-teal-500 mr-2"></i> ¿Cómo vender más?</span>
-                                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform text-xs"></i>
-                                </summary>
-                                <div class="p-4 pt-0 text-xs text-gray-500 leading-relaxed">
-                                    Mantén tu inventario actualizado, responde pedidos rápidamente, usa buenos precios y fotos atractivas. Los vendedores activos aparecen más arriba en la tienda.
-                                </div>
-                            </details>
-                        </div>
+                    <!-- FAQ CAMPESINO -->
+                    <div th:if="${#authorization.expression('hasRole(''CAMPESINO'')')}">
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">No puedo abrir mi cuenta (Bloqueado)</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Si tu cuenta fue vetada, significa que infringiste nuestras políticas (ej. no entregar pedidos a tiempo). Abre un ticket para revisar tu caso y solicitar la reactivación.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">Problemas con una orden de un cliente</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Si no tienes inventario para cumplir, contacta a Soporte de inmediato para que podamos reembolsar al cliente sin afectar tu reputación.
+                            </div>
+                        </details>
+                        <details class="group bg-gray-50 rounded-lg border border-gray-100 overflow-hidden mb-2">
+                            <summary class="p-3 text-xs font-bold text-gray-800 cursor-pointer select-none group-open:bg-orange-50 transition">¿Cómo retirar mi dinero?</summary>
+                            <div class="p-3 text-xs text-gray-600 bg-white border-t border-gray-100">
+                                Los pagos son procesados quincenalmente hacia tu cuenta bancaria registrada en Mercado Pago. Revisa la sección de Billetera.
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-[10px] text-gray-400 mb-2">¿Aún necesitas ayuda?</p>
+                        <button id="soporte-btn-nuevo-from-faq" class="w-full bg-orange-100 text-orange-600 py-2 rounded-lg font-bold text-xs hover:bg-orange-200 transition">
+                            <i class="fas fa-headset mr-1"></i> Contactar Soporte
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 1: LISTA DE TICKETS -->
-            <div id="soporte-view-list" class="flex-1 flex flex-col overflow-hidden hidden bg-gray-50/50">
-                <div class="p-4 bg-white border-b border-gray-100 flex justify-between items-center shrink-0 shadow-sm z-10">
-                    <button id="soporte-btn-back-to-faq" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 transition"><i class="fas fa-arrow-left text-sm"></i></button>
-                    <h4 class="font-extrabold text-gray-800">Mis Consultas</h4>
+            <!-- VISTA 1: Lista de Tickets -->
+            <div id="soporte-view-list" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <button id="soporte-btn-back-to-faq" class="text-xs text-gray-500 hover:text-orange-500 font-bold"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <h4 class="font-bold text-gray-700 text-sm">Tus Consultas</h4>
                     <button id="soporte-btn-nuevo" class="text-xs bg-orange-100 text-orange-600 px-3 py-1.5 rounded-lg font-bold hover:bg-orange-200 transition"><i class="fas fa-plus"></i> Nuevo</button>
                 </div>
-                <div id="soporte-tickets-container" class="flex-1 overflow-y-auto p-4 space-y-3 scroller">
-                    <!-- Se llena con JS -->
+                <div id="soporte-tickets-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p class="text-xs">Cargando...</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- VISTA 2: NUEVO TICKET (PQRS) -->
-            <div id="soporte-view-new" class="flex-1 flex flex-col overflow-hidden hidden bg-white">
-                <div class="p-4 border-b border-gray-100 flex justify-between items-center shrink-0 shadow-sm z-10 bg-white">
-                    <button id="soporte-btn-back-from-new" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:text-orange-600 hover:bg-orange-50 transition"><i class="fas fa-arrow-left text-sm"></i></button>
-                    <h4 class="font-extrabold text-gray-800">Nueva Solicitud</h4>
-                    <div class="w-8"></div>
+            <!-- VISTA 2: Nuevo Ticket -->
+            <div id="soporte-view-new" class="flex-1 flex flex-col p-5 bg-white overflow-y-auto hidden">
+                <button id="soporte-btn-back-from-new" class="text-xs text-gray-500 mb-4 hover:text-orange-500 font-bold self-start"><i class="fas fa-arrow-left"></i> Volver</button>
+                <h4 class="font-bold text-gray-800 mb-4 text-sm">Crear nueva consulta</h4>
+                
+                <form id="soporte-form-new" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Asunto</label>
+                        <input type="text" id="soporte-new-asunto" required class="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Ej. Problema con mi pedido">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mensaje Inicial</label>
+                        <textarea id="soporte-new-mensaje" required rows="4" class="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none resize-none" placeholder="Describe tu problema con detalle..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-orange-500 text-white font-bold p-3 rounded-lg hover:bg-orange-600 transition shadow-lg shadow-orange-500/30 text-sm">
+                        Enviar Consulta
+                    </button>
+                </form>
+            </div>
+
+            <!-- VISTA 3: Chat Activo -->
+            <div id="soporte-view-chat" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="p-3 bg-gray-50 border-b border-gray-100 flex items-center gap-3 shrink-0">
+                    <button id="soporte-btn-back-from-chat" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-orange-500 transition shadow-sm"><i class="fas fa-arrow-left text-xs"></i></button>
+                    <div class="flex-1 min-w-0">
+                        <p id="soporte-chat-asunto" class="font-bold text-gray-800 text-xs truncate">Asunto del ticket</p>
+                        <p id="soporte-chat-estado" class="text-[10px] text-gray-500 uppercase">Estado</p>
+                    </div>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto p-6 scroller">
-                    <div class="mb-6 flex items-start gap-3 bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                        <i class="fas fa-info-circle text-blue-500 text-lg mt-0.5"></i>
-                        <p class="text-xs text-blue-700 leading-relaxed">
-                            AgroSoporte utiliza un sistema inteligente de enrutamiento. Selecciona correctamente el tipo y la prioridad para que tu caso sea atendido más rápido.
-                        </p>
-                    </div>
-
-                    <form id="soporte-form-new" class="space-y-5">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1.5">Tipo (PQRS)</label>
-                                <select id="soporte-new-tipo" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition font-medium appearance-none cursor-pointer">
-                                    <option value="PETICION">Petición</option>
-                                    <option value="QUEJA">Queja</option>
-                                    <option value="RECLAMO">Reclamo</option>
-                                    <option value="SUGERENCIA">Sugerencia</option>
-                                    <option value="TECNICO">Problema Técnico</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1.5">Prioridad</label>
-                                <select id="soporte-new-prioridad" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition font-medium appearance-none cursor-pointer">
-                                    <option value="BAJA">Baja</option>
-                                    <option value="MEDIA">Media</option>
-                                    <option value="ALTA">Alta</option>
-                                    <option value="CRITICA">Crítica</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5">Asunto</label>
-                            <input type="text" id="soporte-new-asunto" required class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition" placeholder="Ej. Retraso en mi pedido #1234">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1.5">Mensaje Detallado</label>
-                            <textarea id="soporte-new-mensaje" required rows="4" class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition resize-none" placeholder="Describe tu caso con el mayor nivel de detalle posible..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold p-4 rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                            <span>Enviar a AgroSoporte</span>
-                            <i class="fas fa-paper-plane text-sm"></i>
-                        </button>
-                    </form>
+                <div id="soporte-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                    <!-- Mensajes aquí -->
                 </div>
-            </div>
 
-            <!-- VISTA 3: CHAT ACTIVO -->
-            <div id="soporte-view-chat" class="flex-1 flex flex-col overflow-hidden hidden bg-gray-50/50">
-                <div class="p-4 bg-white border-b border-gray-100 flex items-center gap-3 shrink-0 shadow-sm z-10">
-                    <button id="soporte-btn-back-from-chat" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:text-orange-600 transition"><i class="fas fa-arrow-left text-sm"></i></button>
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span id="soporte-chat-tipo-badge" class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 shrink-0">TIPO</span>
-                            <h4 id="soporte-chat-asunto" class="font-extrabold text-gray-800 text-sm truncate">Asunto</h4>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span id="soporte-chat-estado" class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Estado</span>
-                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span id="soporte-chat-prioridad-badge" class="text-[9px] font-bold uppercase tracking-wider text-red-500">Prioridad</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="soporte-chat-messages" class="flex-1 overflow-y-auto p-5 space-y-5 scroller"></div>
-                <div id="soporte-chat-input-area" class="p-4 bg-white border-t border-gray-100 shrink-0">
+                <div id="soporte-chat-input-area" class="p-3 bg-white border-t border-gray-100 shrink-0">
                     <form id="soporte-form-reply" class="flex gap-2">
-                        <input type="text" id="soporte-reply-msg" required placeholder="Escribe tu mensaje..." class="flex-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 transition shadow-inner">
-                        <button type="submit" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-orange-500/30 shrink-0">
-                            <i class="fas fa-paper-plane"></i>
+                        <input type="text" id="soporte-reply-msg" required placeholder="Escribe un mensaje..." class="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50">
+                        <button type="submit" class="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition shrink-0">
+                            <i class="fas fa-paper-plane text-xs"></i>
                         </button>
                     </form>
                 </div>
@@ -315,16 +165,6 @@
         </div>
     </div>
 
-    <!-- ESTILOS -->
-    <style>
-        .scroller::-webkit-scrollbar { width: 6px; }
-        .scroller::-webkit-scrollbar-track { background: transparent; }
-        .scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .scroller::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        @keyframes fadeInBot { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
-    </style>
-
     <!-- SCRIPT DEL WIDGET -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -332,57 +172,26 @@
             const panel = document.getElementById('soporte-panel');
             const icon = document.getElementById('soporte-icon');
             const closeBtn = document.getElementById('soporte-close');
+            
+            // Views
             const viewFaq = document.getElementById('soporte-view-faq');
             const viewList = document.getElementById('soporte-view-list');
             const viewNew = document.getElementById('soporte-view-new');
             const viewChat = document.getElementById('soporte-view-chat');
 
+            // Data
             let currentTicketId = null;
             let refreshInterval = null;
-            let soporteOnline = false;
 
-            // =============================
-            // CARGAR INFO DEL USUARIO Y ESTADO DEL SOPORTE
-            // =============================
-            fetch('/api/soporte/mi-info')
-                .then(r => r.json())
-                .then(data => {
-                    const nombre = data.nombre.split(' ')[0]; // Solo primer nombre
-                    document.getElementById('soporte-user-name').innerText = nombre;
-                })
-                .catch(() => {});
-
-            function checkSoporteOnline() {
-                fetch('/api/soporte/disponibilidad')
-                    .then(r => r.json())
-                    .then(data => {
-                        soporteOnline = data.online;
-                        const agentes = data.agentes || 0;
-                        const headerStatus = document.getElementById('soporte-header-status');
-                        const banner = document.getElementById('soporte-status-banner');
-
-                        if (soporteOnline) {
-                            headerStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> ' + agentes + (agentes === 1 ? ' asesor' : ' asesores') + ' en línea';
-                            banner.className = 'mt-3 flex items-center justify-center gap-2 py-2 px-4 rounded-full text-xs font-bold mx-auto w-max border transition-all bg-green-50 border-green-200 text-green-700';
-                            banner.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Soporte disponible ahora';
-                        } else {
-                            headerStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400"></span> Fuera de línea';
-                            banner.className = 'mt-3 flex items-center justify-center gap-2 py-2 px-4 rounded-full text-xs font-bold mx-auto w-max border transition-all bg-amber-50 border-amber-200 text-amber-700';
-                            banner.innerHTML = '<i class="fas fa-clock text-amber-500"></i> Soporte no disponible, pero puedes dejar tu caso';
-                        }
-                    })
-                    .catch(() => {});
-            }
-            checkSoporteOnline();
-            setInterval(checkSoporteOnline, 15000); // Check cada 15s
-
-            // =============================
-            // TOGGLE PANEL
-            // =============================
+            // Toggle Panel
             btn.addEventListener('click', () => {
-                if(panel.classList.contains('opacity-0')) abrirPanel();
-                else cerrarPanel();
+                if(panel.classList.contains('opacity-0')) {
+                    abrirPanel();
+                } else {
+                    cerrarPanel();
+                }
             });
+
             closeBtn.addEventListener('click', cerrarPanel);
 
             function abrirPanel() {
@@ -390,9 +199,9 @@
                 panel.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
                 icon.classList.remove('fa-headset');
                 icon.classList.add('fa-times');
-                showView(viewFaq);
-                checkSoporteOnline();
+                showView(viewFaq); // Mostrar FAQ por defecto al abrir
             }
+
             function cerrarPanel() {
                 panel.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
                 panel.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
@@ -400,22 +209,18 @@
                 icon.classList.add('fa-headset');
                 stopRefresh();
             }
+
             function showView(view) {
                 [viewFaq, viewList, viewNew, viewChat].forEach(v => v.classList.add('hidden'));
                 view.classList.remove('hidden');
             }
 
-            // =============================
-            // NAVEGACIÓN
-            // =============================
+            // --- NAVEGACIÓN FAQ ---
             document.getElementById('soporte-btn-mis-tickets').addEventListener('click', showList);
-            document.getElementById('soporte-btn-nuevo-from-faq').addEventListener('click', () => showView(viewNew));
-            document.getElementById('soporte-btn-back-to-faq').addEventListener('click', () => showView(viewFaq));
-            document.getElementById('soporte-btn-nuevo').addEventListener('click', () => showView(viewNew));
+            document.getElementById('soporte-btn-nuevo-from-faq').addEventListener('click', () => { showView(viewNew); });
+            document.getElementById('soporte-btn-back-to-faq').addEventListener('click', () => { showView(viewFaq); });
 
-            // =============================
-            // LISTA DE TICKETS
-            // =============================
+            // --- LISTA DE TICKETS ---
             function showList() {
                 showView(viewList);
                 stopRefresh();
@@ -425,58 +230,39 @@
                         const container = document.getElementById('soporte-tickets-container');
                         container.innerHTML = '';
                         if(data.length === 0) {
-                            container.innerHTML = `
-                                <div class="text-center py-12 flex flex-col items-center justify-center h-full">
-                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 text-2xl mb-4"><i class="fas fa-inbox"></i></div>
-                                    <p class="text-sm font-bold text-gray-500">No tienes casos activos</p>
-                                    <p class="text-xs text-gray-400 mt-1">Crea una nueva solicitud si necesitas ayuda.</p>
-                                </div>`;
+                            container.innerHTML = '<div class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-3"></i><p class="text-xs">No tienes consultas activas</p></div>';
                             return;
                         }
+
                         data.forEach(t => {
-                            let statusColor = t.estado === 'ABIERTO' ? 'text-green-500' : (t.estado === 'EN_PROGRESO' ? 'text-blue-500' : 'text-gray-400');
-                            let prioridadColor = t.prioridad === 'CRITICA' ? 'text-red-600 bg-red-50 border-red-100' : 
-                                                (t.prioridad === 'ALTA' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-gray-500 bg-gray-50 border-gray-100');
+                            let statusColor = t.estado === 'ABIERTO' ? 'text-red-500' : (t.estado === 'EN_PROGRESO' ? 'text-blue-500' : 'text-gray-500');
                             let html = `
-                                <div onclick="openChat(${t.id}, '${t.asunto.replace(/'/g,"\\'")}', '${t.estado}', '${t.tipo}', '${t.prioridad}')" 
-                                     class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:border-orange-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-300 group">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${prioridadColor}">${t.tipo} - ${t.prioridad}</span>
-                                        <span class="text-[10px] font-extrabold ${statusColor} uppercase flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full ${statusColor.replace('text-', 'bg-')}"></span> ${t.estado}
-                                        </span>
+                                <div onclick="openChat(${t.id}, '${t.asunto}', '${t.estado}')" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-orange-300 hover:shadow-md cursor-pointer transition">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h5 class="font-bold text-gray-800 text-xs truncate max-w-[70%]">${t.asunto}</h5>
+                                        <span class="text-[9px] font-bold ${statusColor} uppercase">${t.estado}</span>
                                     </div>
-                                    <h5 class="font-bold text-gray-800 text-sm mb-2 group-hover:text-orange-600 transition-colors">${t.asunto}</h5>
-                                    <div class="flex justify-between items-center border-t border-gray-50 pt-2">
-                                        <p class="text-[10px] text-gray-400 font-medium"><i class="far fa-clock"></i> ${new Date(t.fecha).toLocaleDateString()}</p>
-                                        <i class="fas fa-chevron-right text-gray-300 text-xs group-hover:text-orange-500 transition-colors"></i>
-                                    </div>
-                                </div>`;
+                                    <p class="text-[10px] text-gray-400"><i class="far fa-clock"></i> ${new Date(t.fecha).toLocaleDateString()}</p>
+                                </div>
+                            `;
                             container.insertAdjacentHTML('beforeend', html);
                         });
-                    });
+                    })
+                    .catch(err => console.error(err));
             }
 
-            // =============================
-            // NUEVO TICKET PQRS
-            // =============================
+            // --- NUEVO TICKET ---
+            document.getElementById('soporte-btn-nuevo').addEventListener('click', () => { showView(viewNew); });
             document.getElementById('soporte-btn-back-from-new').addEventListener('click', showList);
 
             document.getElementById('soporte-form-new').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const tipo = document.getElementById('soporte-new-tipo').value;
-                const prioridad = document.getElementById('soporte-new-prioridad').value;
                 const asunto = document.getElementById('soporte-new-asunto').value;
                 const mensaje = document.getElementById('soporte-new-mensaje').value;
+                
                 const formData = new URLSearchParams();
-                formData.append('tipo', tipo);
-                formData.append('prioridad', prioridad);
                 formData.append('asunto', asunto);
                 formData.append('mensaje', mensaje);
-
-                const btnSubmit = this.querySelector('button[type="submit"]');
-                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-                btnSubmit.disabled = true;
 
                 fetch('/api/soporte/crear-ticket', {
                     method: 'POST',
@@ -485,36 +271,31 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    this.reset();
-                    btnSubmit.innerHTML = '<span>Enviar a AgroSoporte</span><i class="fas fa-paper-plane text-sm"></i>';
-                    btnSubmit.disabled = false;
-                    openChat(data.ticketId, asunto, 'ABIERTO', tipo, prioridad);
+                    document.getElementById('soporte-new-asunto').value = '';
+                    document.getElementById('soporte-new-mensaje').value = '';
+                    openChat(data.ticketId, asunto, 'ABIERTO');
                 });
             });
 
-            // =============================
-            // CHAT
-            // =============================
+            // --- CHAT ACTIVO ---
             document.getElementById('soporte-btn-back-from-chat').addEventListener('click', showList);
 
-            window.openChat = function(id, asunto, estado, tipo, prioridad) {
+            window.openChat = function(id, asunto, estado) {
                 currentTicketId = id;
                 document.getElementById('soporte-chat-asunto').innerText = asunto;
                 document.getElementById('soporte-chat-estado').innerText = estado;
-                document.getElementById('soporte-chat-tipo-badge').innerText = tipo || 'PETICIÓN';
-                const prioEl = document.getElementById('soporte-chat-prioridad-badge');
-                prioEl.innerText = prioridad || 'BAJA';
-                if(prioridad === 'CRITICA' || prioridad === 'ALTA') {
-                    prioEl.className = "text-[9px] font-bold uppercase tracking-wider text-red-500 animate-pulse";
-                } else {
-                    prioEl.className = "text-[9px] font-bold uppercase tracking-wider text-gray-500";
-                }
+                
                 const inputArea = document.getElementById('soporte-chat-input-area');
                 if(estado === 'CERRADO') inputArea.classList.add('hidden');
                 else inputArea.classList.remove('hidden');
+
                 showView(viewChat);
                 loadMessages();
-                if(estado !== 'CERRADO') refreshInterval = setInterval(loadMessages, 5000);
+                
+                // Polling cada 5 segundos si está abierto
+                if(estado !== 'CERRADO') {
+                    refreshInterval = setInterval(loadMessages, 5000);
+                }
             };
 
             function loadMessages() {
@@ -524,49 +305,46 @@
                     .then(data => {
                         const container = document.getElementById('soporte-chat-messages');
                         const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+                        
                         container.innerHTML = '';
-                        container.innerHTML += `
-                            <div class="flex justify-center mb-6">
-                                <div class="bg-blue-50/50 border border-blue-100 rounded-lg px-4 py-2 flex items-center gap-2">
-                                    <i class="fas fa-shield-alt text-blue-400 text-xs"></i>
-                                    <span class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Chat Seguro y Encriptado</span>
-                                </div>
-                            </div>`;
                         data.forEach(m => {
                             let html = '';
-                            let isSystem = m.remitente === 'Sistema';
                             if(m.esMio) {
+                                // Mi mensaje
                                 html = `
-                                    <div class="flex justify-end mb-4 animate-[fadeInBot_0.4s_ease-out]">
-                                        <div class="max-w-[85%]">
-                                            <div class="bg-gradient-to-br from-orange-500 to-amber-500 text-white p-4 rounded-2xl rounded-tr-sm shadow-[0_4px_15px_-3px_rgba(249,115,22,0.3)] text-sm">
-                                                <p class="whitespace-pre-wrap leading-relaxed">${m.contenido}</p>
-                                            </div>
-                                            <p class="text-[9px] text-gray-400 text-right mt-1.5 font-medium">${new Date(m.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                    <div class="flex justify-end mb-4 animate-[fadeIn_0.3s_ease-out]">
+                                        <div class="max-w-[80%] bg-gradient-to-br from-orange-400 to-orange-500 text-white p-3.5 rounded-2xl rounded-tr-sm shadow-md shadow-orange-500/20 text-xs">
+                                            <p class="whitespace-pre-wrap leading-relaxed">${m.contenido}</p>
                                         </div>
-                                    </div>`;
+                                    </div>
+                                `;
                             } else {
-                                let bgClass = isSystem ? 'bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-100 text-indigo-900 shadow-inner' : 'bg-white border-gray-100 text-gray-800 shadow-[0_4px_15px_-3px_rgba(0,0,0,0.05)]';
-                                let iconHTML = isSystem ? '<i class="fas fa-robot text-indigo-500 text-sm"></i>' : '<i class="fas fa-headset text-orange-500 text-sm"></i>';
-                                let nameStr = isSystem ? 'AgroBot' : m.remitente;
+                                // Mensaje de soporte o sistema
+                                let isSystem = m.remitente === 'Sistema';
+                                let bgClass = isSystem ? 'bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-100 text-indigo-900' : 'bg-white border-gray-100 text-gray-800 shadow-sm';
+                                let iconClass = isSystem ? '<i class="fas fa-robot text-indigo-500"></i>' : '<i class="fas fa-headset text-orange-500"></i>';
+                                
                                 html = `
-                                    <div class="flex items-end gap-2 mb-4 max-w-[90%] animate-[fadeInBot_0.4s_ease-out]">
-                                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-gray-100 z-10 relative">
-                                            ${iconHTML}
-                                            ${isSystem ? '<span class="absolute bottom-0 right-0 w-2 h-2 bg-green-400 border border-white rounded-full"></span>' : ''}
+                                    <div class="flex items-end gap-2 mb-4 max-w-[85%] animate-[fadeIn_0.3s_ease-out]">
+                                        <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-[10px] shrink-0 shadow-sm border border-gray-100">
+                                            ${iconClass}
                                         </div>
-                                        <div class="flex-1">
-                                            <p class="text-[10px] text-gray-500 ml-1 mb-1 font-bold tracking-wide">${nameStr}</p>
-                                            <div class="p-4 rounded-2xl rounded-tl-sm border text-sm ${bgClass}">
+                                        <div>
+                                            <p class="text-[9px] text-gray-400 ml-1 mb-1 font-medium">${m.remitente}</p>
+                                            <div class="p-3.5 rounded-2xl rounded-tl-sm border text-xs ${bgClass}">
                                                 <p class="whitespace-pre-wrap leading-relaxed">${m.contenido}</p>
                                             </div>
-                                            <p class="text-[9px] text-gray-400 ml-1 mt-1.5 font-medium">${new Date(m.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                         </div>
-                                    </div>`;
+                                    </div>
+                                `;
                             }
                             container.insertAdjacentHTML('beforeend', html);
                         });
-                        if (isScrolledToBottom) container.scrollTop = container.scrollHeight;
+
+                        // Scroll auto solo si estaba abajo
+                        if (isScrolledToBottom) {
+                            container.scrollTop = container.scrollHeight;
+                        }
                     });
             }
 
@@ -575,9 +353,12 @@
                 const input = document.getElementById('soporte-reply-msg');
                 const msg = input.value.trim();
                 if(!msg) return;
+
                 const formData = new URLSearchParams();
                 formData.append('mensaje', msg);
-                input.value = ''; 
+
+                input.value = ''; // clear optimista
+                
                 fetch('/api/soporte/ticket/' + currentTicketId + '/enviar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -586,7 +367,10 @@
             });
 
             function stopRefresh() {
-                if(refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+                if(refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
             }
         });
     </script>

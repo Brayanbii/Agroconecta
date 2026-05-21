@@ -174,8 +174,6 @@ public class SoporteController {
             map.put("id", t.getId());
             map.put("asunto", t.getAsunto());
             map.put("estado", t.getEstado());
-            map.put("tipo", t.getTipo());
-            map.put("prioridad", t.getPrioridad());
             map.put("fecha", t.getFechaActualizacion().toString());
             return map;
         }).collect(Collectors.toList());
@@ -185,13 +183,7 @@ public class SoporteController {
 
     @PostMapping("/api/soporte/crear-ticket")
     @ResponseBody
-    public ResponseEntity<?> crearTicket(
-            @RequestParam String asunto, 
-            @RequestParam String mensaje, 
-            @RequestParam(defaultValue = "PETICION") String tipo,
-            @RequestParam(defaultValue = "BAJA") String prioridad,
-            Authentication auth) {
-        
+    public ResponseEntity<?> crearTicket(@RequestParam String asunto, @RequestParam String mensaje, Authentication auth) {
         if (auth == null) return ResponseEntity.status(401).build();
         Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
         if (usuario == null) return ResponseEntity.status(401).build();
@@ -201,8 +193,6 @@ public class SoporteController {
         ticket.setUsuario(usuario);
         ticket.setAsunto(asunto);
         ticket.setEstado("ABIERTO");
-        ticket.setTipo(tipo.toUpperCase());
-        ticket.setPrioridad(prioridad.toUpperCase());
         ticket = ticketRepo.save(ticket);
 
         // 2. Guardar el primer mensaje del usuario
@@ -212,28 +202,11 @@ public class SoporteController {
         msg.setContenido(mensaje);
         mensajeRepo.save(msg);
 
-        // 3. Respuesta automática del sistema (AgroBot)
-        String respuestaBot = "";
-        switch (ticket.getTipo()) {
-            case "QUEJA":
-            case "RECLAMO":
-                respuestaBot = "Hola " + usuario.getNombreCompleto() + ". Lamentamos mucho los inconvenientes que estás experimentando. Hemos marcado tu caso como " + ticket.getTipo() + " con prioridad " + ticket.getPrioridad() + ". Un asesor especializado de AgroSoporte lo atenderá lo más pronto posible.";
-                break;
-            case "SUGERENCIA":
-                respuestaBot = "¡Hola " + usuario.getNombreCompleto() + "! Gracias por ayudarnos a mejorar AgroConecta. Hemos recibido tu sugerencia y la enviaremos al equipo de desarrollo.";
-                break;
-            case "TECNICO":
-                respuestaBot = "Hola " + usuario.getNombreCompleto() + ". Hemos registrado tu incidencia técnica. Si puedes, ten lista cualquier captura de pantalla. Nuestro equipo de soporte técnico se pondrá en contacto pronto.";
-                break;
-            default:
-                respuestaBot = "Hola " + usuario.getNombreCompleto() + ". Hemos recibido tu petición. Un agente de soporte se pondrá en contacto contigo. Nuestros horarios son de Lunes a Viernes de 8am a 6pm.";
-                break;
-        }
-
+        // 3. Respuesta automática del sistema
         MensajeSoporte autoMsg = new MensajeSoporte();
         autoMsg.setTicket(ticket);
         autoMsg.setRemitente(null); // Sistema
-        autoMsg.setContenido(respuestaBot);
+        autoMsg.setContenido("Hola " + usuario.getNombreCompleto() + ". Hemos recibido tu solicitud. Un agente de soporte se pondrá en contacto contigo pronto. Nuestros horarios son de Lunes a Viernes de 8am a 6pm.");
         mensajeRepo.save(autoMsg);
 
         Map<String, Object> response = new HashMap<>();
@@ -289,59 +262,5 @@ public class SoporteController {
         ticketRepo.save(ticket);
 
         return ResponseEntity.ok(Map.of("status", "success"));
-    }
-
-    // ==========================================
-    // 3. API DE DISPONIBILIDAD DE SOPORTE
-    // ==========================================
-
-    /**
-     * Endpoint público para que el widget del cliente sepa si hay un agente en línea.
-     */
-    @GetMapping("/api/soporte/disponibilidad")
-    @ResponseBody
-    public ResponseEntity<?> checkDisponibilidad() {
-        long agentesOnline = usuarioRepo.countByRolAndDisponibleSoporte("SOPORTE", true);
-        Map<String, Object> result = new HashMap<>();
-        result.put("online", agentesOnline > 0);
-        result.put("agentes", agentesOnline);
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * Endpoint para que el agente de soporte cambie su estado a online/offline.
-     */
-    @PostMapping("/soporte/toggle-disponibilidad")
-    @ResponseBody
-    public ResponseEntity<?> toggleDisponibilidad(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).build();
-        Usuario agente = usuarioRepo.findByEmail(auth.getName()).orElse(null);
-        if (agente == null || !"SOPORTE".equals(agente.getRol())) {
-            return ResponseEntity.status(403).build();
-        }
-
-        // Toggle el estado
-        Boolean nuevoEstado = !Boolean.TRUE.equals(agente.getDisponibleSoporte());
-        agente.setDisponibleSoporte(nuevoEstado);
-        usuarioRepo.save(agente);
-
-        return ResponseEntity.ok(Map.of("disponible", nuevoEstado));
-    }
-
-    /**
-     * Endpoint para que el widget obtenga el nombre real del usuario logueado.
-     */
-    @GetMapping("/api/soporte/mi-info")
-    @ResponseBody
-    public ResponseEntity<?> getMiInfo(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).build();
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
-        if (usuario == null) return ResponseEntity.status(401).build();
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("nombre", usuario.getNombreCompleto());
-        result.put("rol", usuario.getRol());
-        result.put("disponible", usuario.getDisponibleSoporte() != null ? usuario.getDisponibleSoporte() : false);
-        return ResponseEntity.ok(result);
     }
 }
