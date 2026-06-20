@@ -37,7 +37,7 @@ RUN cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
     echo "America/Bogota" > /etc/timezone
 
 # Instalar dependencia Python para SIPSA (SOAP client DANE)
-RUN pip3 install --no-cache-dir zeep
+RUN pip3 install --no-cache-dir --break-system-packages zeep
 
 # Usuario no-root por seguridad
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
