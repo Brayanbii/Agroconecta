@@ -79,8 +79,9 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
 # G1GC                         → garbage collector moderno, baja latencia
 # JAVA_OPTS                    → variable para overrides en Render dashboard
 ENTRYPOINT ["sh", "-c", "java \
-    -XX:+UseG1GC \
-    -XX:MaxRAMPercentage=75.0 \
+    -XX:+UseSerialGC \
+    -Xmx256m \
+    -Xss512k \
     -XX:+ExitOnOutOfMemoryError \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF-8 \
