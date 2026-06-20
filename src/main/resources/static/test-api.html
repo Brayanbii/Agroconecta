@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Panel de Pruebas - AgroConecta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 12px; font-size: 12px; max-height: 400px; overflow: auto; white-space: pre-wrap; }
+        .card { transition: all 0.2s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .btn { transition: all 0.2s; }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl p-6 mb-6 shadow-lg">
+            <h1 class="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+                <span class="bg-green-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg">🧪</span>
+                Panel de Pruebas API - AgroConecta
+            </h1>
+            <p class="text-gray-500 text-sm mt-2">Haz clic en cualquier botón para probar el endpoint. <strong>El backend debe estar corriendo.</strong></p>
+        </div>
+
+        <!-- SECCION 1: Autenticacion -->
+        <div class="bg-white rounded-2xl p-6 mb-4 shadow-sm card">
+            <h2 class="text-lg font-bold text-gray-700 mb-4"><i class="fas fa-key text-amber-500 mr-2"></i>Autenticación</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="api('POST','/api/usuarios/login',{email:'admin@agroconecta.com',password:'123'})" class="btn bg-purple-500 hover:bg-purple-600 text-white py-2 px-3 rounded-lg text-sm font-bold">Login Admin</button>
+                <button onclick="api('POST','/api/usuarios/login',{email:'repartidor@agroconecta.com',password:'123'})" class="btn bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded-lg text-sm font-bold">Login Repartidor</button>
+                <button onclick="api('POST','/api/usuarios/login',{email:'maria@gmail.com',password:'123'})" class="btn bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-bold">Login Cliente</button>
+            </div>
+        </div>
+
+        <!-- SECCION 2: Delivery / Repartidor -->
+        <div class="bg-white rounded-2xl p-6 mb-4 shadow-sm card">
+            <h2 class="text-lg font-bold text-gray-700 mb-4"><i class="fas fa-motorcycle text-cyan-500 mr-2"></i>Delivery / Repartidor</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="api('GET','/api/delivery/perfil')" class="btn bg-cyan-100 hover:bg-cyan-200 text-cyan-800 py-2 px-3 rounded-lg text-sm font-bold border border-cyan-300">Ver Perfil</button>
+                <button onclick="api('POST','/api/delivery/enviar-verificacion')" class="btn bg-cyan-100 hover:bg-cyan-200 text-cyan-800 py-2 px-3 rounded-lg text-sm font-bold border border-cyan-300">Enviar a Verificacion</button>
+                <button onclick="api('PUT','/api/delivery/perfil',{municipioOrigen:'Bogota',tipoVehiculo:'MOTO'})" class="btn bg-cyan-100 hover:bg-cyan-200 text-cyan-800 py-2 px-3 rounded-lg text-sm font-bold border border-cyan-300">Actualizar Perfil</button>
+            </div>
+        </div>
+
+        <!-- SECCION 3: Rutas -->
+        <div class="bg-white rounded-2xl p-6 mb-4 shadow-sm card">
+            <h2 class="text-lg font-bold text-gray-700 mb-4"><i class="fas fa-route text-green-500 mr-2"></i>Rutas y Agrupación</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="api('GET','/api/rutas/disponibles')" class="btn bg-green-100 hover:bg-green-200 text-green-800 py-2 px-3 rounded-lg text-sm font-bold border border-green-300">Ver Rutas Disponibles</button>
+                <button onclick="ejecutarRobot()" class="btn bg-orange-500 hover:bg-orange-600 text-white py-2 px-3 rounded-lg text-sm font-bold">🤖 Ejecutar Robot</button>
+                <button onclick="api('GET','/api/rutas/mis-rutas')" class="btn bg-green-100 hover:bg-green-200 text-green-800 py-2 px-3 rounded-lg text-sm font-bold border border-green-300">Mis Rutas</button>
+            </div>
+            <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <p class="text-xs text-amber-700 font-bold mb-2">⚡ Flujo de prueba rapido:</p>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="api('GET','/api/rutas/admin/diagnostico')" class="btn bg-amber-200 hover:bg-amber-300 text-amber-900 py-1 px-2 rounded-lg text-xs font-bold">🔍 Diagnosticar</button>
+                    <button onclick="crearDatosYRobot()" class="btn bg-amber-500 hover:bg-amber-600 text-white py-1 px-3 rounded-lg text-xs font-bold">🪄 Crear datos + Ejecutar robot</button>
+                    <span class="text-[10px] text-amber-600 self-center">Convierte ordenes existentes a PENDIENTE_CAMPESINO y ejecuta el robot</span>
+                </div>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <input id="rutaId" type="number" placeholder="ID de Ruta" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-28">
+                <button onclick="api('POST','/api/rutas/'+document.getElementById('rutaId').value+'/aceptar')" class="btn bg-green-600 hover:bg-green-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Aceptar Ruta</button>
+                <button onclick="api('POST','/api/rutas/'+document.getElementById('rutaId').value+'/iniciar-viaje')" class="btn bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Iniciar Viaje</button>
+            </div>
+        </div>
+
+        <!-- SECCION 4: Tracking -->
+        <div class="bg-white rounded-2xl p-6 mb-4 shadow-sm card">
+            <h2 class="text-lg font-bold text-gray-700 mb-4"><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>Tracking GPS</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="api('POST','/api/tracking/actualizar-ubicacion',{latitud:4.7110,longitud:-74.0721})" class="btn bg-red-100 hover:bg-red-200 text-red-800 py-2 px-3 rounded-lg text-sm font-bold border border-red-300">Enviar Ubicacion</button>
+                <button onclick="api('POST','/api/tracking/offline')" class="btn bg-red-100 hover:bg-red-200 text-red-800 py-2 px-3 rounded-lg text-sm font-bold border border-red-300">Marcar Offline</button>
+                <div class="flex gap-2 items-center">
+                    <input id="trackOrdenId" type="number" placeholder="Orden ID" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-28">
+                    <button onclick="api('GET','/api/tracking/orden/'+document.getElementById('trackOrdenId').value)" class="btn bg-red-600 hover:bg-red-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Tracking</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCION 5: Ordenes -->
+        <div class="bg-white rounded-2xl p-6 mb-4 shadow-sm card">
+            <h2 class="text-lg font-bold text-gray-700 mb-4"><i class="fas fa-shopping-bag text-blue-500 mr-2"></i>Órdenes</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <button onclick="api('POST','/api/ordenes/preview-envio',{tipoEnvio:'ECONOMICO',latitud:4.7110,longitud:-74.0721})" class="btn bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-3 rounded-lg text-sm font-bold border border-blue-300">Preview Envío Económico</button>
+                <button onclick="api('POST','/api/ordenes/preview-envio',{tipoEnvio:'RAPIDO',latitud:4.7110,longitud:-74.0721})" class="btn bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-3 rounded-lg text-sm font-bold border border-blue-300">Preview Envío Rápido</button>
+                <button onclick="api('GET','/api/ordenes/mis-compras')" class="btn bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-3 rounded-lg text-sm font-bold border border-blue-300">Mis Compras</button>
+                <button onclick="diagnosticarOrdenes()" class="btn bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-3 rounded-lg text-sm font-bold">📋 Ver TODAS las ordenes</button>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <input id="ordenId" type="number" placeholder="Orden ID" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-28">
+                <button onclick="api('POST','/api/pedidos/orden/'+document.getElementById('ordenId').value+'/aceptar')" class="btn bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Aceptar (Campesino)</button>
+                <button onclick="api('POST','/api/pedidos/orden/'+document.getElementById('ordenId').value+'/rechazar')" class="btn bg-red-600 hover:bg-red-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Rechazar (Campesino)</button>
+                <button onclick="api('POST','/api/rutas/entrega/'+document.getElementById('ordenId').value)" class="btn bg-green-600 hover:bg-green-700 text-white py-1.5 px-3 rounded-lg text-xs font-bold">Completar Entrega</button>
+            </div>
+        </div>
+
+        <!-- RESPUESTA -->
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-700"><i class="fas fa-terminal mr-2"></i>Respuesta</h3>
+                <div class="flex gap-2 text-xs">
+                    <span id="statusBadge" class="px-2 py-0.5 rounded-full font-bold"></span>
+                    <button onclick="document.getElementById('responseBox').innerText=''" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            <pre id="responseBox">Haz clic en cualquier boton de arriba para ver la respuesta aqui...</pre>
+        </div>
+    </div>
+
+    <script>
+        const BASE = '';
+        
+        async function api(method, url, body) {
+            const box = document.getElementById('responseBox');
+            const badge = document.getElementById('statusBadge');
+            box.innerText = '⏳ Cargando...';
+            
+            try {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    credentials: 'include'
+                };
+                if (body) options.body = JSON.stringify(body);
+                
+                const start = Date.now();
+                const res = await fetch(BASE + url, options);
+                const ms = Date.now() - start;
+                const text = await res.text();
+                
+                let data;
+                try { data = JSON.parse(text); } catch(e) { data = text; }
+                
+                badge.innerText = res.status + ' (' + ms + 'ms)';
+                badge.className = 'px-2 py-0.5 rounded-full font-bold text-xs ' + 
+                    (res.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+                
+                box.innerText = method + ' ' + url + '\nStatus: ' + res.status + '\n\n' + 
+                    JSON.stringify(data, null, 2);
+            } catch(e) {
+                badge.innerText = 'ERROR';
+                badge.className = 'px-2 py-0.5 rounded-full font-bold text-xs bg-red-100 text-red-700';
+                box.innerText = 'Error: ' + e.message + '\n\nAsegurate de Spring Boot este corriendo en http://127.0.0.1:8080';
+            }
+        }
+        
+        function ejecutarRobot() {
+            const box = document.getElementById('responseBox');
+            box.innerText = '🤖 Ejecutando robot agrupador...\n(Revisa la consola de Spring Boot para ver los logs)';
+            api('POST', '/api/rutas/admin/ejecutar-robot');
+        }
+        async function crearDatosYRobot() {
+            const box = document.getElementById('responseBox');
+            box.innerText = '🪄 Convirtiendo ordenes...';
+            await api('POST','/api/rutas/admin/crear-datos-prueba');
+            box.innerText += '\n\n🤖 Ejecutando robot...';
+            await new Promise(r => setTimeout(r, 500));
+            await api('POST','/api/rutas/admin/ejecutar-robot');
+            box.innerText += '\n\n✅ Listo! Ahora haz clic en "Ver Rutas Disponibles"';
+        }
+
+        async function diagnosticarOrdenes() {
+            const box = document.getElementById('responseBox');
+            box.innerText = '📋 Cargando todas las ordenes...\n';
+            try {
+                const res = await fetch('/api/rutas/admin/ordenes', {credentials:'include'});
+                const data = await res.json();
+                if (data.ordenes && data.ordenes.length > 0) {
+                    box.innerText = '📋 ORDENES EXISTENTES:\n\n';
+                    data.ordenes.forEach((o, i) => {
+                        box.innerText += `${i+1}. #${o.numeroOrden || o.id} | Estado: ${o.estado} | Tipo: ${o.tipoEnvio || 'N/A'} | Origen: ${o.municipioOrigen || 'N/A'} | Destino: ${o.direccionEnvio || 'N/A'} | Peso: ${o.pesoTotalKg || '?'}kg\n`;
+                    });
+                    box.innerText += `\nTotal: ${data.ordenes.length} ordenes`;
+                } else {
+                    box.innerText = '⚠️ NO HAY ORDENES. Primero haz una compra en la tienda: http://127.0.0.1:8080/tienda';
+                }
+            } catch(e) {
+                box.innerText = 'Error: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

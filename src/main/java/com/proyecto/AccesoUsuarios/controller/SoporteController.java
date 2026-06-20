@@ -88,7 +88,7 @@ public class SoporteController {
     @PostMapping("/soporte/ticket/{id}/responder")
     public String responderTicketSoporte(@PathVariable Long id, @RequestParam String mensaje, Authentication auth) {
         TicketSoporte ticket = ticketRepo.findById(id).orElseThrow();
-        Usuario agente = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
+        Usuario agente = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
 
         if ("ABIERTO".equals(ticket.getEstado())) {
             ticket.setEstado("EN_PROGRESO");
@@ -163,7 +163,7 @@ public class SoporteController {
     @ResponseBody
     public ResponseEntity<?> getMisTickets(Authentication auth) {
         if (auth == null) return ResponseEntity.status(401).body("No autenticado");
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         if (usuario == null) return ResponseEntity.status(401).build();
 
         List<TicketSoporte> tickets = ticketRepo.findByUsuarioOrderByFechaActualizacionDesc(usuario);
@@ -185,7 +185,7 @@ public class SoporteController {
     @ResponseBody
     public ResponseEntity<?> crearTicket(@RequestParam String asunto, @RequestParam String mensaje, Authentication auth) {
         if (auth == null) return ResponseEntity.status(401).build();
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         if (usuario == null) return ResponseEntity.status(401).build();
 
         // 1. Crear el ticket
@@ -219,7 +219,7 @@ public class SoporteController {
     @ResponseBody
     public ResponseEntity<?> getMensajes(@PathVariable Long id, Authentication auth) {
         if (auth == null) return ResponseEntity.status(401).build();
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         
         TicketSoporte ticket = ticketRepo.findById(id).orElse(null);
         if (ticket == null || !ticket.getUsuario().getId().equals(usuario.getId())) {
@@ -245,7 +245,7 @@ public class SoporteController {
     @ResponseBody
     public ResponseEntity<?> enviarMensaje(@PathVariable Long id, @RequestParam String mensaje, Authentication auth) {
         if (auth == null) return ResponseEntity.status(401).build();
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         
         TicketSoporte ticket = ticketRepo.findById(id).orElse(null);
         if (ticket == null || !ticket.getUsuario().getId().equals(usuario.getId())) {

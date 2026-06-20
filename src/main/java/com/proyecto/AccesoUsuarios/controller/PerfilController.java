@@ -34,7 +34,7 @@ public class PerfilController {
 
         // Obtener usuario actualizado de BD usando el email de Spring Security
         String email = auth.getName();
-        Usuario usuarioDB = usuarioRepository.findByEmail(email).orElse(null);
+        Usuario usuarioDB = usuarioRepository.findFirstByEmail(email).orElse(null);
         
         if (usuarioDB == null) {
             return "redirect:/login";
@@ -79,7 +79,7 @@ public class PerfilController {
         }
 
         String email = auth.getName();
-        Usuario usuarioDB = usuarioRepository.findByEmail(email).orElse(null);
+        Usuario usuarioDB = usuarioRepository.findFirstByEmail(email).orElse(null);
         
         if (usuarioDB != null) {
             usuarioDB.setNombreCompleto(datosNuevos.getNombreCompleto());

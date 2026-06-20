@@ -4,6 +4,7 @@ import com.proyecto.AccesoUsuarios.model.Producto;
 import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import com.proyecto.AccesoUsuarios.service.AuthUsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,33 +25,42 @@ public class FavoritoAPIController {
     @Autowired
     private ProductoRepository productoRepo;
 
+    @Autowired
+    private AuthUsuarioService authUsuarioService;
+
+    @GetMapping
+    public ResponseEntity<?> getMisFavoritos(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+        Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
+        if (usuario == null) return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        List<Producto> favs = usuario.getProductosFavoritos();
+        return ResponseEntity.ok(favs != null ? favs : List.of());
+    }
+
     @PostMapping("/toggle/{id}")
     public ResponseEntity<Map<String, Object>> toggleFavorito(@PathVariable Long id, Authentication auth) {
         Map<String, Object> response = new HashMap<>();
-        
         if (auth == null || !auth.isAuthenticated()) {
             response.put("success", false);
             response.put("message", "Debes iniciar sesión para guardar favoritos.");
             return ResponseEntity.status(401).body(response);
         }
-
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
         if (usuario == null) {
             response.put("success", false);
             response.put("message", "Usuario no encontrado.");
             return ResponseEntity.status(404).body(response);
         }
-
         Optional<Producto> productoOpt = productoRepo.findById(id);
         if (!productoOpt.isPresent()) {
             response.put("success", false);
             response.put("message", "Producto no encontrado.");
             return ResponseEntity.status(404).body(response);
         }
-
         Producto producto = productoOpt.get();
         List<Producto> favoritos = usuario.getProductosFavoritos();
-        
         boolean isFavorito = false;
         if (favoritos != null && favoritos.contains(producto)) {
             favoritos.remove(producto);
@@ -62,9 +72,7 @@ public class FavoritoAPIController {
             favoritos.add(producto);
             isFavorito = true;
         }
-
         usuarioRepo.save(usuario);
-
         response.put("success", true);
         response.put("isFavorito", isFavorito);
         response.put("message", isFavorito ? "Producto añadido a favoritos." : "Producto eliminado de favoritos.");

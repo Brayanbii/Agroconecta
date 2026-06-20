@@ -4,6 +4,7 @@ import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.payment.Payment;
 import com.proyecto.AccesoUsuarios.model.Orden;
 import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
+import com.proyecto.AccesoUsuarios.service.OrdenEstadoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +18,14 @@ public class PagoWebhookController {
     @Autowired
     private OrdenRepository ordenRepo;
 
+    @Autowired
+    private OrdenEstadoService ordenEstadoService;
+
     /**
-     * Fase 4: Webhook para confirmar pagos asincrónicamente
-     * Mercado Pago enviará un POST a esta URL cada que un pago cambie de estado.
+     * Webhook de Mercado Pago para confirmar pagos.
+     * Segun el tipo de envio:
+     *   ECONOMICO → ESPERANDO_AGRUPACION (se acumulan pedidos)
+     *   RAPIDO    → BUSCANDO_REPARTIDOR (busca inmediato)
      */
     @PostMapping("/webhook")
     public ResponseEntity<String> recibirNotificacionMP(
@@ -28,7 +34,6 @@ public class PagoWebhookController {
         
         try {
             if ("payment".equals(type) && dataId != null) {
-                // Instanciar cliente de MP para consultar el pago real por seguridad
                 PaymentClient client = new PaymentClient();
                 Payment payment = client.get(dataId);
                 
@@ -39,18 +44,13 @@ public class PagoWebhookController {
                     Orden orden = ordenRepo.findById(Long.parseLong(externalRef)).orElse(null);
                     
                     if (orden != null) {
-                        // Manejo de Estados
                         if ("approved".equals(status)) {
-                            orden.setEstado("Aprobado");
-                            System.out.println("✅ Pago Aprobado. Dinero recibido para la Orden #" + orden.getNumeroOrden());
-                            
-                            // Aquí en la vida real es donde se manda el correo de confirmación final
-                            // y donde se manda la orden a la cocina/campesino.
-                            
+                            ordenEstadoService.procesarPagoAprobado(orden);
                         } else if ("rejected".equals(status)) {
-                            orden.setEstado("Rechazado");
+                            orden.setEstado(OrdenEstadoService.RECHAZADO);
+                            System.out.println("❌ Pago Rechazado - Orden #" + orden.getNumeroOrden());
                         } else if ("pending".equals(status) || "in_process".equals(status)) {
-                            orden.setEstado("Pendiente");
+                            orden.setEstado(OrdenEstadoService.PENDIENTE);
                         }
                         
                         ordenRepo.save(orden);
@@ -58,12 +58,11 @@ public class PagoWebhookController {
                 }
             }
             
-            // Siempre se debe responder 200 OK rápido para que MP no reintente
-            return ResponseEntity.status(HttpStatus.OK).body("Notificación procesada");
+            return ResponseEntity.status(HttpStatus.OK).body("OK");
             
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando webhook");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error");
         }
     }
 }

@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
-    // Buscar productos de un campesino específico
     List<Producto> findByUsuario(Usuario usuario);
-
-    // Buscar productos por nombre (contiene, ignorando mayúsculas/minúsculas)
+    List<Producto> findByUsuarioId(Long usuarioId);
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
 }

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Información del Repartidor - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        #map { height: 400px; width: 100%; z-index: 10; border-radius: 1.5rem; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .hidden-data { display: none; }
+        
+        /* Animación para la línea del mapa */
+        .leaflet-interactive {
+            stroke-dasharray: 8 8;
+            animation: dash 10s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 antialiased bg-slate-50">
+
+    <!-- DATA PARA JAVASCRIPT SIN ROMPER THYMELEAF -->
+    <span id="data-repLat" class="hidden-data" th:text="${repLat}"></span>
+    <span id="data-repLng" class="hidden-data" th:text="${repLng}"></span>
+    <span id="data-fincaLat" class="hidden-data" th:text="${fincaLat}"></span>
+    <span id="data-fincaLng" class="hidden-data" th:text="${fincaLng}"></span>
+
+    <!-- SIDEBAR -->
+    <aside th:replace="~{fragments/campesino_sidebar :: sidebar('pedidos')}"></aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <!-- Header -->
+        <div class="px-8 py-6 flex items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+            <div class="flex items-center gap-4">
+                <a th:href="@{/campesino/productos/pedidos}" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-xl font-extrabold text-gray-800">Detalles del Repartidor</h1>
+                    <p class="text-xs text-gray-500 font-medium flex items-center gap-1">Pedido <span class="font-bold text-gray-700" th:text="'#' + ${detalle.orden.id}"></span></p>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <div class="px-4 py-2 bg-amber-50 rounded-xl border border-amber-100 flex items-center gap-2 shadow-sm">
+                    <span class="text-[10px] text-amber-600 font-bold uppercase tracking-widest"><i class="fas fa-key mr-1"></i> PIN Recogida:</span>
+                    <span class="font-mono text-lg font-black text-amber-700 tracking-wider" th:text="${codigoRecogida}">0000</span>
+                </div>
+                <div class="px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-2 shadow-sm">
+                    <span class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest"><i class="fas fa-route mr-1"></i> Ruta:</span>
+                    <span class="font-mono text-lg font-black text-indigo-700" th:text="${codigoRuta}">RUTA-000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
+                
+                <!-- Left Panel: Driver Info -->
+                <div class="w-full lg:w-1/3 flex flex-col gap-6">
+                    
+                    <!-- Driver Card -->
+                    <div class="bg-white rounded-3xl p-8 shadow-xl shadow-blue-900/5 border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full -mr-16 -mt-16 opacity-50 transition-transform group-hover:scale-110"></div>
+                        
+                        <div class="relative z-10 flex flex-col items-center text-center">
+                            <div class="relative mb-4">
+                                <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 to-blue-400 p-1 shadow-md">
+                                    <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl text-indigo-600 font-black overflow-hidden">
+                                        <span th:text="${repNombre != null and repNombre.length() > 0 ? #strings.substring(repNombre, 0, 1).toUpperCase() : 'R'}">R</span>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+                            </div>
+                            
+                            <h2 class="text-2xl font-black text-gray-800 mb-1" th:text="${repNombre}">Nombre Repartidor</h2>
+                            <p class="text-sm font-bold text-indigo-600 mb-4 bg-indigo-50 px-3 py-1 rounded-full"><i class="fas fa-star text-amber-400 mr-1"></i> <span th:text="${repRating}">5.0</span>/5.0</p>
+                            
+                            <div class="w-full bg-slate-50 rounded-2xl p-4 text-left space-y-3 mb-6 border border-gray-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-motorcycle"></i></div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Vehículo</p>
+                                        <p class="text-sm font-extrabold text-gray-700" th:text="${repVehiculo}">Motocicleta</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-id-card"></i></div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Placa</p>
+                                        <p class="text-sm font-extrabold text-gray-700 font-mono" th:text="${repPlaca}">AAA-123</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a th:href="'tel:' + ${repTelefono}" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+                                <i class="fas fa-phone-alt"></i> Llamar al repartidor
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- ETA Card -->
+                    <div th:if="${distanciaKm != null}" class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden shadow-gray-900/20">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl"></div>
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <i class="fas fa-clock text-blue-400"></i> Estado del trayecto
+                        </h3>
+                        
+                        <div class="flex items-end justify-between mb-2 relative z-10">
+                            <div>
+                                <p class="text-4xl font-black text-white" th:text="${etaMinutos}">15</p>
+                                <p class="text-sm font-medium text-gray-300">minutos aprox.</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-blue-400" th:text="${distanciaKm} + ' km'">2.5 km</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">de distancia</p>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full bg-gray-700 rounded-full h-2 mb-2 mt-4 overflow-hidden relative z-10">
+                            <div class="bg-gradient-to-r from-blue-600 to-cyan-400 h-2 rounded-full w-2/3 animate-pulse"></div>
+                        </div>
+                        <p class="text-[10px] text-center text-cyan-300 font-bold uppercase tracking-widest relative z-10">En camino a la finca</p>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Map -->
+                <div class="w-full lg:w-2/3 flex flex-col gap-4">
+                    <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex-1 relative flex flex-col min-h-[500px]">
+                        <h3 class="text-lg font-extrabold text-gray-800 mb-4 px-4 pt-2 flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            Seguimiento en tiempo real
+                        </h3>
+                        
+                        <div id="map" class="flex-1 bg-gray-50 relative overflow-hidden border border-gray-100 shadow-inner">
+                            <!-- Mapa Leaflet irá aquí -->
+                        </div>
+                        
+                        <!-- Overlay Legend -->
+                        <div class="absolute bottom-8 left-0 right-0 pointer-events-none flex justify-center z-[1000]">
+                            <div class="glass-panel px-6 py-3 rounded-full flex items-center gap-6 shadow-xl pointer-events-auto">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center text-[8px] text-white shadow-md"><i class="fas fa-motorcycle"></i></div>
+                                    <span class="text-xs font-bold text-gray-700">Repartidor</span>
+                                </div>
+                                <div class="w-8 border-t-2 border-dashed border-gray-400"></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white shadow-md"><i class="fas fa-home"></i></div>
+                                    <span class="text-xs font-bold text-gray-700">Tu Finca</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Leer datos desde los spans ocultos para evitar problemas de thymeleaf
+            var repLatStr = document.getElementById('data-repLat').innerText.trim();
+            var repLngStr = document.getElementById('data-repLng').innerText.trim();
+            var fincaLatStr = document.getElementById('data-fincaLat').innerText.trim();
+            var fincaLngStr = document.getElementById('data-fincaLng').innerText.trim();
+
+            var repLat = parseFloat(repLatStr);
+            var repLng = parseFloat(repLngStr);
+            var fincaLat = parseFloat(fincaLatStr);
+            var fincaLng = parseFloat(fincaLngStr);
+            
+            // Coordenadas fallback (Barbosa, Santander) si faltan datos o son NaN
+            if (isNaN(repLat) || isNaN(repLng)) {
+                repLat = 5.9317;
+                repLng = -73.6147;
+            }
+            if (isNaN(fincaLat) || isNaN(fincaLng)) {
+                fincaLat = 5.9317;
+                fincaLng = -73.6147;
+            }
+
+            // Inicializar mapa
+            var map = L.map('map', {
+                zoomControl: false
+            }).setView([fincaLat, fincaLng], 13);
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            // Capa Voyager (limpia, moderna)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Iconos personalizados con FontAwesome
+            var driverIcon = L.divIcon({
+                html: '<div style="background: linear-gradient(135deg, #4f46e5, #3b82f6); color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border:2px solid white; transform: translateY(-5px);"><i class="fas fa-motorcycle text-sm"></i></div>',
+                className: '',
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            var fincaIcon = L.divIcon({
+                html: '<div style="background: linear-gradient(135deg, #10b981, #059669); color:white; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border:2px solid white;"><i class="fas fa-home text-sm"></i></div>',
+                className: '',
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            // Marcadores
+            var repMarker = L.marker([repLat, repLng], {icon: driverIcon}).addTo(map)
+                .bindPopup("<div class='text-center'><b>Repartidor</b><br><span class='text-xs text-gray-500'>Ubicación actual</span></div>");
+                
+            var fincaMarker = L.marker([fincaLat, fincaLng], {icon: fincaIcon}).addTo(map)
+                .bindPopup("<div class='text-center'><b>Tu Finca</b><br><span class='text-xs text-gray-500'>Punto de entrega</span></div>");
+
+            // Línea conectora
+            var latlngs = [
+                [repLat, repLng],
+                [fincaLat, fincaLng]
+            ];
+            
+            var polyline = L.polyline(latlngs, {
+                color: '#4f46e5', 
+                weight: 4, 
+                lineCap: 'round',
+                opacity: 0.7
+            }).addTo(map);
+
+            // Ajustar zoom para ver ambos puntos si las coordenadas son diferentes
+            if (repLat !== fincaLat || repLng !== fincaLng) {
+                var group = new L.featureGroup([repMarker, fincaMarker]);
+                map.fitBounds(group.getBounds().pad(0.2));
+            }
+        } catch (e) {
+            console.error("Error al inicializar el mapa: ", e);
+        }
+    });
+    </script>
+</body>
+</html>

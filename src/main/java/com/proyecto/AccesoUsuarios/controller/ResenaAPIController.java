@@ -1,11 +1,15 @@
 package com.proyecto.AccesoUsuarios.controller;
 
+import com.proyecto.AccesoUsuarios.model.DetalleOrden;
+import com.proyecto.AccesoUsuarios.model.Orden;
 import com.proyecto.AccesoUsuarios.model.Producto;
 import com.proyecto.AccesoUsuarios.model.Resena;
 import com.proyecto.AccesoUsuarios.model.Usuario;
+import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.ResenaRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import com.proyecto.AccesoUsuarios.service.AuthUsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,6 +33,47 @@ public class ResenaAPIController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private OrdenRepository ordenRepository;
+
+    @Autowired
+    private AuthUsuarioService authUsuarioService;
+
+    // Verificar si el usuario puede comentar (ha comprado el producto)
+    @GetMapping("/puede-comentar/{productoId}")
+    public ResponseEntity<?> puedeComentar(@PathVariable Long productoId, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.ok(Map.of("puedeComentar", false, "yaComento", false, "mensaje", "Inicia sesion para opinar"));
+        }
+        Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
+        if (usuario == null) {
+            return ResponseEntity.ok(Map.of("puedeComentar", false, "yaComento", false, "mensaje", "Usuario no encontrado"));
+        }
+        
+        boolean haComprado = false;
+        List<Orden> ordenes = ordenRepository.findByUsuario(usuario);
+        for (Orden orden : ordenes) {
+            if (orden.getDetalles() != null) {
+                for (DetalleOrden d : orden.getDetalles()) {
+                    if (d.getProducto() != null && d.getProducto().getId().equals(productoId)) {
+                        haComprado = true;
+                        break;
+                    }
+                }
+            }
+            if (haComprado) break;
+        }
+        
+        if (!haComprado) {
+            return ResponseEntity.ok(Map.of("puedeComentar", false, "yaComento", false,
+                "mensaje", "Compra este producto para poder calificarlo"));
+        }
+        
+        boolean yaComento = resenaRepository.findByProductoIdAndUsuarioId(productoId, usuario.getId()).isPresent();
+        return ResponseEntity.ok(Map.of("puedeComentar", true, "yaComento", yaComento,
+            "mensaje", yaComento ? "Ya has calificado este producto" : "Puedes calificar este producto"));
+    }
 
     // Obtener las reseñas de un producto
     @GetMapping("/producto/{id}")
@@ -62,11 +107,10 @@ public class ResenaAPIController {
             }
 
             Optional<Producto> optProducto = productoRepository.findById(productoId);
-            Optional<Usuario> optUsuario = usuarioRepository.findByEmail(auth.getName());
+            Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
 
-            if (optProducto.isPresent() && optUsuario.isPresent()) {
+            if (optProducto.isPresent() && usuario != null) {
                 Producto producto = optProducto.get();
-                Usuario usuario = optUsuario.get();
                 
                 // Buscar si ya existe una reseña de este usuario para este producto
                 Optional<Resena> existente = resenaRepository.findByProductoIdAndUsuarioId(productoId, usuario.getId());
@@ -121,14 +165,14 @@ public class ResenaAPIController {
             }
 
             Resena resena = optResena.get();
-            Optional<Usuario> optUsuario = usuarioRepository.findByEmail(auth.getName());
+            Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
 
-            if (optUsuario.isEmpty()) {
+            if (usuario == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "Usuario no encontrado"));
             }
 
             // Solo el autor puede borrar su propia reseña
-            if (!resena.getUsuario().getId().equals(optUsuario.get().getId())) {
+            if (!resena.getUsuario().getId().equals(usuario.getId())) {
                 return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar esta reseña"));
             }
 

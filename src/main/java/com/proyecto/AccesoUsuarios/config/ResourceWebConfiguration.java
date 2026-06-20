@@ -9,6 +9,8 @@ public class ResourceWebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Fallback local para imágenes no gestionadas por MongoImageService
+        // El ImageController (GET /images/{fileId}) tiene prioridad sobre este handler
         registry.addResourceHandler("/images/**").addResourceLocations("file:images/");
     }
 }

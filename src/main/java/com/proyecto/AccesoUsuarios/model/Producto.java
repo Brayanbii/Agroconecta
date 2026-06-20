@@ -1,5 +1,7 @@
 package com.proyecto.AccesoUsuarios.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.ToString;
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Producto {
 
     @Id
@@ -59,6 +62,7 @@ public class Producto {
     // Relación: Un producto pertenece a un Campesino (Usuario)
     @ManyToOne
     @JoinColumn(name = "usuario_id")
+    @JsonIgnore // ⬅️ EVITA EL CONFLICTO: Evita que Spring Boot entre en recursión infinita al serializar para la app móvil
     private Usuario usuario;
 
     // Relación: Un producto tiene muchas reseñas
@@ -103,6 +107,36 @@ public class Producto {
             return u + "es";
         }
         return u + "s";
+    }
+
+    @Transient
+    public String getNombreCampesino() {
+        return usuario != null ? usuario.getNombreCompleto() : "AgroConecta";
+    }
+
+    @Transient
+    public Long getCampesinoId() {
+        return usuario != null ? usuario.getId() : null;
+    }
+
+    @Transient
+    public String getDescripcionFinca() {
+        return usuario != null ? usuario.getDescripcionFinca() : null;
+    }
+
+    @Transient
+    public String getNombreFinca() {
+        return usuario != null ? usuario.getNombreFinca() : null;
+    }
+
+    @Transient
+    public String getFotoPerfilCampesino() {
+        return usuario != null ? usuario.getFotoPerfil() : null;
+    }
+
+    @Transient
+    public Boolean getCampesinoVerificado() {
+        return usuario != null && "VERIFICADO".equals(usuario.getEstadoVerificacion());
     }
 
     @Transient

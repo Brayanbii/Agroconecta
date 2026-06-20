@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Cómo Funciona - AgroConecta</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc} .step-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -12px rgba(0,0,0,0.12)}</style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2"><div class="bg-gradient-to-br from-green-500 to-emerald-600 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-md"><i class="fas fa-leaf"></i></div><span class="text-xl font-extrabold text-gray-900">Agro<span class="text-green-600">Conecta</span></span></a>
+            <a href="/" class="text-sm font-bold text-gray-500 hover:text-green-600 transition"><i class="fas fa-arrow-left text-xs mr-1"></i> Volver al inicio</a>
+        </div>
+    </header>
+
+    <main class="flex-1">
+        <!-- HERO -->
+        <section class="bg-gradient-to-br from-green-700 via-emerald-600 to-teal-500 text-white py-20 px-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/3 blur-2xl"></div>
+            <div class="max-w-4xl mx-auto text-center relative z-10">
+                <span class="text-[11px] font-extrabold uppercase tracking-[0.2em] bg-white/15 px-4 py-1.5 rounded-full inline-block mb-6">Tres pasos · Tres roles · Un solo campo</span>
+                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">¿Cómo funciona AgroConecta?</h1>
+                <p class="text-green-100 text-lg max-w-2xl mx-auto">La plataforma que conecta campesinos, clientes y repartidores en un ecosistema 100% colombiano. Así de simple.</p>
+            </div>
+        </section>
+
+        <!-- FLOW: 3 STEPS -->
+        <section class="max-w-6xl mx-auto px-6 -mt-12 relative z-20">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="step-card bg-white rounded-3xl p-8 shadow-sm border border-gray-100 transition-all duration-300 text-center">
+                    <div class="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <span class="text-4xl">🌱</span>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-green-600 uppercase tracking-[0.15em] bg-green-50 px-3 py-1 rounded-full">Paso 1</span>
+                    <h3 class="text-xl font-extrabold text-gray-900 mt-3 mb-2">El Campesino Publica</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Registra su finca, sube sus productos frescos con fotos reales, pone el precio justo y marca su ubicación GPS. Sin intermediarios, sin excusas.</p>
+                    <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-center gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        <span class="flex items-center gap-1"><i class="fas fa-mobile-alt text-green-500"></i> App</span>
+                        <span class="flex items-center gap-1"><i class="fas fa-desktop text-green-500"></i> Web</span>
+                    </div>
+                </div>
+                <div class="step-card bg-white rounded-3xl p-8 shadow-sm border border-gray-100 transition-all duration-300 text-center">
+                    <div class="w-20 h-20 bg-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <span class="text-4xl">🛒</span>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-amber-600 uppercase tracking-[0.15em] bg-amber-50 px-3 py-1 rounded-full">Paso 2</span>
+                    <h3 class="text-xl font-extrabold text-gray-900 mt-3 mb-2">El Cliente Compra</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Explora productos por categoría, cercanía o precio. Agrega al carrito, paga seguro con MercadoPago y recibe un PIN de entrega. Frescura garantizada.</p>
+                    <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-center gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        <span class="flex items-center gap-1"><i class="fas fa-mobile-alt text-amber-500"></i> App</span>
+                        <span class="flex items-center gap-1"><i class="fas fa-desktop text-amber-500"></i> Web</span>
+                    </div>
+                </div>
+                <div class="step-card bg-white rounded-3xl p-8 shadow-sm border border-gray-100 transition-all duration-300 text-center">
+                    <div class="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <span class="text-4xl">🏍️</span>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-blue-600 uppercase tracking-[0.15em] bg-blue-50 px-3 py-1 rounded-full">Paso 3</span>
+                    <h3 class="text-xl font-extrabold text-gray-900 mt-3 mb-2">El Repartidor Entrega</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">Acepta rutas cercanas, recoge en la finca con PIN de seguridad y entrega al cliente. GPS en vivo, ganancias claras y calificación de estrellas.</p>
+                    <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-center gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        <span class="flex items-center gap-1"><i class="fas fa-mobile-alt text-blue-500"></i> App Go</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- APPS SECTION -->
+        <section class="max-w-6xl mx-auto px-6 py-20">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">Nuestras Apps</h2>
+                <p class="text-gray-500 max-w-lg mx-auto">Dos aplicaciones, un ecosistema. Descarga la que necesites según tu rol.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- AgroConecta App -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-start gap-5">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-green-500/20 shrink-0">🌿</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-xl font-extrabold text-gray-900">AgroConecta</h3>
+                                <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">App Principal</span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-4">Para Campesinos y Clientes. Publica productos, compra, gestiona pedidos, califica y mucho más.</p>
+                            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> Publicar productos</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> Comprar fresco</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> GPS de la finca</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> Historial y reseñas</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> Carrito y pagos</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-green-500 text-xs"></i> Notificaciones</div>
+                            </div>
+                            <div class="mt-5 flex gap-2">
+                                <span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1"><i class="fab fa-google-play"></i> Google Play</span>
+                                <span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1"><i class="fab fa-apple"></i> App Store</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- AgroConectaGo -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-start gap-5">
+                        <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20 shrink-0">🏍️</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-xl font-extrabold text-gray-900">AgroConecta<span class="text-cyan-600">Go</span></h3>
+                                <span class="text-[10px] font-bold bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">Delivery</span>
+                            </div>
+                            <p class="text-sm text-gray-500 mb-4">Exclusiva para Repartidores. Rutas inteligentes, GPS en vivo, ganancias por viaje y verificación PIN.</p>
+                            <div class="grid grid-cols-2 gap-2 text-[10px]">
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> Rutas cercanas</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> Navegación GPS</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> PIN de seguridad</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> Historial de viajes</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> Ganancias en vivo</div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i class="fas fa-check-circle text-cyan-500 text-xs"></i> Perfil y docs</div>
+                            </div>
+                            <div class="mt-5 flex gap-2">
+                                <span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1"><i class="fab fa-google-play"></i> Google Play</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SAFETY -->
+        <section class="bg-gray-900 text-white py-16 px-6">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6"><i class="fas fa-shield-haltered text-3xl text-green-400"></i></div>
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-4">Seguridad con PIN 🔐</h2>
+                <p class="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">Cada entrega se verifica con códigos PIN únicos. El campesino entrega un PIN al repartidor en la finca. El cliente entrega otro PIN al recibir. Sin PIN, no hay entrega. Así de seguro.</p>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="max-w-4xl mx-auto px-6 py-16 text-center">
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-3">¿Listo para empezar?</h2>
+            <p class="text-gray-500 mb-6">Elige tu rol y únete a la red agrícola más grande de Colombia.</p>
+            <div class="flex justify-center gap-3 flex-wrap">
+                <a href="/registro" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold text-sm transition shadow-lg shadow-green-600/20">Registrarme como Cliente</a>
+                <a href="/registro" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl font-bold text-sm transition shadow-lg shadow-amber-500/20">Ser Campesino</a>
+                <a href="/registro" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-2xl font-bold text-sm transition shadow-lg shadow-cyan-600/20">Ser Repartidor</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-400">AgroConecta &copy; 2026 · Del campo colombiano a tu mesa</footer>
+</body>
+</html>

@@ -4,322 +4,86 @@
     <title>Mis Pedidos - AgroConecta</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .order-card {
-            transition: all 0.3s ease;
-        }
-        .order-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            border-color: #86efac; /* green-300 */
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Apple/macOS Style Alerts */
-        .apple-alert {
-            border-radius: 32px !important;
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(24px) !important;
-            -webkit-backdrop-filter: blur(24px) !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
-            padding: 2rem !important;
-        }
+        .glass-nav { background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .order-card { transition: all 0.3s ease; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(0,0,0,0.12); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .animate-slide-in { animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
-
-    <!-- ===== TODOS LOS SCRIPTS DE LA PÁGINA (en el HEAD para evitar truncamiento) ===== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            // 1. TABS FILTERS
-            var tabBtns = document.querySelectorAll('.tab-btn');
-            var cards = document.querySelectorAll('.order-card');
-
-            for (var t = 0; t < tabBtns.length; t++) {
-                tabBtns[t].addEventListener('click', function() {
-                    var status = this.getAttribute('data-filter');
-                    
-                    for (var b = 0; b < tabBtns.length; b++) {
-                        tabBtns[b].className = 'tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap';
-                    }
-                    this.className = 'tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap';
-
-                    for (var c = 0; c < cards.length; c++) {
-                        var cardStatus = (cards[c].getAttribute('data-estado') || '').trim();
-                        if (status === 'Todos' || cardStatus === status || cardStatus === status.replace('s', '')) {
-                            cards[c].style.display = 'block';
-                            cards[c].style.animation = 'fadeIn 0.4s ease-out forwards';
-                        } else {
-                            cards[c].style.display = 'none';
-                        }
-                    }
-                });
-            }
-
-            // 2. ACORDEÓN
-            var accordionHeaders = document.querySelectorAll('.accordion-header');
-            for (var a = 0; a < accordionHeaders.length; a++) {
-                accordionHeaders[a].addEventListener('click', function(e) {
-                    var details = this.parentElement.querySelector('.accordion-details');
-                    var icon = this.querySelector('.accordion-icon');
-                    if (details && icon) {
-                        if (details.classList.contains('hidden')) {
-                            details.classList.remove('hidden');
-                            icon.classList.add('rotate-180');
-                        } else {
-                            details.classList.add('hidden');
-                            icon.classList.remove('rotate-180');
-                        }
-                    }
-                });
-            }
-
-            // 3. ESTRELLAS
-            var estrellas = document.querySelectorAll('.estrella-btn');
-            for (var s = 0; s < estrellas.length; s++) {
-                estrellas[s].addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var nivel = parseInt(this.getAttribute('data-nivel'));
-                    var contenedor = this.parentElement;
-                    var stars = contenedor.querySelectorAll('i');
-                    for (var x = 0; x < stars.length; x++) {
-                        if (x < nivel) {
-                            stars[x].classList.remove('text-gray-300');
-                            stars[x].classList.add('text-yellow-400');
-                        } else {
-                            stars[x].classList.add('text-gray-300');
-                            stars[x].classList.remove('text-yellow-400');
-                        }
-                    }
-                    
-                    var productoItem = this.closest('.producto-item');
-                    var productoId = productoItem ? productoItem.getAttribute('data-id') : null;
-                    
-                    if (productoId) {
-                        fetch('/api/resenas', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                productoId: productoId,
-                                estrellas: nivel,
-                                comentario: 'Calificación rápida'
-                            })
-                        }).then(function(res) { return res.json(); }).then(function(data) {
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({ 
-                                    toast: true,
-                                    position: 'bottom-end',
-                                    iconHtml: '<i class="fas fa-star"></i>',
-                                    iconColor: '#facc15',
-                                    title: `<span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;">¡Gracias por calificar!</span>`,
-                                    showConfirmButton: false,
-                                    timer: 3000,
-                                    timerProgressBar: true,
-                                    didOpen: (toast) => {
-                                        toast.onmouseenter = Swal.stopTimer;
-                                        toast.onmouseleave = Swal.resumeTimer;
-                                        const progressBar = toast.querySelector('.swal2-timer-progress-bar');
-                                        if (progressBar) {
-                                            progressBar.style.backgroundColor = '#facc15';
-                                        }
-                                    }
-                                });
-                            }
-                        }).catch(function(err) { console.error("Error al guardar reseña", err); });
-                    }
-                });
-            }
-
-            // 4. VOLVER A COMPRAR
-            var btnsVolver = document.querySelectorAll('.btn-volver');
-            for (var v = 0; v < btnsVolver.length; v++) {
-                btnsVolver[v].addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var card = this.closest('.order-card');
-                    var productos = card.querySelectorAll('.producto-item');
-                    if (productos.length === 0) return;
-
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ 
-                            html: `
-                                <div class="flex flex-col items-center gap-4">
-                                    <div class="w-16 h-16 bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl border border-green-200/50 shadow-inner flex items-center justify-center relative overflow-hidden">
-                                        <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
-                                        <i class="fas fa-shopping-basket text-green-500 text-2xl relative z-10"></i>
-                                    </div>
-                                    <div class="text-center">
-                                        <h3 class="text-xl font-extrabold text-gray-900 tracking-tight mb-1">Recuperando carrito</h3>
-                                        <p class="text-sm font-medium text-gray-500">Estamos trasladando todos tus productos...</p>
-                                    </div>
-                                </div>
-                            `,
-                            showConfirmButton: false, 
-                            allowOutsideClick: false,
-                            customClass: { popup: 'apple-alert' },
-                            didOpen: function() { Swal.showLoading(); } 
-                        });
-                    }
-
-                    var fetchPromises = [];
-                    for (var p = 0; p < productos.length; p++) {
-                        var id = productos[p].getAttribute('data-id');
-                        var qty = productos[p].getAttribute('data-qty');
-                        fetchPromises.push(
-                            fetch('/api/carrito/agregar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, cantidad: qty }) }).then(function(res) { return res.json(); })
-                        );
-                    }
-
-                    Promise.all(fetchPromises).then(function(results) {
-                        var errores = [];
-                        for (var r = 0; r < results.length; r++) { if (results[r].error === 'stock_insuficiente') errores.push(results[r]); }
-                        if (errores.length > 0 && typeof Swal !== 'undefined') {
-                            Swal.fire({ 
-                                icon: 'warning', 
-                                title: 'Stock Parcial', 
-                                text: 'Algunos productos se ajustaron al máximo disponible.', 
-                                confirmButtonColor: '#eab308',
-                                customClass: { popup: 'apple-alert', confirmButton: 'rounded-xl font-bold px-6 py-3 shadow-md' }
-                            }).then(function() { window.location.href = '/carrito'; });
-                        } else { window.location.href = '/carrito'; }
-                    }).catch(function() { window.location.href = '/carrito'; });
-                });
-            }
-
-            // 5. RASTREAR
-            var btnsRastrear = document.querySelectorAll('.btn-rastrear');
-            for (var r = 0; r < btnsRastrear.length; r++) {
-                btnsRastrear[r].addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ title: 'Rastreo GPS en vivo', html: 'La vista de mapa estará habilitada próximamente.<br><br><span class="text-xs text-gray-400">Desarrollo en curso</span>', icon: 'info', confirmButtonColor: '#3b82f6' });
-                    }
-                });
-            }
-
-            // 6. REPORTAR
-            var btnsReportar = document.querySelectorAll('.btn-reportar');
-            for (var rp = 0; rp < btnsReportar.length; rp++) {
-                btnsReportar[rp].addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var soporteBtn = document.getElementById('soporte-btn');
-                    if (soporteBtn) { soporteBtn.click(); }
-                    else if (typeof Swal !== 'undefined') { Swal.fire('Soporte', 'El módulo de soporte no está disponible.', 'info'); }
-                });
-            }
-        });
-    </script>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
-    <!-- NAVBAR PRO -->
     <nav class="glass-nav sticky top-0 z-50 w-full">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <!-- Logo -->
-                <a th:href="@{/tienda}" class="flex items-center gap-2 cursor-pointer group">
-                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition">
-                        <i class="fas fa-leaf text-xl"></i>
-                    </div>
+                <a th:href="@{/tienda}" class="flex items-center gap-2 group">
+                    <div class="bg-green-600 text-white p-2 rounded-xl shadow-lg group-hover:bg-green-700 transition"><i class="fas fa-leaf text-xl"></i></div>
                     <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
                 </a>
-
-                <!-- Botón Volver -->
-                <a th:href="@{/tienda}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center gap-2 group">
-                    <i class="fas fa-store group-hover:-translate-x-1 transition-transform"></i>
-                    Ir a la Tienda
-                </a>
+                <div class="flex items-center gap-4">
+                    <div class="relative" id="notif-container">
+                        <div class="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition cursor-pointer" onclick="togglePanel()">
+                            <i class="fas fa-bell text-gray-500 text-lg"></i>
+                        </div>
+                        <span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                        <div id="notif-panel" class="hidden absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                            <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                                <h3 class="text-sm font-extrabold text-gray-800">Notificaciones</h3>
+                                <button onclick="marcarTodasLeidas()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800">Marcar leidas</button>
+                            </div>
+                            <div id="notif-list" class="max-h-72 overflow-y-auto p-2 space-y-1"><div class="text-center text-xs text-gray-400 py-6">Cargando...</div></div>
+                        </div>
+                    </div>
+                    <a th:href="@{/tienda}" class="text-sm font-bold text-gray-500 hover:text-green-600 transition flex items-center gap-2 group"><i class="fas fa-store"></i> Ir a la Tienda</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-                    Mis Compras
-                </h1>
-                <p class="text-sm font-medium text-gray-500 mt-2">Gestiona tus pedidos, repite compras y rastrea entregas.</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">Mis Compras</h1>
+                <p class="text-sm font-medium text-gray-500 mt-2">Gestiona tus pedidos y rastrea entregas.</p>
             </div>
-            
-            <!-- Widgets resumen -->
-            <div class="flex items-center gap-3 md:gap-4 overflow-x-auto pb-2 md:pb-0">
-                <!-- Ahorro -->
-                <div class="bg-gradient-to-br from-green-50 to-emerald-100 px-4 sm:px-5 py-2.5 rounded-xl border border-green-200 shadow-sm flex items-center gap-3 shrink-0">
-                    <div class="w-8 h-8 bg-white text-green-600 rounded-lg flex items-center justify-center shadow-sm shrink-0">
-                        <i class="fas fa-piggy-bank text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-green-700 uppercase tracking-widest">Ahorro del Mes</p>
-                        <p class="text-sm font-extrabold text-green-900" th:text="'$' + ${#numbers.formatDecimal(ahorroMes != null ? ahorroMes : 0, 1, 'POINT', 0, 'COMMA')}">$0</p>
-                    </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 px-5 py-2.5 rounded-xl border border-green-200 shadow-sm flex items-center gap-3 shrink-0">
+                    <div class="w-8 h-8 bg-white text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-piggy-bank text-sm"></i></div>
+                    <div><p class="text-[10px] font-bold text-green-700 uppercase tracking-widest">Ahorro</p><p class="text-sm font-extrabold text-green-900" th:text="'$' + ${#numbers.formatDecimal(ahorroMes != null ? ahorroMes : 0, 1, 'POINT', 0, 'COMMA')}">$0</p></div>
                 </div>
-
-                <div class="bg-white px-4 sm:px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3 shrink-0">
-                    <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                        <i class="fas fa-shopping-bag text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Pedidos</p>
-                        <p class="text-sm font-extrabold text-gray-900" th:text="${#lists.size(ordenes)}">0</p>
-                    </div>
+                <div class="bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3 shrink-0">
+                    <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-shopping-bag text-sm"></i></div>
+                    <div><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total</p><p class="text-sm font-extrabold text-gray-900" th:text="${#lists.size(ordenes)}">0</p></div>
                 </div>
             </div>
         </div>
 
-        <!-- TABS 2026 -->
-        <div class="flex items-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar border-b border-gray-100">
-            <button data-filter="Todos" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap">Todos</button>
-            <button data-filter="Pendiente" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Pendientes</button>
-            <button data-filter="En Camino" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">En Camino</button>
-            <button data-filter="Entregado" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Entregados</button>
-            <button data-filter="Cancelado" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Cancelados</button>
+        <div class="flex items-center gap-2 mb-8 overflow-x-auto pb-2 border-b border-gray-100">
+            <button data-filter="TODOS" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap">Todos</button>
+            <button data-filter="PENDIENTE|PAGADO|PENDIENTE_CAMPESINO|ESPERANDO_AGRUPACION|AGRUPADO_EN_RUTA|ACEPTADO_POR_CAMPESINO|BUSCANDO_REPARTIDOR|RUTA_ASIGNADA" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Pendientes</button>
+            <button data-filter="EN_CAMINO|RECOGIDO" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">En Camino</button>
+            <button data-filter="ENTREGADO" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Entregados</button>
+            <button data-filter="CANCELADO|RECHAZADO" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap">Cancelados</button>
         </div>
 
-        <!-- LISTA DE PEDIDOS -->
         <div class="space-y-6" th:if="${!#lists.isEmpty(ordenes)}">
-            
-            <!-- Order Card (Premium 2026 Accordion) -->
-            <div th:each="o : ${ordenes}" class="order-card bg-white rounded-3xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)] border border-gray-100 relative transition-all duration-300 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 mb-2 group overflow-hidden" th:data-estado="${o.estado}">
-                
-                <!-- Banda de Color -->
-                <div class="absolute left-0 top-6 bottom-6 w-1 rounded-r-md opacity-50 transition-opacity"
-                     th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-400' : 
-                                      (o.estado == 'En Camino' ? 'bg-blue-500' : 
-                                      (o.estado == 'Entregado' ? 'bg-green-500' : 'bg-gray-300'))}">
-                </div>
+            <div th:each="o : ${ordenes}" class="order-card bg-white rounded-3xl shadow-sm border border-gray-100 relative transition-all duration-300 mb-2 group overflow-hidden" th:data-estado="${o.estado}">
+                <div class="absolute left-0 top-6 bottom-6 w-1.5 rounded-r-full opacity-70"
+                     th:classappend="${o.estado == 'ENTREGADO'} ? 'bg-emerald-400' : (${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO'} ? 'bg-sky-400' : (${o.estado == 'CANCELADO' or o.estado == 'RECHAZADO'} ? 'bg-rose-400' : 'bg-amber-400'))"></div>
 
-                <!-- Cabecera Clickable -->
-                <div class="p-5 sm:p-6 cursor-pointer flex flex-col md:flex-row justify-between md:items-center gap-4 ml-2 accordion-header">
+                <div class="p-5 sm:p-6 cursor-pointer flex flex-col md:flex-row justify-between md:items-center gap-4 ml-3 accordion-header">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
-                             th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-600' : 
-                                              (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-600' : 
-                                              (o.estado == 'Entregado' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-500'))}">
-                            <i class="fas text-xl" th:classappend="${o.estado == 'Pendiente' ? 'fa-clock' : 
-                                              (o.estado == 'En Camino' ? 'fa-truck-fast' : 
-                                              (o.estado == 'Entregado' ? 'fa-box-open' : 'fa-times-circle'))}"></i>
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border"
+                             th:classappend="${o.estado == 'ENTREGADO'} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : (${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO'} ? 'bg-sky-50 text-sky-600 border-sky-100' : (${o.estado == 'CANCELADO' or o.estado == 'RECHAZADO'} ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'))">
+                            <i class="text-xl"
+                               th:classappend="${o.estado == 'ENTREGADO'} ? 'fas fa-circle-check' : (${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO'} ? 'fas fa-truck-fast' : (${o.estado == 'CANCELADO' or o.estado == 'RECHAZADO'} ? 'fas fa-circle-xmark' : 'fas fa-clock'))"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 mb-0.5">
@@ -329,55 +93,35 @@
                             <p class="text-sm font-bold text-gray-900" th:text="${#temporals.format(o.fechaCreacion, 'dd MMMM yyyy, h:mm a')}">Fecha</p>
                         </div>
                     </div>
-                    
                     <div class="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto pointer-events-none">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide"
-                              th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border border-yellow-100' : 
-                                              (o.estado == 'En Camino' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 
-                                              (o.estado == 'Entregado' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-50 text-gray-600 border border-gray-200'))}">
-                            <span class="w-1.5 h-1.5 rounded-full animate-pulse" th:if="${o.estado != 'Cancelado'}"
-                                  th:classappend="${o.estado == 'Pendiente' ? 'bg-yellow-500' : 
-                                                  (o.estado == 'En Camino' ? 'bg-blue-500' : 'bg-green-500')}"></span>
-                            <span th:text="${o.estado}"></span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border"
+                              th:classappend="${o.estado == 'ENTREGADO'} ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO'} ? 'bg-sky-50 text-sky-700 border-sky-200' : (${o.estado == 'CANCELADO' or o.estado == 'RECHAZADO'} ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200'))">
+                            <span class="w-2 h-2 rounded-full animate-pulse" th:if="${o.estado != 'CANCELADO' and o.estado != 'RECHAZADO'}"
+                                  th:classappend="${o.estado == 'ENTREGADO'} ? 'bg-emerald-500' : (${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO'} ? 'bg-sky-500' : 'bg-amber-500')"></span>
+                            <span th:text="${o.estado}">Estado</span>
                         </span>
-                        
                         <div class="text-right">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total</p>
                             <p class="text-lg font-extrabold text-gray-900 leading-none" th:text="'$' + ${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')}">$0</p>
                         </div>
-                        
-                        <!-- Icono Expandir -->
-                        <div class="text-gray-400 bg-gray-50 w-8 h-8 rounded-full flex items-center justify-center">
-                            <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                        <div class="text-gray-400 bg-gray-100 w-9 h-9 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition">
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-300 accordion-icon"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Desglose de Productos (Acordeón Oculto) -->
                 <div class="hidden px-5 sm:px-6 pb-5 sm:pb-6 ml-2 animate-[fadeIn_0.3s_ease-out] accordion-details">
                     <div class="border-t border-gray-100 pt-5">
                         <p class="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-3">Productos Comprados</p>
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-5">
                             <div th:each="detalle : ${o.detalles}" th:if="${detalle.producto != null}" class="producto-item flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100" th:data-id="${detalle.producto.id}" th:data-qty="${detalle.cantidad}">
-                                
-                                <!-- Mini Foto -->
-                                <img th:src="${detalle.producto.imagenUrl != null && detalle.producto.imagenUrl.startsWith('http') ? detalle.producto.imagenUrl : '/images/' + (detalle.producto.imagenUrl != null ? detalle.producto.imagenUrl : 'default.png')}" 
-                                     class="w-12 h-12 rounded-xl object-cover bg-white border border-gray-200 shadow-sm shrink-0" alt="Producto" onerror="this.onerror=null; this.src='https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-7359557-6024626.png?f=webp'">
-                                
-                                <!-- Info Producto -->
+                                <img th:src="${detalle.producto.imagenUrl != null && detalle.producto.imagenUrl.startsWith('http') ? detalle.producto.imagenUrl : '/images/' + (detalle.producto.imagenUrl != null ? detalle.producto.imagenUrl : 'default.png')}" class="w-12 h-12 rounded-xl object-cover bg-white border border-gray-200 shadow-sm shrink-0" alt="Producto" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect fill=%22%23f1f5f9%22 width=%2264%22 height=%2264%22/><text y=%2240%22 font-size=%2224%22 fill=%22%2394a3b8%22 text-anchor=%22middle%22>📦</text></svg>'">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-bold text-gray-800 leading-tight truncate" th:text="${detalle.producto.nombre != null ? detalle.producto.nombre : detalle.nombre}">Nombre</p>
-                                    <p class="text-[10px] font-bold text-gray-500 mt-0.5 truncate">
-                                        <span th:text="${detalle.cantidad}">1</span> unidades a <span th:text="'$' + ${#numbers.formatDecimal(detalle.precio, 1, 'POINT', 0, 'COMMA')}">$0</span>
-                                    </p>
+                                    <p class="text-[10px] font-bold text-gray-500 mt-0.5 truncate"><span th:text="${detalle.cantidad}">1</span> u. a <span th:text="'$' + ${#numbers.formatDecimal(detalle.precio, 1, 'POINT', 0, 'COMMA')}">$0</span></p>
                                 </div>
-                                
-                                <div class="text-right pr-2">
-                                    <p class="text-sm font-extrabold text-gray-900" th:text="'$' + ${#numbers.formatDecimal(detalle.total, 1, 'POINT', 0, 'COMMA')}">$0</p>
-                                </div>
-                                
-                                <!-- Estrellas (Solo Entregado) -->
-                                <div th:if="${o.estado == 'Entregado'}" class="flex gap-1 text-gray-300 pr-2 shrink-0 border-l border-gray-200 pl-3">
+                                <div class="text-right pr-2"><p class="text-sm font-extrabold text-gray-900" th:text="'$' + ${#numbers.formatDecimal(detalle.total, 1, 'POINT', 0, 'COMMA')}">$0</p></div>
+                                <div th:if="${o.estado == 'ENTREGADO'}" class="flex gap-1 text-gray-300 pr-2 shrink-0 border-l border-gray-200 pl-3">
                                     <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="1"></i>
                                     <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="2"></i>
                                     <i class="fas fa-star text-sm cursor-pointer hover:scale-125 hover:text-yellow-400 transition-all estrella-btn" data-nivel="3"></i>
@@ -387,59 +131,176 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Actions -->
+                        <div th:if="${o.estado == 'ENTREGADO' and o.ruta != null}" class="w-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-2xl p-4 border border-yellow-300/50 shadow-sm mb-1" th:attr="data-ruta-id=${o.ruta.id}">
+                            <p class="text-xs font-extrabold text-white uppercase tracking-widest mb-2 flex items-center gap-2 drop-shadow"><i class="fas fa-star"></i> Califica a tu repartidor</p>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-star text-2xl cursor-pointer text-white/60 hover:text-white transition estrella-delivery" data-nivel="1"></i>
+                                <i class="fas fa-star text-2xl cursor-pointer text-white/60 hover:text-white transition estrella-delivery" data-nivel="2"></i>
+                                <i class="fas fa-star text-2xl cursor-pointer text-white/60 hover:text-white transition estrella-delivery" data-nivel="3"></i>
+                                <i class="fas fa-star text-2xl cursor-pointer text-white/60 hover:text-white transition estrella-delivery" data-nivel="4"></i>
+                                <i class="fas fa-star text-2xl cursor-pointer text-white/60 hover:text-white transition estrella-delivery" data-nivel="5"></i>
+                            </div>
+                            <p class="text-[10px] text-white/70 mt-1 font-medium" id="rating-msg">Toca las estrellas para calificar</p>
+                        </div>
+
+                        <div th:if="${(o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO') and o.codigoEntrega != null}" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 mb-2 shadow-lg shadow-indigo-500/20 border border-indigo-400/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><i class="fas fa-shield-haltered text-white text-lg"></i></div>
+                                <div><p class="text-xs font-bold text-indigo-200 uppercase tracking-widest">PIN de Seguridad</p><p class="text-sm font-semibold text-white">Tu pedido esta en camino</p></div>
+                            </div>
+                            <p class="text-xs text-indigo-200 mb-3">Cuando el repartidor llegue, dictale este codigo:</p>
+                            <div class="bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20 text-center"><span class="text-3xl font-black text-white tracking-[0.5em] font-mono" th:text="${o.codigoEntrega}">000000</span></div>
+                            <p class="text-[10px] text-indigo-200/70 mt-2 text-center">No compartas este codigo hasta que el repartidor este en tu puerta</p>
+                        </div>
+
                         <div class="flex flex-wrap items-center gap-3">
-                            <!-- Volver a Comprar -->
-                            <button th:if="${o.estado == 'Entregado'}" class="btn-volver flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md">
-                                <i class="fas fa-rotate-left text-xs"></i> Volver a Comprar
-                            </button>
-
-                            <!-- Rastrear Pedido -->
-                            <button th:if="${o.estado == 'En Camino' or o.estado == 'Pendiente'}" class="btn-rastrear flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md shadow-blue-500/20">
-                                <i class="fas fa-location-arrow text-xs"></i> Rastrear
-                            </button>
-
-                            <!-- Reportar Problema -->
-                            <button class="btn-reportar flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors active:scale-95">
-                                <i class="fas fa-exclamation-triangle text-xs"></i> Reportar
-                            </button>
-
-                            <!-- Recibo -->
-                            <a th:href="@{'/orden/recibo/' + ${o.id}}" target="_blank" class="sm:ml-auto flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors active:scale-95 shadow-sm">
-                                <i class="fas fa-file-invoice text-xs"></i> <span class="hidden sm:inline">Recibo</span>
-                            </a>
+                            <button th:if="${o.estado == 'ENTREGADO'}" class="btn-volver flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md"><i class="fas fa-rotate-left text-xs"></i> Volver a Comprar</button>
+                            <button th:if="${o.estado == 'EN_CAMINO' or o.estado == 'RECOGIDO' or o.estado == 'RUTA_ASIGNADA'}" class="btn-rastrear flex-1 sm:flex-none flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md shadow-sky-500/20"><i class="fas fa-location-arrow text-xs"></i> Rastrear</button>
+                            <button class="btn-reportar flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors active:scale-95"><i class="fas fa-exclamation-triangle text-xs"></i> Reportar</button>
+                            <a th:href="@{'/orden/recibo/' + ${o.id}}" target="_blank" class="sm:ml-auto flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-sm"><i class="fas fa-file-invoice text-xs"></i> <span class="hidden sm:inline">Recibo</span></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ESTADO VACÍO (Si no hay compras) -->
-        <div th:if="${#lists.isEmpty(ordenes)}" class="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.04)] border border-gray-100 text-center">
-            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6">
-                <i class="fas fa-shopping-basket text-4xl text-green-300"></i>
-            </div>
-            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Aún no tienes pedidos</h2>
-            <p class="text-gray-500 max-w-sm mb-8 mx-auto text-sm">Cuando realices tu primera compra, aquí podrás rastrear tus entregas y gestionar tus facturas.</p>
-            
-            <a th:href="@{/tienda}" class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-green-600/20 hover:bg-green-700 transition transform hover:-translate-y-1 active:scale-95">
-                Explorar la Tienda
-                <i class="fas fa-arrow-right"></i>
-            </a>
+        <div th:if="${#lists.isEmpty(ordenes)}" class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 text-center">
+            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6"><i class="fas fa-shopping-basket text-4xl text-green-300"></i></div>
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Aun no tienes pedidos</h2>
+            <p class="text-gray-500 max-w-sm mb-8 text-sm">Cuando realices tu primera compra, aqui podras rastrear tus entregas.</p>
+            <a th:href="@{/tienda}" class="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-green-600/20 hover:bg-green-700 transition transform hover:-translate-y-1 active:scale-95">Explorar la Tienda <i class="fas fa-arrow-right"></i></a>
         </div>
-
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-900 text-white pt-12 pb-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
-                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
-            </p>
-        </div>
-    </footer>
-
-    <!-- Widget de Soporte -->
+    <div th:replace="fragments/footer :: footer"></div>
     <div th:replace="fragments/fragment_soporte :: widget"></div>
+
+    <!-- POPUP NOTIFICACION -->
+    <div id="notif-popup" class="hidden fixed top-4 right-4 z-[9999] max-w-sm w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-2xl border border-indigo-400/30 animate-slide-in">
+        <div class="p-5">
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-3"><div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><i class="fas fa-truck-fast"></i></div><div><p class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Notificacion</p><p class="text-sm font-bold" id="notif-popup-title"></p></div></div>
+                <button onclick="cerrarPopup()" class="text-white/60 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-sm text-indigo-100 mb-3" id="notif-popup-msg"></p>
+            <div class="bg-white/15 rounded-xl px-4 py-2.5 border border-white/20 text-center"><span class="text-2xl font-black tracking-[0.5em] font-mono" id="notif-popup-pin">----</span></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            var cards = document.querySelectorAll('.order-card');
+            function filtrar(f) {
+                tabBtns.forEach(function(b) { b.className = 'tab-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all whitespace-nowrap'; });
+                var a = document.querySelector('.tab-btn[data-filter="' + f + '"]');
+                if (a) a.className = 'tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-900 text-white shadow-md transition-all whitespace-nowrap';
+                var estados = f.split('|');
+                cards.forEach(function(c) {
+                    var st = (c.getAttribute('data-estado') || '').trim().toUpperCase();
+                    c.style.display = (f === 'TODOS' || estados.indexOf(st) !== -1) ? 'block' : 'none';
+                });
+            }
+            tabBtns.forEach(function(b) { b.addEventListener('click', function() { filtrar(this.getAttribute('data-filter')); }); });
+            filtrar('TODOS');
+
+            document.querySelectorAll('.accordion-header').forEach(function(h) {
+                h.addEventListener('click', function() {
+                    var d = this.parentElement.querySelector('.accordion-details');
+                    var i = this.querySelector('.accordion-icon');
+                    if (d) { d.classList.toggle('hidden'); if (i) i.classList.toggle('rotate-180'); }
+                });
+            });
+
+            document.querySelectorAll('.estrella-btn').forEach(function(s) {
+                s.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var nivel = parseInt(this.getAttribute('data-nivel'));
+                    var stars = this.parentElement.querySelectorAll('i');
+                    stars.forEach(function(st, i) { st.classList.toggle('text-yellow-400', i < nivel); st.classList.toggle('text-gray-300', i >= nivel); });
+                    var pid = (this.closest('.producto-item') || {}).getAttribute('data-id');
+                    if (pid) fetch('/api/resenas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productoId: pid, estrellas: nivel, comentario: '' }) }).then(function(r) { return r.json(); }).then(function() { if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'bottom-end', iconHtml: '<i class="fas fa-star"></i>', iconColor: '#facc15', title: '<span style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800">Gracias!</span>', showConfirmButton: false, timer: 2500 }); }).catch(function() {});
+                });
+            });
+
+            document.querySelectorAll('.btn-volver').forEach(function(b) {
+                b.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var prods = this.closest('.order-card').querySelectorAll('.producto-item');
+                    if (!prods.length) return;
+                    if (typeof Swal !== 'undefined') { Swal.fire({ html: '<div style="text-align:center"><div class="w-16 h-16 bg-green-50 rounded-2xl mx-auto flex items-center justify-center"><i class="fas fa-shopping-basket text-green-500 text-2xl"></i></div><h3 class="text-lg font-extrabold mt-3">Recuperando...</h3></div>', showConfirmButton: false, allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } }); }
+                    var ps = [];
+                    prods.forEach(function(p) { ps.push(fetch('/api/carrito/agregar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.getAttribute('data-id'), cantidad: p.getAttribute('data-qty') }) }).then(function(r) { return r.json(); })); });
+                    Promise.all(ps).then(function() { window.location.href = '/carrito'; }).catch(function() { window.location.href = '/carrito'; });
+                });
+            });
+
+            document.querySelectorAll('.btn-reportar').forEach(function(b) {
+                b.addEventListener('click', function(e) { e.stopPropagation(); var btn = document.getElementById('soporte-btn'); if (btn) btn.click(); });
+            });
+
+            document.querySelectorAll('.estrella-delivery').forEach(function(s) {
+                s.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var nivel = parseInt(this.getAttribute('data-nivel'));
+                    var container = this.closest('[data-ruta-id]');
+                    var rutaId = container ? container.getAttribute('data-ruta-id') : null;
+                    if (!rutaId) return;
+                    var stars = container.querySelectorAll('.estrella-delivery');
+                    stars.forEach(function(st, i) { st.classList.toggle('text-yellow-300', i < nivel); st.classList.toggle('text-white/60', i >= nivel); });
+                    fetch('/api/rutas/' + rutaId + '/calificar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estrellas: nivel }) }).then(function(r) { return r.json(); }).then(function(d) { var m = document.getElementById('rating-msg'); if (m) m.textContent = d.message || 'Gracias!'; }).catch(function() {});
+                });
+            });
+
+            var notifVistas = JSON.parse(localStorage.getItem('nv') || '[]');
+            var allNotifs = [];
+            function loadNotifs() {
+                fetch('/api/notificaciones/mis').then(function(r) { return r.json(); }).then(function(d) {
+                    if (!d.success) return;
+                    var badge = document.getElementById('notif-badge');
+                    var c = d.noLeidas || 0; if (badge) { badge.textContent = c; badge.classList.toggle('hidden', c === 0); }
+                    allNotifs = (d.notificaciones || []).filter(function(n) { return !n.leida; });
+                    var list = document.getElementById('notif-list');
+                    if (!list) return;
+                    if (!allNotifs.length) { list.innerHTML = '<div class="text-center text-xs text-gray-400 py-6">No hay notificaciones</div>'; return; }
+                    var h = '';
+                    allNotifs.forEach(function(n) {
+                        var icon = n.tipo === 'PIN_ENTREGA' ? 'fa-truck-fast text-blue-500' : 'fa-bell text-gray-400';
+                        var bg = n.leida ? 'bg-white' : 'bg-blue-50';
+                        var fecha = ''; try { var dd = new Date(n.fechaCreacion); fecha = dd.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch(e) {}
+                        h += '<div class="' + bg + ' rounded-xl p-3 cursor-pointer hover:bg-gray-50"><div class="flex items-start gap-2"><i class="fas ' + icon + ' mt-0.5"></i><div class="flex-1"><p class="text-xs font-bold text-gray-800 truncate">' + (n.titulo||'').replace(/</g,'&lt;') + '</p><p class="text-[11px] text-gray-500">' + (n.mensaje||'').replace(/</g,'&lt;') + '</p><p class="text-[10px] text-gray-400">' + fecha + '</p></div></div></div>';
+                    });
+                    list.innerHTML = h;
+                    for (var i = 0; i < allNotifs.length; i++) {
+                        var n = allNotifs[i];
+                        if (n.tipo === 'PIN_ENTREGA' && !n.leida && notifVistas.indexOf(n.id) === -1) {
+                            document.getElementById('notif-popup-title').textContent = n.titulo || '';
+                            document.getElementById('notif-popup-msg').textContent = n.mensaje || '';
+                            var m = (n.mensaje||'').match(/codigo:\s*(\d{4,6})/);
+                            document.getElementById('notif-popup-pin').textContent = m ? m[1] : '----';
+                            document.getElementById('notif-popup').classList.remove('hidden');
+                            setTimeout(function() { document.getElementById('notif-popup').classList.add('hidden'); }, 15000);
+                            notifVistas.push(n.id); localStorage.setItem('nv', JSON.stringify(notifVistas)); break;
+                        }
+                    }
+                }).catch(function() {});
+            }
+            window.togglePanel = function() { var p = document.getElementById('notif-panel'); if (p) { p.classList.toggle('hidden'); if (!p.classList.contains('hidden')) loadNotifs(); } };
+            window.marcarTodasLeidas = function() {
+                fetch('/api/notificaciones/marcar-leidas', { method: 'POST' }).then(function(r) { return r.json(); }).then(function(d) {
+                    if (d.success) {
+                        document.getElementById('notif-badge').classList.add('hidden');
+                        allNotifs = [];
+                        var list = document.getElementById('notif-list');
+                        if (list) list.innerHTML = '<div class="text-center text-xs text-gray-400 py-6">No hay notificaciones</div>';
+                        document.getElementById('notif-badge').textContent = '0';
+                    }
+                }).catch(function(e) { console.error('Error marcando leidas', e); });
+            };
+            window.cerrarPopup = function() { var p = document.getElementById('notif-popup'); if (p) p.classList.add('hidden'); };
+            document.addEventListener('click', function(e) { var c = document.getElementById('notif-container'); var p = document.getElementById('notif-panel'); if (c && p && !c.contains(e.target)) p.classList.add('hidden'); });
+            loadNotifs(); setInterval(loadNotifs, 10000);
+        });
+    </script>
 </body>
 </html>

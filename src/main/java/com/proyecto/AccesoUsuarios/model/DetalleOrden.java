@@ -31,6 +31,9 @@ public class DetalleOrden {
     @Column(length = 20)
     private String estado = "NUEVO";
 
+    // Denormalizado: sobrevive borrado de producto para que el historial del campesino funcione
+    private Long campesinoId;
+
     @ManyToOne
     @JoinColumn(name = "orden_id")
     private Orden orden;
@@ -38,4 +41,7 @@ public class DetalleOrden {
     @ManyToOne
     @JoinColumn(name = "producto_id")
     private Producto producto;
+
+    @Transient
+    private String repartidorInfoJson;
 }

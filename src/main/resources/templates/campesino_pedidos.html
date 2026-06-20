@@ -10,6 +10,10 @@
     <!-- Driver.js para Onboarding -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    
+    <!-- Leaflet para el Modal -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .tab-btn.active { color: #16a34a; border-bottom: 2px solid #16a34a; background-color: #f0fdf4; }
@@ -88,24 +92,22 @@
                 <!-- TABS -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-6 flex overflow-x-auto gap-2" id="tabs-bar">
                     <button data-tab="NUEVO" class="tab-btn active flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-inbox"></i> Nuevos
-                        <span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${nuevosCount}">0</span>
+                        <i class="fas fa-inbox"></i> Nuevos <span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${nuevosCount}">0</span>
                     </button>
                     <button data-tab="PREPARADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-box"></i> Preparados
-                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${preparadosCount}">0</span>
+                        <i class="fas fa-box"></i> Preparación <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${preparadosCount}">0</span>
+                    </button>
+                    <button data-tab="LISTO_PARA_RECOGER" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-clock"></i> Listos recoger <span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${listosCount}">0</span>
                     </button>
                     <button data-tab="ENVIADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-truck"></i> Enviados
-                        <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${enviadosCount}">0</span>
+                        <i class="fas fa-truck-fast"></i> En camino <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${enCaminoCount}">0</span>
                     </button>
                     <button data-tab="ENTREGADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-check-circle"></i> Entregados
-                        <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${entregadosCount}">0</span>
+                        <i class="fas fa-check-circle"></i> Entregados <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${entregadosCount}">0</span>
                     </button>
                     <button data-tab="CANCELADO" class="tab-btn flex-1 py-3 px-4 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-times-circle"></i> Cancelados
-                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${canceladosCount}">0</span>
+                        <i class="fas fa-times-circle"></i> Cancelados <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[10px]" th:text="${canceladosCount}">0</span>
                     </button>
                 </div>
 
@@ -128,31 +130,31 @@
                                 th:data-estado="${v.estado != null ? v.estado : 'NUEVO'}">
                                 <td class="p-4 pl-6">
                                     <p class="font-mono text-gray-800 font-bold text-xs mb-1" th:text="'#' + ${v.orden != null ? v.orden.id : 'N/A'}">#123</p>
-                                    <p class="text-[10px] text-gray-400"><i class="far fa-calendar-alt"></i> <span th:text="${v.orden != null ? #temporals.format(v.orden.fechaCreacion, 'dd/MM/yyyy') : '-'}">12/05</span></p>
+                                    <p class="text-[10px] text-gray-400"><i class="far fa-calendar-alt"></i> <span th:text="${v.orden != null and v.orden.fechaCreacion != null ? #temporals.format(v.orden.fechaCreacion, 'dd/MM/yyyy') : '-'}">12/05</span></p>
                                 </td>
                                 <td class="p-4 font-bold text-gray-800" th:text="${v.nombre}">Producto</td>
                                 <td class="p-4 text-center">
                                     <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-bold" th:text="${v.cantidad}">0</span>
                                 </td>
                                 <td class="p-4 text-right">
-                                    <p class="font-extrabold text-green-600" th:text="'$' + ${#numbers.formatDecimal(v.total, 0, 'COMMA', 0, 'POINT')}">$0</p>
+                                    <p class="font-extrabold text-green-600" th:text="${v.total != null ? '$' + #numbers.formatDecimal(v.total, 0, 'COMMA', 0, 'POINT') : '$0'}">$0</p>
                                 </td>
                                 <td class="p-4">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-[10px] font-bold" th:text="${v.orden != null and v.orden.usuario != null ? #strings.substring(v.orden.usuario.nombreCompleto,0,1).toUpperCase() : '?'}">?</div>
-                                        <p class="text-xs font-bold text-gray-700 truncate" th:text="${v.orden != null and v.orden.usuario != null ? v.orden.usuario.nombreCompleto : 'Anónimo'}">Cliente</p>
+                                        <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-[10px] font-bold" th:text="${v.orden != null and v.orden.usuario != null and v.orden.usuario.nombreCompleto != null and v.orden.usuario.nombreCompleto.length() > 0 ? #strings.substring(v.orden.usuario.nombreCompleto,0,1).toUpperCase() : '?'}">?</div>
+                                        <p class="text-xs font-bold text-gray-700 truncate" th:text="${v.orden != null and v.orden.usuario != null and v.orden.usuario.nombreCompleto != null ? v.orden.usuario.nombreCompleto : 'Anónimo'}">Cliente</p>
                                     </div>
                                 </td>
                                 <td class="p-4 pr-6 text-right">
                                     <form th:action="@{'/campesino/productos/pedidos/' + ${v.id} + '/estado'}" method="post" class="flex gap-2 justify-end m-0 items-center">
                                         <button th:if="${v.estado == null or v.estado == 'NUEVO'}" type="submit" name="estado" value="PREPARADO" class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold shadow-md shadow-green-500/20 transition flex items-center gap-1">
-                                            <i class="fas fa-box"></i> Preparar
+                                            <i class="fas fa-check"></i> Aceptar
                                         </button>
                                         <button th:if="${v.estado == null or v.estado == 'NUEVO'}" type="submit" name="estado" value="CANCELADO" class="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-500 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1" onclick="return confirm('¿Cancelar este pedido?');">
                                             <i class="fas fa-ban"></i> Cancelar
                                         </button>
-                                        <button th:if="${v.estado == 'PREPARADO'}" type="submit" name="estado" value="ENVIADO" class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center gap-1">
-                                            <i class="fas fa-truck-fast"></i> Enviar
+                                        <button th:if="${v.estado == 'PREPARADO'}" type="submit" name="estado" value="LISTO_PARA_RECOGER" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-md shadow-amber-500/20 transition flex items-center gap-1">
+                                            <i class="fas fa-box-check"></i> Listo recoger
                                         </button>
                                         <button th:if="${v.estado == 'PREPARADO'}" type="submit" name="estado" value="CANCELADO" class="px-3 py-1.5 bg-white border border-red-200 hover:bg-red-50 text-red-500 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1" onclick="return confirm('¿Cancelar este pedido?');">
                                             <i class="fas fa-ban"></i> Cancelar
@@ -160,21 +162,32 @@
                                         <a th:if="${v.estado == 'ENVIADO'}" th:href="@{'/campesino/productos/logistica/' + ${v.id}}" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1 border border-indigo-100">
                                             <i class="fas fa-map-marked-alt"></i> Ver Ruta
                                         </a>
-                                        <button th:if="${v.estado == 'ENVIADO'}" type="submit" name="estado" value="ENTREGADO" class="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-xs font-bold shadow-md shadow-teal-500/20 transition flex items-center gap-1">
-                                            <i class="fas fa-check-double"></i> Entregado
-                                        </button>
                                         <span th:if="${v.estado == 'ENTREGADO'}" class="text-[10px] text-teal-600 font-extrabold uppercase px-3 py-1 bg-teal-50 rounded-lg border border-teal-100 flex items-center gap-1">
                                             <i class="fas fa-award"></i> Entregado
                                         </span>
                                         <span th:if="${v.estado == 'CANCELADO'}" class="text-[10px] text-red-600 font-extrabold uppercase px-3 py-1 bg-red-50 rounded-lg border border-red-100 flex items-center gap-1">
                                             <i class="fas fa-times-circle"></i> Cancelado
                                         </span>
+                                        <!-- LISTO_PARA_RECOGER -->
+                                        <div th:if="${v.estado == 'LISTO_PARA_RECOGER'}" class="flex items-center justify-end gap-2">
+                                            <button th:if="${v.repartidorInfoJson != null and !#strings.isEmpty(v.repartidorInfoJson)}"
+                                               type="button"
+                                               th:attr="data-order-id=${v.id},data-repartidor=${v.repartidorInfoJson}"
+                                               onclick="openDriverModal(this)"
+                                               class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition shadow-sm border border-blue-100" title="Ver Info del Repartidor">
+                                                <i class="fas fa-motorcycle"></i>
+                                            </button>
+                                            <button th:if="${v.repartidorInfoJson == null or #strings.isEmpty(v.repartidorInfoJson)}" type="button" class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg text-[10px] font-bold border border-gray-100 cursor-not-allowed">
+                                                <i class="fas fa-hourglass-half mr-1"></i> Esperando Repartidor
+                                            </button>
+                                        </div>
                                     </form>
                                 </td>
                             </tr>
                             <tr class="empty-msg" data-empty="NUEVO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-inbox"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos nuevos.</p></td></tr>
                             <tr class="empty-msg" data-empty="PREPARADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-box-open"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos preparados.</p></td></tr>
-                            <tr class="empty-msg" data-empty="ENVIADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-truck"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos en tránsito.</p></td></tr>
+                            <tr class="empty-msg" data-empty="LISTO_PARA_RECOGER"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-amber-300 text-2xl mx-auto mb-3"><i class="fas fa-box-check"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos listos para recoger.</p></td></tr>
+                            <tr class="empty-msg" data-empty="ENVIADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-300 text-2xl mx-auto mb-3"><i class="fas fa-truck-fast"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos en camino.</p></td></tr>
                             <tr class="empty-msg" data-empty="ENTREGADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-check-circle"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos entregados.</p></td></tr>
                             <tr class="empty-msg" data-empty="CANCELADO"><td colspan="6" class="p-12 text-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-3"><i class="fas fa-times-circle"></i></div><p class="text-sm font-bold text-gray-500">No tienes pedidos cancelados.</p></td></tr>
                         </tbody>
@@ -183,9 +196,108 @@
 
             </div>
         </div>
+
+        <!-- Modal Repartidor -->
+        <div id="driver-modal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeDriverModal()"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl max-h-[90vh] flex flex-col bg-slate-50 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 bg-white sticky top-0 z-10 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-motorcycle text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-gray-800">Detalles del Repartidor</h2>
+                            <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Ruta: <span id="m-ruta" class="font-mono">RUTA-000</span></p>
+                        </div>
+                    </div>
+                    <button onclick="closeDriverModal()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Content -->
+                <div class="flex-1 overflow-y-auto p-6 flex flex-col md:flex-row gap-6 relative">
+                    <!-- Left Column -->
+                    <div class="w-full md:w-1/3 flex flex-col gap-4">
+                        <!-- PIN Box -->
+                        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200 text-center relative overflow-hidden shadow-sm">
+                            <div class="absolute -right-4 -top-4 text-amber-200/50 text-6xl"><i class="fas fa-lock"></i></div>
+                            <p class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1 relative z-10">CÓDIGO DE RECOGIDA (PIN)</p>
+                            <div class="bg-amber-100/50 inline-block px-4 py-2 rounded-xl border border-amber-200/50 mb-3 relative z-10 shadow-inner">
+                                <p class="text-3xl font-black text-amber-700 tracking-widest font-mono m-0 leading-none" id="m-pin">000000</p>
+                            </div>
+                            <p class="text-[10px] text-amber-700/80 font-medium leading-tight relative z-10 text-left bg-white/50 p-2 rounded-lg border border-amber-100">
+                                <i class="fas fa-shield-alt text-amber-500 mr-1"></i> Comparte este código únicamente cuando el repartidor haya llegado a la finca y hayas entregado los productos.
+                            </p>
+                        </div>
+                        
+                        <!-- Driver Profile -->
+                        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
+                            <div class="relative w-20 h-20 mx-auto mb-3">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-400 p-1">
+                                    <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-3xl text-indigo-600 font-black overflow-hidden" id="m-initial">R</div>
+                                </div>
+                                <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                            </div>
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">Repartidor</p>
+                            <h3 class="text-lg font-black text-gray-800" id="m-nombre">Nombre</h3>
+                            <p class="text-xs font-bold text-indigo-600 mb-4 bg-indigo-50 inline-block px-3 py-1 rounded-full">
+                                <i class="fas fa-star text-amber-400 mr-1"></i>
+                                <span class="text-gray-500 mr-1">Calificación:</span><span id="m-rating">5.0</span>/5.0
+                            </p>
+                            
+                            <div class="bg-slate-50 rounded-xl p-3 text-left space-y-3 mb-4 border border-gray-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px]"><i class="fas fa-motorcycle"></i></div>
+                                    <p class="text-[11px] font-bold text-gray-500 w-20">Vehículo:</p>
+                                    <p class="text-xs font-bold text-gray-700 flex-1" id="m-vehiculo">Motocicleta</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px]"><i class="fas fa-id-card"></i></div>
+                                    <p class="text-[11px] font-bold text-gray-500 w-20">Placa:</p>
+                                    <p class="text-xs font-bold text-gray-700 font-mono flex-1" id="m-placa">AAA-123</p>
+                                </div>
+                            </div>
+                            
+                            <a href="#" id="m-phone" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-md shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+                                <i class="fas fa-phone-alt"></i> Llamar / Chat
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column (Map) -->
+                    <div class="w-full md:w-2/3 flex flex-col gap-4">
+                        <div class="bg-gray-900 rounded-2xl p-4 text-white flex justify-between items-center shadow-lg relative overflow-hidden">
+                            <div class="absolute right-0 top-0 w-32 h-32 bg-blue-500/20 rounded-full blur-xl -mr-10 -mt-10"></div>
+                            <div class="relative z-10">
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1"><i class="fas fa-clock text-blue-400"></i> Estado del trayecto</p>
+                                <p class="text-lg font-black text-cyan-300">En camino a la finca</p>
+                            </div>
+                            <div class="text-right relative z-10 flex gap-4">
+                                <div>
+                                    <p class="text-2xl font-black text-white" id="m-eta">--</p>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Minutos</p>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-blue-400" id="m-dist">--</p>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Distancia (km)</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex-1 flex flex-col relative min-h-[300px]">
+                            <div id="modal-map" class="flex-1 bg-gray-100 rounded-xl z-0"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <script>
+    <script th:inline="none">
     document.addEventListener('DOMContentLoaded', function() {
         var allBtns = document.querySelectorAll('.tab-btn');
         var allRows = document.querySelectorAll('.order-row');
@@ -230,6 +342,141 @@
         try { saved = localStorage.getItem('activePedidoTab') || 'NUEVO'; } catch(e) {}
         var initBtn = document.querySelector('.tab-btn[data-tab="' + saved + '"]') || allBtns[0];
         filterByEstado(saved, initBtn);
+        
+        // --- MODAL REPARTIDOR LOGIC ---
+        var modalMap = null;
+        var mapMarkers = [];
+        var activePollingId = null;
+        var activePollingInterval = null;
+
+        window.openDriverModal = function(buttonEl) {
+            if (!buttonEl) return;
+            var orderId = buttonEl.getAttribute('data-order-id');
+            var raw = buttonEl.getAttribute('data-repartidor');
+            if (!raw) return;
+
+            var parsed = null;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                console.warn('JSON.parse directo falló, intentando decode HTML entities...', e);
+                try {
+                    var txt = document.createElement('textarea');
+                    txt.innerHTML = raw;
+                    parsed = JSON.parse(txt.value);
+                } catch (e2) {
+                    console.error('No se pudo parsear data-repartidor', e2, raw);
+                    return;
+                }
+            }
+
+            var pin = parsed.codigoRecogida || '';
+            var ruta = parsed.codigoRuta || '';
+            var nombre = parsed.repNombre || '';
+            var vehiculo = parsed.repVehiculo || '';
+            var placa = parsed.repPlaca || '';
+            var rating = parsed.repRating != null ? parsed.repRating : '';
+            var telefono = parsed.repTelefono || '';
+            var repLat = parseFloat(parsed.repLat);
+            var repLng = parseFloat(parsed.repLng);
+            var fincaLat = parseFloat(parsed.fincaLat);
+            var fincaLng = parseFloat(parsed.fincaLng);
+
+            document.getElementById('m-pin').innerText = pin || '----';
+            document.getElementById('m-ruta').innerText = ruta || 'N/A';
+            document.getElementById('m-nombre').innerText = nombre || 'Repartidor';
+            document.getElementById('m-initial').innerText = nombre ? nombre.charAt(0).toUpperCase() : 'R';
+            document.getElementById('m-vehiculo').innerText = vehiculo || 'No registrado';
+            document.getElementById('m-placa').innerText = placa || 'No registrada';
+            document.getElementById('m-rating').innerText = rating || '0.0';
+            document.getElementById('m-phone').href = 'tel:' + telefono;
+
+            // Calcular distancia y ETA
+            if (!isNaN(repLat) && !isNaN(repLng) && !isNaN(fincaLat) && !isNaN(fincaLng) && repLat !== 0) {
+                var d = getDistanceFromLatLonInKm(repLat, repLng, fincaLat, fincaLng);
+                document.getElementById('m-dist').innerText = d.toFixed(1);
+                document.getElementById('m-eta').innerText = Math.round((d / 40.0) * 60.0);
+            } else {
+                document.getElementById('m-dist').innerText = '--';
+                document.getElementById('m-eta').innerText = '--';
+                // Fallbacks si es nulo (Barbosa)
+                repLat = 5.9317; repLng = -73.6147;
+                fincaLat = 5.9317; fincaLng = -73.6147;
+            }
+
+            document.getElementById('driver-modal').classList.remove('hidden');
+
+            // Render Map
+            setTimeout(function() {
+                if (!modalMap) {
+                    modalMap = L.map('modal-map', { zoomControl: false }).setView([fincaLat, fincaLng], 13);
+                    L.control.zoom({ position: 'bottomright' }).addTo(modalMap);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 20
+                    }).addTo(modalMap);
+                } else {
+                    mapMarkers.forEach(m => modalMap.removeLayer(m));
+                    mapMarkers = [];
+                }
+
+                var dIcon = L.divIcon({ html: '<div style="background:#4f46e5;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 4px 6px rgba(0,0,0,0.2);"><i class="fas fa-motorcycle text-[12px]"></i></div>', className: '', iconSize: [30,30], iconAnchor: [15,15] });
+                var fIcon = L.divIcon({ html: '<div style="background:#10b981;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 4px 6px rgba(0,0,0,0.2);"><i class="fas fa-home text-[12px]"></i></div>', className: '', iconSize: [30,30], iconAnchor: [15,15] });
+
+                var rM = L.marker([repLat, repLng], {icon: dIcon}).addTo(modalMap).bindPopup("<b>Repartidor</b>");
+                var fM = L.marker([fincaLat, fincaLng], {icon: fIcon}).addTo(modalMap).bindPopup("<b>Tu Finca</b>");
+                var pl = L.polyline([[repLat, repLng], [fincaLat, fincaLng]], {color: '#4f46e5', weight: 4, dashArray: '5,5'}).addTo(modalMap);
+                
+                mapMarkers.push(rM, fM, pl);
+                
+                if (repLat !== fincaLat) {
+                    var group = new L.featureGroup([rM, fM]);
+                    modalMap.fitBounds(group.getBounds().pad(0.2));
+                } else {
+                    modalMap.setView([fincaLat, fincaLng], 13);
+                }
+                modalMap.invalidateSize();
+            }, 200);
+
+            // Iniciar Polling del Estado en tiempo real
+            activePollingId = orderId;
+            if (activePollingInterval) clearInterval(activePollingInterval);
+            activePollingInterval = setInterval(() => checkOrderStatus(orderId), 3000);
+        };
+
+        window.closeDriverModal = function() {
+            document.getElementById('driver-modal').classList.add('hidden');
+            if (activePollingInterval) clearInterval(activePollingInterval);
+            activePollingId = null;
+        };
+
+        function checkOrderStatus(id) {
+            fetch('/campesino/productos/pedidos/estado-ajax/' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.estado && data.estado !== 'LISTO_PARA_RECOGER') {
+                    // El estado cambió (Repartidor ingresó PIN)
+                    closeDriverModal();
+                    
+                    // Mostrar alerta de éxito
+                    var alertDiv = document.createElement('div');
+                    alertDiv.innerHTML = '<div class="fixed top-8 right-8 z-[9999] bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-bounce border-2 border-white"><i class="fas fa-check-circle text-3xl"></i><div><p class="font-black text-lg">¡Recogida Exitosa!</p><p class="text-xs font-bold text-green-100">El pedido está en camino.</p></div></div>';
+                    document.body.appendChild(alertDiv);
+                    
+                    // Recargar página sutilmente para actualizar conteos y mover filas
+                    setTimeout(() => {
+                        localStorage.setItem('activePedidoTab', 'ENVIADO'); // Mover a pestaña Enviado
+                        window.location.reload();
+                    }, 2500);
+                }
+            }).catch(e => console.log(e));
+        }
+
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            var R = 6371; var dLat = (lat2-lat1) * (Math.PI/180); var dLon = (lon2-lon1) * (Math.PI/180); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            return R * c;
+        }
         
         // --- TUTORIAL ONBOARDING ---
         const driver = window.driver.js.driver;

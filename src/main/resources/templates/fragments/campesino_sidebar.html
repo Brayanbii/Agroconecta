@@ -56,6 +56,16 @@
             Analíticas y Reportes
         </a>
         
+        <!-- INSERTAR: Mi Finca -->
+        <a th:href="@{/campesino/productos/mi-finca}" 
+           th:classappend="${activeTab == 'mifinca'} ? 'bg-rose-50 text-rose-700 shadow-sm ring-1 ring-rose-100' : 'text-gray-600 hover:bg-gray-50 hover:text-rose-600'" 
+           class="flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
+            <div th:classappend="${activeTab == 'mifinca'} ? 'bg-rose-200/50 text-rose-600' : 'bg-gray-100 group-hover:bg-rose-100 text-gray-500 group-hover:text-rose-600'" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300">
+                <i class="fas fa-tree"></i> 
+            </div>
+            Mi Finca
+        </a>
+
         <a th:href="@{/campesino/productos/reputacion}" 
            th:classappend="${activeTab == 'reputacion'} ? 'bg-yellow-50 text-yellow-700 shadow-sm ring-1 ring-yellow-100' : 'text-gray-600 hover:bg-gray-50 hover:text-green-600'" 
            class="flex items-center gap-4 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group">
@@ -91,7 +101,7 @@
         </a>
     </nav>
     
-    <div class="p-6 border-t border-gray-50">
+    <div class="p-6 border-t border-gray-50 flex flex-col gap-4">
         <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm shrink-0">
@@ -105,6 +115,23 @@
             <form th:action="@{/logout}" method="post" class="m-0 shrink-0">
                 <button type="submit" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition flex items-center justify-center shadow-sm"><i class="fas fa-sign-out-alt"></i></button>
             </form>
+        </div>
+        
+        <!-- Version Badge -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-3 border border-slate-700 shadow-lg relative overflow-hidden group cursor-default">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+            <div class="absolute -right-4 -top-4 w-12 h-12 bg-green-500/20 blur-xl rounded-full group-hover:bg-green-500/30 transition duration-500"></div>
+            <div class="relative z-10 flex flex-col items-center justify-center text-center">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fas fa-shield-check text-green-400 text-xs"></i>
+                    <span class="text-[10px] font-black text-white uppercase tracking-widest">Panel Campesino</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Versión 1.0</span>
+                    <div class="w-1 h-1 rounded-full bg-slate-600"></div>
+                    <span class="text-[9px] font-bold text-green-400 uppercase tracking-widest">AgroConecta</span>
+                </div>
+            </div>
         </div>
     </div>
 </aside>

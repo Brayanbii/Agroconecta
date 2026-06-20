@@ -191,13 +191,13 @@
                         <div class="flex justify-between">
                             <span class="text-slate-500 font-medium">Costo de envío</span>
                             <div class="text-right">
-                                <span class="font-bold text-blue-600"><i class="fas fa-bolt text-amber-400 mr-1"></i> Envío Flash</span>
-                                <br><span class="font-bold text-slate-800" th:text="'$' + ${#numbers.formatDecimal(costoEnvio, 0, 'COMMA', 0, 'POINT')}">$3,500</span>
+                                <span class="font-bold text-blue-600" id="envio-label"><i class="fas fa-bolt text-amber-400 mr-1"></i> Envío Flash</span>
+                                <br><span class="font-bold text-slate-800" id="envio-display" th:text="'$' + ${#numbers.formatDecimal(costoEnvio, 0, 'COMMA', 0, 'POINT')}">$3,500</span>
                             </div>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-500 font-medium flex items-center gap-1">Tarifa de Servicio <i class="fas fa-info-circle text-[10px] text-slate-300"></i></span>
-                            <span class="font-bold text-slate-800" th:text="'$' + ${#numbers.formatDecimal(tarifaServicio, 0, 'COMMA', 0, 'POINT')}">$2,200</span>
+                            <span class="font-bold text-slate-800" id="tarifa-display" th:text="'$' + ${#numbers.formatDecimal(tarifaServicio, 0, 'COMMA', 0, 'POINT')}">$2,200</span>
                         </div>
                         
                         <!-- Interfaz de Propina -->
@@ -206,6 +206,25 @@
                             <span class="font-bold text-slate-800" id="propina-display">$0</span>
                             <!-- Input hidden JS -->
                             <input type="hidden" id="propinaInput" name="propina" value="0">
+                            <input type="hidden" id="tipoEnvioInput" name="tipoEnvio" value="ECONOMICO">
+                        </div>
+
+                        <!-- Selector de tipo de entrega mejorado -->
+                        <div class="border-t border-slate-100 pt-3 mt-2">
+                            <span class="text-slate-500 font-medium text-sm block mb-2">Tipo de entrega</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="seleccionarEnvio('ECONOMICO')" id="btn-economico" class="flex flex-col items-center p-3 rounded-xl border-2 border-green-300 bg-green-50 text-green-700 font-bold text-sm transition hover:scale-[1.02]">
+                                    <i class="fas fa-truck text-lg mb-1"></i>
+                                    <span>🚛 Económico</span>
+                                    <span class="text-[9px] font-medium opacity-70">2-3 días · $3.500 base</span>
+                                </button>
+                                <button type="button" onclick="seleccionarEnvio('RAPIDO')" id="btn-rapido" class="flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-500 font-bold text-sm transition hover:scale-[1.02]">
+                                    <i class="fas fa-bolt text-lg mb-1"></i>
+                                    <span>⚡ Rápido</span>
+                                    <span class="text-[9px] font-medium opacity-70">24 horas · $8.000 base</span>
+                                </button>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-1.5 text-center">El costo final se ajusta según distancia y peso</p>
                         </div>
                         <!-- Botones Props -->
                         <div class="grid grid-cols-4 gap-2 mt-2">
@@ -468,9 +487,9 @@
 
     <!-- Variables JS Injectadas -->
     <script th:inline="javascript">
-        const baseSubtotal = /*[[${total != null ? total : 0}]]*/ 0;
-        const costoEnvio = /*[[${costoEnvio != null ? costoEnvio : 3500}]]*/ 3500;
-        const tarifaServicio = /*[[${tarifaServicio != null ? tarifaServicio : 0}]]*/ 0;
+        let baseSubtotal = /*[[${total != null ? total : 0}]]*/ 0;
+        let costoEnvio = /*[[${costoEnvio != null ? costoEnvio : 3500}]]*/ 3500;
+        let tarifaServicio = /*[[${tarifaServicio != null ? tarifaServicio : 0}]]*/ 0;
         
         // Logica para propinas e inputs totales
         let propinaActual = 2000;
@@ -504,18 +523,28 @@
         });
         
         function updateUITotals() {
-            // display elements
             const propinaDisplay = document.getElementById('propina-display');
             const totalFinalDisplay = document.getElementById('total-final');
-            const propinaInput = document.getElementById('propinaInput');
+            const envioDisplay = document.getElementById('envio-display');
+            const envioLabel = document.getElementById('envio-label');
+            const tarifaDisplay = document.getElementById('tarifa-display');
             
             if(!propinaDisplay || !totalFinalDisplay) return;
 
-            // set basic display formatting
             propinaDisplay.innerText = '$' + propinaActual.toLocaleString('es-CO');
-            propinaInput.value = propinaActual;
+            if (envioDisplay) envioDisplay.innerText = '$' + costoEnvio.toLocaleString('es-CO');
+            if (tarifaDisplay) tarifaDisplay.innerText = '$' + tarifaServicio.toLocaleString('es-CO');
             
-            // Calc total
+            // Update envio label based on type
+            if (envioLabel) {
+                const tipo = document.getElementById('tipoEnvioInput')?.value;
+                if (tipo === 'RAPIDO') {
+                    envioLabel.innerHTML = '<i class="fas fa-bolt text-amber-400 mr-1"></i> Envío Rápido (24h)';
+                } else {
+                    envioLabel.innerHTML = '<i class="fas fa-truck text-green-500 mr-1"></i> Envío Económico (2-3d)';
+                }
+            }
+            
             const granTotal = baseSubtotal + costoEnvio + tarifaServicio + propinaActual;
             totalFinalDisplay.innerText = '$' + granTotal.toLocaleString('es-CO');
         }
@@ -551,8 +580,26 @@
 
         // initial mount
         document.addEventListener('DOMContentLoaded', () => {
-            setPropina(2000); // Default tip
+            setPropina(2000);
+            seleccionarEnvio('ECONOMICO');
         });
+
+        function seleccionarEnvio(tipo) {
+            document.getElementById('tipoEnvioInput').value = tipo;
+            const btnEco = document.getElementById('btn-economico');
+            const btnRap = document.getElementById('btn-rapido');
+            
+            if (tipo === 'ECONOMICO') {
+                costoEnvio = 3500.0;
+                btnEco.className = 'flex flex-col items-center p-3 rounded-xl border-2 border-green-300 bg-green-50 text-green-700 font-bold text-sm transition hover:scale-[1.02]';
+                btnRap.className = 'flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-500 font-bold text-sm transition hover:scale-[1.02]';
+            } else {
+                costoEnvio = 8000.0;
+                btnRap.className = 'flex flex-col items-center p-3 rounded-xl border-2 border-blue-400 bg-blue-50 text-blue-700 font-bold text-sm transition hover:scale-[1.02]';
+                btnEco.className = 'flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-500 font-bold text-sm transition hover:scale-[1.02]';
+            }
+            updateUITotals();
+        }
     </script>
 </body>
 </html>

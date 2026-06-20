@@ -252,7 +252,7 @@
                 </div>
 
                 <!-- Buscador Central (Desktop) - FUNCIONAL -->
-                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 mx-4 lg:mx-8 relative" id="search-form" onsubmit="return false;">
+                <form th:action="@{/tienda}" method="get" class="hidden md:flex flex-1 mx-4 lg:mx-8 relative" id="search-form" onsubmit="event.preventDefault(); applyFiltersAndSort(); document.getElementById('search-suggestions').classList.add('hidden'); document.getElementById('products-grid')?.scrollIntoView({behavior:'smooth',block:'start'}); return false;">
                     <div class="relative w-full">
                         <input type="text" name="buscar" id="search-input" th:value="${busqueda}" autocomplete="off"
                                placeholder="¿Qué se te antoja hoy? (Ej: Papa, Yuca...)" 
@@ -467,15 +467,6 @@
                             </div>
                             
                             <div class="flex gap-2">
-                                <!-- Botón Vista Rápida -->
-                                <button type="button" 
-                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
-                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
-                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
-                                        onclick="event.stopPropagation(); abrirModal(this)"
-                                        class="bg-white border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
-                                    <i class="fas fa-eye text-sm"></i>
-                                </button>
                                 <!-- Botón Añadir -->
                                 <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
                                     <i class="fas fa-plus transition-all text-sm"></i>
@@ -574,15 +565,6 @@
                             </div>
                             
                             <div class="flex gap-2">
-                                <!-- Botón Vista Rápida -->
-                                <button type="button" 
-                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
-                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.nombreCompleto : 'Productor'}"
-                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
-                                        onclick="event.stopPropagation(); abrirModal(this)"
-                                        class="bg-white border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
-                                    <i class="fas fa-eye text-sm"></i>
-                                </button>
                                 <!-- Botón Añadir -->
                                 <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
                                     <i class="fas fa-plus transition-all text-sm"></i>
@@ -684,21 +666,12 @@
                                 </div>
                             </div>
                             
-                            <div class="flex gap-2">
-                                <!-- Botón Vista Rápida -->
-                                <button type="button" 
-                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
-                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
-                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
-                                        onclick="event.stopPropagation(); abrirModal(this)"
-                                        class="bg-white border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
-                                    <i class="fas fa-eye text-sm"></i>
-                                </button>
-                                <!-- Botón Añadir -->
-                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
-                                    <i class="fas fa-cart-plus text-sm"></i>
-                                </button>
-                            </div>
+                         <div class="flex gap-2">
+                            <!-- Botón Añadir -->
+                            <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-red-50 text-red-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
+                                <i class="fas fa-cart-plus text-sm"></i>
+                            </button>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -794,16 +767,7 @@
                             
                             <div class="flex gap-2">
                                 <!-- Botón Vista Rápida -->
-                                <button type="button" 
-                                        th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-desc="${p.descripcion}" th:data-img="${p.imagenUrl.startsWith('http') ? p.imagenUrl : '/images/' + p.imagenUrl}"
-                                        th:data-precio="${p.precio}" th:data-unidad="${p.unidad}" th:data-cat="${p.categoria}" th:data-campesino="${p.usuario != null ? p.usuario.userName : 'Productor'}"
-                                        th:data-stock="${p.stock}" th:data-calificacion="${p.promedioCalificacion}" th:data-unidadplural="${p.unidad.endsWith('a') or p.unidad.endsWith('o') or p.unidad.endsWith('e') ? p.unidad + 's' : p.unidad + 'es'}"
-                                        onclick="event.stopPropagation(); abrirModal(this)"
-                                        class="bg-white border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-300 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0" title="Vista Rápida">
-                                    <i class="fas fa-eye text-sm"></i>
-                                </button>
-                                <!-- Botón Añadir -->
-                                <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
+                                 <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition-all active:scale-95 shadow-sm" title="Añadir al carrito">
                                     <i class="fas fa-cart-plus text-sm"></i>
                                 </button>
                             </div>
@@ -1073,11 +1037,7 @@
                         </div>
                         
                         <div class="flex gap-2">
-                            <!-- Botón Vista Rápida convertido a Link -->
-                            <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
-                                <i class="far fa-eye"></i>
-                            </a>
-                            <!-- Botón Añadir (Con efecto visual) -->
+                            <!-- Botón Añadir -->
                             <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarrito(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" title="Añadir al carrito">
                                 <i class="fas fa-plus transition-all text-sm"></i>
                             </button>
@@ -1614,6 +1574,16 @@
 
                 if (visibleCards.length === 0 && productNodes.length > 0) {
                     emptyState.classList.remove('hidden');
+                    const emptyTitle = emptyState.querySelector('h3');
+                    const emptyText = emptyState.querySelector('p');
+                    if (searchVal !== '') {
+                        if (emptyTitle) emptyTitle.textContent = 'Sin resultados para "' + searchVal + '"';
+                        if (emptyText) emptyText.textContent = 'Prueba con otro termino o explora las categorias.';
+                    } else {
+                        if (emptyTitle) emptyTitle.textContent = 'No hay productos disponibles';
+                        if (emptyText) emptyText.textContent = 'Los campesinos estan preparando productos frescos. Vuelve pronto.';
+                    }
+                    document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
                     emptyState.classList.add('hidden');
                 }
@@ -1945,8 +1915,12 @@
                 searchInput.dispatchEvent(new Event('input'));
             });
 
-            applyFiltersAndSort();
-        });
+                applyFiltersAndSort();
+                // Scroll a resultados
+                if (q.length > 0) {
+                    document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
 
         // --- Lógica Cerca de Mí (Geolocalización en Tiempo Real) ---
         window.loadCercaDeMi = function() {
@@ -2018,101 +1992,8 @@
             });
         };
     </script>
-    <!-- FOOTER INSTITUCIONAL AZUL (Tienda) -->
-    <footer class="store-footer bg-slate-950 pt-16 pb-10 mt-16 relative overflow-hidden w-full">
-        <!-- Subtle Background Gradient Orbs -->
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/[0.04] rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-indigo-500/[0.03] rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mb-12">
-                <!-- Brand Col -->
-                <div class="md:col-span-4">
-                    <a th:href="@{/}" class="flex items-center gap-3 mb-5 group">
-                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300">
-                            <i class="fas fa-leaf text-lg"></i>
-                        </div>
-                        <span class="text-2xl font-extrabold tracking-tight text-white">Agro<span class="text-blue-400">Conecta</span></span>
-                    </a>
-                    <p class="text-slate-400 text-sm leading-relaxed pr-8 mb-5 font-medium">
-                        La plataforma tecnológica que une al campo con la ciudad. Transformando el consumo de alimentos en una experiencia justa, rápida y moderna.
-                    </p>
-                    
-                    <!-- App Download Buttons (Sleek Dark Theme) -->
-                    <div class="flex flex-wrap gap-2.5 mb-6">
-                        <a href="#" class="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08] px-3.5 py-1.5 rounded-xl transition duration-300">
-                            <i class="fab fa-apple text-base"></i>
-                            <div class="text-[9px] leading-tight text-left">
-                                <p class="text-[7px] text-slate-500 uppercase tracking-wider font-semibold">Consíguelo en el</p>
-                                <p class="font-extrabold text-white">App Store</p>
-                            </div>
-                        </a>
-                        <a href="#" class="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08] px-3.5 py-1.5 rounded-xl transition duration-300">
-                            <i class="fab fa-google-play text-xs text-blue-400"></i>
-                            <div class="text-[9px] leading-tight text-left">
-                                <p class="text-[7px] text-slate-500 uppercase tracking-wider font-semibold">Consíguelo en</p>
-                                <p class="font-extrabold text-white">Google Play</p>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Social Icons Ordered: Instagram, Facebook, X -->
-                    <div class="flex gap-3">
-                        <a href="#" class="w-10 h-10 rounded-full bg-white/[0.07] flex items-center justify-center text-slate-400 hover:text-white hover:bg-gradient-to-br hover:from-pink-500 hover:to-purple-600 transition-all duration-300 shadow-sm border border-white/[0.06] hover:-translate-y-1 hover:shadow-pink-500/25" title="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white/[0.07] flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-all duration-300 shadow-sm border border-white/[0.06] hover:-translate-y-1 hover:shadow-blue-600/25" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-white/[0.07] flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/[0.15] transition-all duration-300 shadow-sm border border-white/[0.06] hover:-translate-y-1" title="X (Twitter)">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Links Cols -->
-                <div class="md:col-span-2 md:col-start-7">
-                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Enlaces de interés</h4>
-                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
-                        <li><a href="https://www.minagricultura.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition flex items-center gap-2">MinAgricultura <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
-                        <li><a href="https://www.ica.gov.co/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition flex items-center gap-2">Portal ICA <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
-                        <li><a href="https://www.agrosavia.co/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition flex items-center gap-2">Agrosavia <i class="fas fa-external-link-alt text-[10px]"></i></a></li>
-                    </ul>
-                </div>
-                <div class="md:col-span-2">
-                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Compañía</h4>
-                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
-                        <li><a href="#" class="hover:text-blue-400 transition">Sobre Nosotros</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Impacto Social</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Cómo funciona</a></li>
-                    </ul>
-                </div>
-                <div class="md:col-span-2">
-                    <h4 class="text-xs font-bold text-white mb-5 uppercase tracking-widest">Soporte</h4>
-                    <ul class="space-y-3 text-sm text-slate-400 font-medium">
-                        <li><a href="#" class="hover:text-blue-400 transition">Centro de Ayuda</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Contacto</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Políticas de Envío</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Estado del Pedido</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Términos y Condiciones</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Privacidad</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Divider Line -->
-            <hr class="border-slate-800/80 my-6">
-
-            <!-- Bottom Footer -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-slate-500 text-sm font-medium">
-                    &copy; 2026 AgroConecta Tienda. Todos los derechos reservados. Hecho con <span class="mx-1">💚</span> en Colombia.
-                </p>
-                <div class="flex items-center gap-6 text-sm text-slate-500 font-medium">
-                    <span>Español (CO)</span>
-                    <span>Moneda: COP ($)</span>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- FOOTER INSTITUCIONAL -->
+    <div th:replace="fragments/footer :: footer"></div>
     <!-- ========================================== -->
     <!-- MODAL DE UBICACIÓN (Rappi-Clone Premium)   -->
     <!-- ========================================== -->
@@ -2459,7 +2340,8 @@
                                     }
                                     currentLat = lat;
                                     currentLng = lon;
-                                };
+            };
+            window.applyFiltersAndSort = applyFiltersAndSort;
                                 addressSuggestions.appendChild(div);
                             });
                         } else {

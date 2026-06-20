@@ -197,7 +197,11 @@
     <input type="hidden" id="origenLon" th:value="${origenLon}">
     <input type="hidden" id="destLat" th:value="${destLat}">
     <input type="hidden" id="destLon" th:value="${destLon}">
-    <input type="hidden" id="geometriaJson" th:value="${geometriaJson != null ? geometriaJson : ''}">
+    <script th:if="${geometriaJson != null}" th:inline="javascript">
+        /*<![CDATA[*/
+        window._rutaGeometry = /*[[${geometriaJson}]]*/ '{}';
+        /*]]>*/
+    </script>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -208,7 +212,6 @@
             var oLon = parseFloat(document.getElementById('origenLon').value) || -73.6147;
             var dLat = parseFloat(document.getElementById('destLat').value) || 7.1254;
             var dLon = parseFloat(document.getElementById('destLon').value) || -73.1198;
-            var geo  = document.getElementById('geometriaJson').value || '';
 
             var map = L.map('map').setView([(oLat+dLat)/2, (oLon+dLon)/2], 9);
 
@@ -236,20 +239,39 @@
             L.marker([oLat, oLon], {icon: greenIcon}).addTo(map).bindPopup('<b>Tu Finca</b>').openPopup();
             L.marker([dLat, dLon], {icon: redIcon}).addTo(map).bindPopup('<b>Cliente</b>');
 
-            if (geo && geo.trim().length > 2) {
+            var geoStr = window._rutaGeometry;
+
+            function dibujarRutaOSRM() {
+                var url = '/api/rutas/osrm-route?lat1=' + oLat + '&lng1=' + oLon + '&lat2=' + dLat + '&lng2=' + dLon;
+                fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success && data.points && data.points.length > 1) {
+                        map.eachLayer(function(layer) {
+                            if (layer instanceof L.Polyline || layer instanceof L.GeoJSON) map.removeLayer(layer);
+                        });
+                        var poly = L.polyline(data.points, {color: '#16a34a', weight: 5, opacity: 0.8}).addTo(map);
+                        map.fitBounds(poly.getBounds(), {padding: [40,40]});
+                    } else {
+                        L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#94a3b8', weight:3, dashArray:'10,10'}).addTo(map);
+                        map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+                    }
+                }).catch(function(e) {
+                    L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#ef4444', weight:3, dashArray:'10,10'}).addTo(map);
+                    map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+                });
+            }
+
+            if (geoStr && geoStr.length > 2) {
                 try {
-                    var routeLayer = L.geoJSON({type:"Feature", geometry: JSON.parse(geo)}, {
+                    var geom = (typeof geoStr === 'string') ? JSON.parse(geoStr) : geoStr;
+                    var routeLayer = L.geoJSON({type:"Feature", geometry: geom}, {
                         style: { color: '#16a34a', weight: 5, opacity: 0.8, dashArray: '12, 8' }
                     }).addTo(map);
                     map.fitBounds(routeLayer.getBounds(), {padding: [40,40]});
                 } catch(e) {
-                    console.error('Error ruta:', e);
-                    L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#ef4444', weight:3, dashArray:'10,10'}).addTo(map);
-                    map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+                    dibujarRutaOSRM();
                 }
             } else {
-                L.polyline([[oLat,oLon],[dLat,dLon]], {color:'#94a3b8', weight:3, dashArray:'10,10'}).addTo(map);
-                map.fitBounds([[oLat,oLon],[dLat,dLon]], {padding:[40,40]});
+                dibujarRutaOSRM();
             }
         });
     </script>

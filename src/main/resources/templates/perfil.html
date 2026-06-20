@@ -98,7 +98,7 @@
                     <!-- Foto y Título -->
                     <div class="p-6 border-b border-gray-100 flex items-center gap-4">
                         <div class="w-16 h-16 rounded-full bg-gray-200 overflow-hidden shadow-sm border-2 border-white relative">
-                            <img th:if="${usuario.fotoPerfil != null}" th:src="${usuario.fotoPerfil.startsWith('http') ? usuario.fotoPerfil : '/uploads/' + usuario.fotoPerfil}" class="w-full h-full object-cover">
+                            <img th:if="${usuario.fotoPerfil != null}" th:src="${usuario.fotoPerfil.startsWith('http') ? usuario.fotoPerfil : '/images/' + usuario.fotoPerfil}" class="w-full h-full object-cover">
                             <div th:unless="${usuario.fotoPerfil != null}" class="w-full h-full bg-green-100 text-green-600 flex items-center justify-center text-2xl font-bold">
                                 <span th:text="${#strings.substring(usuario.nombreCompleto,0,1)}">U</span>
                             </div>

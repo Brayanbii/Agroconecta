@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.text.Normalizer;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ public class DashboardController {
     private ProductoRepository productoRepo;
 
     @Autowired
-    private OrdenRepository ordenRepo; // <-- Inyectamos el repo de órdenes
+    private OrdenRepository ordenRepo; // <-- Inyectamos el repo de Ã³rdenes
 
     @Autowired
     private DetalleOrdenRepository detalleRepo;
@@ -65,7 +66,7 @@ public class DashboardController {
     // 1. PANEL ADMIN
     @GetMapping("/admin/dashboard")
     public String dashboardAdmin(Model model) {
-        // --- Fecha actual dinámica ---
+        // --- Fecha actual dinÃ¡mica ---
         String fechaHoy = LocalDate.now()
                 .format(DateTimeFormatter.ofPattern("d MMM, yyyy", new Locale("es", "CO")));
         model.addAttribute("fechaHoy", fechaHoy);
@@ -76,7 +77,7 @@ public class DashboardController {
         model.addAttribute("totalVentas",    ordenRepo.count());
         model.addAttribute("totalResenas",   resenaRepo.count());
 
-        // --- Últimas Reseñas para la tabla del admin ---
+        // --- Ãšltimas ReseÃ±as para la tabla del admin ---
         model.addAttribute("ultimasResenas", resenaRepo.findAllByOrderByFechaDesc());
 
         // --- Datos para graficos: Top productos ---
@@ -134,15 +135,15 @@ public class DashboardController {
     @GetMapping("/campesino/productos")
     public String dashboardCampesino(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         
-        // --- VALIDACIÓN DE IDENTIDAD (KYC) ---
+        // --- VALIDACIÃ“N DE IDENTIDAD (KYC) ---
         if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
             return "redirect:/campesino/verificacion";
         }
         
         // --- DATOS REALES PARA EL DASHBOARD VISUAL ---
-        List<DetalleOrden> misVentas = detalleRepo.findVentasByCampesino(campesino);
+        List<DetalleOrden> misVentas = detalleRepo.findVentasByCampesino(campesino, campesino.getId());
         
         double ventasHoy = 0.0;
         double gananciaMes = 0.0;
@@ -170,8 +171,11 @@ public class DashboardController {
                     ventasHoy += d.getTotal();
                 }
                 
-                // Pedidos Pendientes (contamos ordenes unicas)
-                if("PENDIENTE".equalsIgnoreCase(o.getEstado())) {
+                // Pedidos Pendientes (contamos ordenes unicas que tienen items sin enviar)
+                String estadoItem = d.getEstado();
+                if(estadoItem != null && (estadoItem.equalsIgnoreCase("NUEVO") || 
+                                          estadoItem.equalsIgnoreCase("PREPARANDO") || 
+                                          estadoItem.equalsIgnoreCase("LISTO_PARA_RECOGER"))) {
                     ordenesPendientesSet.add(o.getId());
                 }
             }
@@ -206,7 +210,7 @@ public class DashboardController {
         return "mis_productos";
     }
 
-    // 3. PANEL CLIENTE (TIENDA) — con buscador y radar de cercanía
+    // 3. PANEL CLIENTE (TIENDA) â€” con buscador y radar de cercanÃ­a
     @GetMapping("/tienda")
     public String tienda(Model model, Authentication auth,
                          @RequestParam(value = "buscar", required = false) String buscar,
@@ -215,7 +219,7 @@ public class DashboardController {
         
         List<Producto> productosList;
 
-        // 1. Cargar productos (filtrados si hay búsqueda)
+        // 1. Cargar productos (filtrados si hay bÃºsqueda)
         if (buscar != null && !buscar.trim().isEmpty()) {
             productosList = productoRepo.findByNombreContainingIgnoreCase(buscar.trim());
             model.addAttribute("busqueda", buscar.trim());
@@ -224,7 +228,7 @@ public class DashboardController {
             model.addAttribute("busqueda", "");
         }
 
-        // 1.5 ALGORITMO DE PRODUCTOS MÁS DESTACADOS (Más vendidos)
+        // 1.5 ALGORITMO DE PRODUCTOS MÃS DESTACADOS (Mas vendidos)
         List<com.proyecto.AccesoUsuarios.model.DetalleOrden> todosLosDetalles = detalleRepo.findAll();
         Map<Producto, Integer> ventasPorProducto = new HashMap<>();
         for (com.proyecto.AccesoUsuarios.model.DetalleOrden d : todosLosDetalles) {
@@ -240,7 +244,7 @@ public class DashboardController {
             if (v1 != v2) {
                 return Integer.compare(v2, v1); // Orden descendente por ventas
             }
-            // Si empatan en ventas, desempatar por calificación
+            // Si empatan en ventas, desempatar por calificaciÃ³n
             return Double.compare(p2.getPromedioCalificacion(), p1.getPromedioCalificacion());
         });
         
@@ -250,12 +254,12 @@ public class DashboardController {
         }
         model.addAttribute("productosDestacados", productosDestacados);
 
-        // 1.6 ALGORITMO DE RECOMENDACIÓN (Machine Learning Heurístico)
+        // 1.6 ALGORITMO DE RECOMENDACIÃ“N (Machine Learning HeurÃ­stico)
         List<Producto> productosRecomendados = new ArrayList<>();
         if (auth != null && auth.isAuthenticated()) {
-            Usuario usuarioObj = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+            Usuario usuarioObj = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
             if (usuarioObj != null) {
-                // Algoritmo de Recomendación Basado en Compras Históricas (Content-Based Filtering)
+                // Algoritmo de RecomendaciÃ³n Basado en Compras HistÃ³ricas (Content-Based Filtering)
                 List<com.proyecto.AccesoUsuarios.model.Orden> ordenes = ordenRepo.findByUsuario(usuarioObj);
                 if (ordenes != null && !ordenes.isEmpty()) {
                     Map<String, Integer> catFrecuencia = new HashMap<>();
@@ -275,16 +279,16 @@ public class DashboardController {
                         }
                     }
 
-                    // Ordenar categorías favoritas descendentemente
+                    // Ordenar categorÃ­as favoritas descendentemente
                     List<Map.Entry<String, Integer>> catsOrdenadas = new ArrayList<>(catFrecuencia.entrySet());
                     catsOrdenadas.sort((a, b) -> b.getValue().compareTo(a.getValue())); 
 
-                    // Extraer las top 2 categorías de interés del cliente
+                    // Extraer las top 2 categorÃ­as de interÃ©s del cliente
                     List<String> topCategorias = new ArrayList<>();
                     if (catsOrdenadas.size() > 0) topCategorias.add(catsOrdenadas.get(0).getKey());
                     if (catsOrdenadas.size() > 1) topCategorias.add(catsOrdenadas.get(1).getKey());
 
-                    // Filtrar productos del catálogo que encajen con sus gustos, PERO que NO haya comprado antes
+                    // Filtrar productos del catÃ¡logo que encajen con sus gustos, PERO que NO haya comprado antes
                     for (Producto p : productosList) {
                         if (!productosCompradosIds.contains(p.getId()) && topCategorias.contains(p.getCategoria())) {
                             productosRecomendados.add(p);
@@ -295,7 +299,7 @@ public class DashboardController {
         }
         
         // Fallback: Si no hay suficientes datos para perfilar al cliente (Cold Start Problem),
-        // usamos los mejores calificados que no estén en Destacados.
+        // usamos los mejores calificados que no estÃ©n en Destacados.
         if (productosRecomendados.size() < 4) {
             List<Producto> fallback = new ArrayList<>(productosList);
             fallback.removeAll(productosDestacados); 
@@ -317,7 +321,7 @@ public class DashboardController {
         
         model.addAttribute("productosRecomendados", productosRecomendados);
 
-        // 2. Lógica de Distancia Matemática (Haversine)
+        // 2. LÃ³gica de Distancia MatemÃ¡tica (Haversine)
         if (latCliente != null && lonCliente != null) {
             for (Producto p : productosList) {
                 if (p.getLatitudOrigen() != null && p.getLongitudOrigen() != null) {
@@ -325,11 +329,11 @@ public class DashboardController {
                     // Redondear a 1 decimal
                     p.setDistanciaKm(Math.round(dist * 10.0) / 10.0);
                 } else {
-                    // Si el producto no tiene ubicación definida, lo mandamos al fondo de la lista
+                    // Si el producto no tiene ubicaciÃ³n definida, lo mandamos al fondo de la lista
                     p.setDistanciaKm(9999.9);
                 }
             }
-            // Ordenar la lista del más cercano al más lejano
+            // Ordenar la lista del Mas cercano al Mas lejano
             productosList.sort(Comparator.comparing(Producto::getDistanciaKm));
             model.addAttribute("modoCercania", true);
         } else {
@@ -341,11 +345,11 @@ public class DashboardController {
         // 2. Cargar cantidad del carrito
         model.addAttribute("cantidadCarrito", carritoService.contarItems());
 
-        // 3. LÓGICA NUEVA: Obtener el nombre real del cliente y sus favoritos
+        // 3. LÃ“GICA NUEVA: Obtener el nombre real del cliente y sus favoritos
         List<Long> favoritosIds = new ArrayList<>();
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
-            Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
+            Usuario usuario = usuarioRepo.findFirstByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
                 if (usuario.getProductosFavoritos() != null) {
@@ -366,11 +370,11 @@ public class DashboardController {
     @GetMapping("/tienda/producto/{id}")
     public String detalleProducto(@org.springframework.web.bind.annotation.PathVariable Long id, Model model, Authentication auth) {
         Producto producto = productoRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Producto inválido:" + id));
+                .orElseThrow(() -> new IllegalArgumentException("Producto invÃ¡lido:" + id));
         
         model.addAttribute("producto", producto);
         
-        // Calcular frescura (mensajeDinámico)
+        // Calcular frescura (mensajeDinÃ¡mico)
         long diasFresco = 0;
         String mensajeFrescura = "Cosechado hoy";
         if (producto.getFechaCreacion() != null) {
@@ -380,7 +384,7 @@ public class DashboardController {
             } else if (diasFresco > 0 && diasFresco <= 3) {
                 mensajeFrescura = "Producto muy fresco";
             } else {
-                mensajeFrescura = "Cosechado hace " + diasFresco + " días";
+                mensajeFrescura = "Cosechado hace " + diasFresco + " dÃ­as";
             }
         }
         model.addAttribute("mensajeFrescura", mensajeFrescura);
@@ -398,10 +402,10 @@ public class DashboardController {
 
         boolean puedeComentar = false;
         Long usuarioLogueadoId = null;
-        // LÓGICA: Obtener el nombre real del cliente y verificar si compró el producto
+        // LÃ“GICA: Obtener el nombre real del cliente y verificar si comprÃ³ el producto
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
-            Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
+            Usuario usuario = usuarioRepo.findFirstByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
                 usuarioLogueadoId = usuario.getId();
@@ -420,19 +424,19 @@ public class DashboardController {
                     if (puedeComentar) break;
                 }
                 
-                // Buscar si este usuario ya tiene una reseña para este producto
+                // Buscar si este usuario ya tiene una reseÃ±a para este producto
                 var miResenaOpt = resenaRepo.findByProductoIdAndUsuarioId(producto.getId(), usuario.getId());
                 if (miResenaOpt.isPresent()) {
                     var miResena = miResenaOpt.get();
                     model.addAttribute("miResenaId", miResena.getId());
                     model.addAttribute("miResenaEstrellas", miResena.getEstrellas());
                     model.addAttribute("miResenaComentario", miResena.getComentario() != null ? miResena.getComentario() : "");
-                    model.addAttribute("yaCalificó", true);
+                    model.addAttribute("yaCalificÃ³", true);
                 } else {
                     model.addAttribute("miResenaId", null);
                     model.addAttribute("miResenaEstrellas", 0);
                     model.addAttribute("miResenaComentario", "");
-                    model.addAttribute("yaCalificó", false);
+                    model.addAttribute("yaCalificÃ³", false);
                 }
                 
                 // Extraer y enviar IDs de productos favoritos para la UI
@@ -447,7 +451,7 @@ public class DashboardController {
             } else {
                 model.addAttribute("nombreCliente", "Cliente");
                 model.addAttribute("favoritosIds", new java.util.ArrayList<>());
-                model.addAttribute("yaCalificó", false);
+                model.addAttribute("yaCalificÃ³", false);
                 model.addAttribute("miResenaId", null);
                 model.addAttribute("miResenaEstrellas", 0);
                 model.addAttribute("miResenaComentario", "");
@@ -455,7 +459,7 @@ public class DashboardController {
         } else {
             model.addAttribute("nombreCliente", "Invitado");
             model.addAttribute("favoritosIds", new java.util.ArrayList<>());
-            model.addAttribute("yaCalificó", false);
+            model.addAttribute("yaCalificÃ³", false);
             model.addAttribute("miResenaId", null);
             model.addAttribute("miResenaEstrellas", 0);
             model.addAttribute("miResenaComentario", "");
@@ -480,8 +484,8 @@ public class DashboardController {
         List<Producto> productos = productoRepo.findByUsuario(campesino);
         model.addAttribute("productos", productos);
         
-        // Ventas y calificación promedio
-        List<com.proyecto.AccesoUsuarios.model.DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+        // Ventas y calificaciÃ³n promedio
+        List<com.proyecto.AccesoUsuarios.model.DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino, campesino.getId());
         int totalVendidos = ventas.stream().mapToInt(d -> d.getCantidad() != null ? d.getCantidad() : 0).sum();
         model.addAttribute("totalVendidos", totalVendidos);
         
@@ -499,7 +503,7 @@ public class DashboardController {
         List<Long> favoritosIds = new ArrayList<>();
         if (auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
-            Usuario usuario = usuarioRepo.findByEmail(email).orElse(null);
+            Usuario usuario = usuarioRepo.findFirstByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
                 if (usuario.getProductosFavoritos() != null) {
@@ -520,7 +524,7 @@ public class DashboardController {
         
         boolean isFavorito = false;
         if (auth != null && auth.isAuthenticated()) {
-            Usuario usuarioObj = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+            Usuario usuarioObj = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
             if (usuarioObj != null) {
                 isFavorito = favoritoCampesinoRepo.existsByClienteAndCampesino(usuarioObj, campesino);
             }
@@ -530,20 +534,20 @@ public class DashboardController {
         return "campesino_perfil_publico";
     }
 
-    // 6. COLECCIONES (Ver Todo de cada sección del Home)
+    // 6. COLECCIONES (Ver Todo de cada secciÃ³n del Home)
     @GetMapping("/tienda/coleccion/{tipo}")
     public String coleccion(@org.springframework.web.bind.annotation.PathVariable String tipo, 
                             Model model, Authentication auth) {
         
         List<Producto> todosProductos = productoRepo.findAll();
         List<Producto> resultado = new ArrayList<>();
-        String titulo = "Colección";
+        String titulo = "Coleccion";
         String icono = "fas fa-store";
-        String color = "green"; // Color temático de la colección
+        String color = "green"; // Color temÃ¡tico de la Coleccion
         
         switch (tipo) {
             case "destacados":
-                // Reutilizar algoritmo de más vendidos
+                // Reutilizar algoritmo de Mas vendidos
                 List<com.proyecto.AccesoUsuarios.model.DetalleOrden> detalles = detalleRepo.findAll();
                 Map<Long, Integer> ventasMap = new HashMap<>();
                 for (com.proyecto.AccesoUsuarios.model.DetalleOrden d : detalles) {
@@ -558,13 +562,13 @@ public class DashboardController {
                     if (v1 != v2) return Integer.compare(v2, v1);
                     return Double.compare(p2.getPromedioCalificacion(), p1.getPromedioCalificacion());
                 });
-                titulo = "Productos Más Destacados";
+                titulo = "Productos Mas Destacados";
                 icono = "fas fa-fire";
                 color = "orange";
                 break;
 
             case "nuevos":
-                // Ordenar por fecha de creación descendente (más nuevo primero)
+                // Ordenar por fecha de creaciÃ³n descendente (Mas nuevo primero)
                 resultado = new ArrayList<>(todosProductos);
                 resultado.sort((p1, p2) -> {
                     if (p1.getFechaCreacion() == null && p2.getFechaCreacion() == null) return 0;
@@ -572,7 +576,7 @@ public class DashboardController {
                     if (p2.getFechaCreacion() == null) return -1;
                     return p2.getFechaCreacion().compareTo(p1.getFechaCreacion());
                 });
-                titulo = "Recién Cosechados";
+                titulo = "Recien Cosechados";
                 icono = "fas fa-leaf";
                 color = "green";
                 break;
@@ -590,9 +594,9 @@ public class DashboardController {
                 break;
 
             case "recomendados":
-                // Reutilizar el mismo algoritmo de recomendación
+                // Reutilizar el mismo algoritmo de recomendaciÃ³n
                 if (auth != null && auth.isAuthenticated()) {
-                    Usuario usuarioObj = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+                    Usuario usuarioObj = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
                     if (usuarioObj != null) {
                         List<com.proyecto.AccesoUsuarios.model.Orden> ordenes = ordenRepo.findByUsuario(usuarioObj);
                         if (ordenes != null && !ordenes.isEmpty()) {
@@ -639,7 +643,7 @@ public class DashboardController {
 
             case "verduras":
                 for (Producto p : todosProductos) {
-                    if ("Verduras y Hortalizas".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Verduras y Hortalizas", p.getCategoria())) resultado.add(p);
                 }
                 titulo = "Verduras Frescas";
                 icono = "fas fa-leaf";
@@ -648,41 +652,43 @@ public class DashboardController {
 
             case "frutas":
                 for (Producto p : todosProductos) {
-                    if ("Frutas".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Frutas", p.getCategoria())) resultado.add(p);
                 }
-                titulo = "Frutas Recién Cosechadas";
+                titulo = "Frutas Recien Cosechadas";
                 icono = "fas fa-apple-whole";
                 color = "red";
                 break;
 
             case "tuberculos":
                 for (Producto p : todosProductos) {
-                    if ("Tubérculos y Raíces".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Tuberculos y Raices", p.getCategoria())) resultado.add(p);
                 }
-                titulo = "Tubérculos del Campo";
+                titulo = "Tuberculos del Campo";
                 icono = "fas fa-seedling";
                 color = "orange";
                 break;
 
             case "lacteos":
+                for (Producto p : todosProductos) {
+                    if (matchesCategory("Lacteos", p.getCategoria()) || matchesCategory("Huevos y Lacteos", p.getCategoria())) resultado.add(p);
+                }
+                titulo = "Lacteos Frescos";
+                icono = "fas fa-cheese";
+                color = "blue";
+                break;
+
             case "huevos":
                 for (Producto p : todosProductos) {
-                    if ("Huevos y Lácteos".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Huevos", p.getCategoria()) || matchesCategory("Huevos y Lacteos", p.getCategoria())) resultado.add(p);
                 }
-                if (tipo.equals("huevos")) {
-                    titulo = "Huevos de Granja";
-                    icono = "fas fa-egg";
-                    color = "orange";
-                } else {
-                    titulo = "Lácteos Frescos";
-                    icono = "fas fa-cheese";
-                    color = "orange";
-                }
+                titulo = "Huevos de Granja";
+                icono = "fas fa-egg";
+                color = "orange";
                 break;
 
             case "granos":
                 for (Producto p : todosProductos) {
-                    if ("Granos y Cereales".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Granos y Cereales", p.getCategoria())) resultado.add(p);
                 }
                 titulo = "Granos y Cereales";
                 icono = "fas fa-wheat-awn";
@@ -691,9 +697,9 @@ public class DashboardController {
 
             case "cafe":
                 for (Producto p : todosProductos) {
-                    if ("Café y Cacao".equalsIgnoreCase(p.getCategoria())) resultado.add(p);
+                    if (matchesCategory("Cafe y Cacao", p.getCategoria())) resultado.add(p);
                 }
-                titulo = "Café Colombiano y Cacao";
+                titulo = "Cafe Colombiano y Cacao";
                 icono = "fas fa-mug-hot";
                 color = "orange";
                 break;
@@ -711,13 +717,22 @@ public class DashboardController {
         
         // Nombre del cliente
         if (auth != null && auth.isAuthenticated()) {
-            Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+            Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
             model.addAttribute("nombreCliente", usuario != null ? usuario.getNombreCompleto() : "Cliente");
         } else {
             model.addAttribute("nombreCliente", "Invitado");
         }
 
         return "coleccion";
+    }
+
+    // 6.5 DASHBOARD DELIVERY (Repartidor Web)
+    @GetMapping("/delivery/dashboard")
+    public String dashboardDelivery(Model model, Authentication auth) {
+        Usuario repartidor = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
+        model.addAttribute("usuario", repartidor);
+        model.addAttribute("nombreCompleto", repartidor.getNombreCompleto());
+        return "delivery_dashboard";
     }
 
     // 7. MIS FAVORITOS (Nueva vista independiente)
@@ -727,7 +742,7 @@ public class DashboardController {
             return "redirect:/login";
         }
         
-        Usuario usuario = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario usuario = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         if (usuario == null) {
             return "redirect:/login";
         }
@@ -744,7 +759,7 @@ public class DashboardController {
         return "favoritos";
     }
 
-    // --- Helper: Fórmula de Haversine para Distancias Reales ---
+    // --- Helper: FÃ³rmula de Haversine para Distancias Reales ---
     private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
         final int RADIO_TIERRA_KM = 6371;
         double dLat = Math.toRadians(lat2 - lat1);
@@ -754,5 +769,12 @@ public class DashboardController {
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return RADIO_TIERRA_KM * c;
+}
+
+    private boolean matchesCategory(String expected, String actual) {
+        if (actual == null) return false;
+        String e = java.text.Normalizer.normalize(expected, java.text.Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}", "").toLowerCase();
+        String a = java.text.Normalizer.normalize(actual, java.text.Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}", "").toLowerCase();
+        return e.equals(a);
     }
 }

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <title>Delivery - AgroConecta</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0fdf4; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar Delivery -->
+    <nav class="bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-xl shadow-cyan-600/20">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 w-10 h-10 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-motorcycle text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight">Agro<span class="text-cyan-200">ConectaGo</span></span>
+                    <p class="text-xs text-cyan-200 opacity-80">Panel del Repartidor</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="font-bold text-sm" th:text="${nombreCompleto}">Carlos Moto</p>
+                    <p class="text-xs text-cyan-200">Agrosocio Delivery</p>
+                </div>
+                <form action="/logout" method="post" class="m-0">
+                    <button type="submit" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 max-w-5xl mx-auto px-6 py-10 w-full">
+        
+        <!-- Bienvenida -->
+        <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/30 p-8 mb-8 border border-gray-100">
+            <div class="flex items-center gap-5">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white text-3xl shadow-lg shadow-cyan-500/40">
+                    <i class="fas fa-motorcycle"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900">¡Bienvenido, <span th:text="${nombreCompleto}">Carlos</span>!</h1>
+                    <p class="text-gray-500 mt-1">Descarga la app <strong>AgroConectaGo</strong> en tu celular para empezar a recibir viajes y ganar dinero haciendo entregas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Informativas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-lg shadow-gray-200/20 border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-600 text-lg">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Rutas Inteligentes</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">Recoge en fincas y entrega en la ciudad optimizando tu tiempo.</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg shadow-gray-200/20 border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center text-teal-600 text-lg">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ganancias Claras</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">10% de cada envío va directo a tu billetera virtual.</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg shadow-gray-200/20 border border-gray-100 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-lg">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Entrega Segura</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">Escanea el QR del cliente y confirma la entrega al instante.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Principal -->
+        <div class="bg-gradient-to-br from-cyan-700 to-teal-800 rounded-2xl shadow-2xl shadow-cyan-900/30 p-10 text-white text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+            <div class="relative z-10">
+                <i class="fas fa-mobile-alt text-5xl mb-5 block opacity-80"></i>
+                <h2 class="text-3xl font-extrabold mb-3">Descarga AgroConectaGo</h2>
+                <p class="text-cyan-200 max-w-md mx-auto mb-6">La app móvil para repartidores estará disponible próximamente. Recibe notificaciones de viajes, mira tu ruta en el mapa y gana dinero entregando productos del campo.</p>
+                <div class="flex justify-center gap-4">
+                    <span class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition cursor-not-allowed flex items-center gap-2">
+                        <i class="fab fa-google-play"></i> Google Play (Pronto)
+                    </span>
+                    <span class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition cursor-not-allowed flex items-center gap-2">
+                        <i class="fab fa-apple"></i> App Store (Pronto)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="bg-white rounded-2xl shadow-lg shadow-gray-200/20 border border-gray-100 p-6 mt-8 text-center">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-sm font-bold text-gray-500 uppercase tracking-wider">Tu Estado</span>
+            </div>
+            <p class="text-gray-700">Estás registrado como <span class="font-bold text-cyan-600">Repartidor (Agrosocio)</span>. Cuando la app móvil esté lista, podrás aceptar viajes desde aquí.</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 py-4 text-center text-xs text-gray-400">
+        AgroConectaGo &copy; 2026 - La red de Agrosocios que conecta el campo colombiano
+    </footer>
+</body>
+</html>

@@ -28,7 +28,7 @@ public class CampesinoVerificacionController {
     @GetMapping
     public String mostrarFormulario(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
         // Si ya está aprobado o rechazado, redirigir al dashboard (allí el dashboard manejará su estado)
         if ("APROBADO".equals(campesino.getEstadoVerificacion())) {
@@ -44,6 +44,7 @@ public class CampesinoVerificacionController {
             @RequestParam("numeroIdentidad") String numeroIdentidad,
             @RequestParam("nombreFinca") String nombreFinca,
             @RequestParam(value = "direccionFinca", required = false) String direccionFinca,
+            @RequestParam(value = "municipioOrigen", required = false) String municipioOrigen,
             @RequestParam("latitudFinca") Double latitudFinca,
             @RequestParam("longitudFinca") Double longitudFinca,
             @RequestParam("fotoCedula") MultipartFile fotoCedula,
@@ -51,13 +52,16 @@ public class CampesinoVerificacionController {
             Authentication auth) throws IOException {
 
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
         // Actualizar datos de texto y mapa
         campesino.setNumeroIdentidad(numeroIdentidad);
         campesino.setNombreFinca(nombreFinca);
         if (direccionFinca != null && !direccionFinca.isEmpty()) {
             campesino.setDescripcionFinca(direccionFinca);
+        }
+        if (municipioOrigen != null && !municipioOrigen.isEmpty()) {
+            campesino.setMunicipioOrigen(municipioOrigen);
         }
         campesino.setLatitud(latitudFinca);
         campesino.setLongitud(longitudFinca);

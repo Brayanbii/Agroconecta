@@ -10,8 +10,10 @@ import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.FavoritoCampesinoRepository;
 import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
+import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.service.UploadFileService;
+import com.proyecto.AccesoUsuarios.service.OrdenEstadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -43,6 +45,9 @@ public class CampesinoController {
     private DetalleOrdenRepository detalleRepo;
 
     @Autowired
+    private OrdenRepository ordenRepo;
+
+    @Autowired
     private UploadFileService uploadService;
 
     @Autowired
@@ -57,7 +62,7 @@ public class CampesinoController {
     @GetMapping("/nuevo")
     public String nuevoProducto(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
         // --- VALIDACIÓN KYC ---
         if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
@@ -88,7 +93,7 @@ public class CampesinoController {
     @GetMapping("/prueba")
     public String modoPrueba(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
         // --- VALIDACIÓN KYC ---
         if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
@@ -98,8 +103,12 @@ public class CampesinoController {
         Producto p = new Producto();
         model.addAttribute("producto", p);
 
-        // --- CONEXIÓN CON SERVICIO DE PRECIOS ---
-        // Removido a favor de la API en tiempo real en SipsaController (/api/sipsa/precio)
+        // --- CONEXIÓN CON PYTHON: Precios de Referencia ---
+        Map<String, Object> respuesta = pythonService.obtenerPreciosDesdePython();
+        if (respuesta != null) {
+            model.addAttribute("preciosReferencia", respuesta.get("data"));
+            model.addAttribute("fuentePrecios", respuesta.get("fuente"));
+        }
         // --------------------------------------------------
 
         return "campesino_producto_prueba";
@@ -114,7 +123,7 @@ public class CampesinoController {
                                   Authentication auth) throws IOException {
         
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         producto.setUsuario(campesino);
 
         // LÓGICA HÍBRIDA (Archivo vs Link)
@@ -272,22 +281,57 @@ public class CampesinoController {
     @GetMapping("/pedidos")
     public String misPedidos(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
-        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino, campesino.getId());
         
         // Agrupar por estado para la vista
         long nuevos = ventas.stream().filter(v -> "NUEVO".equals(v.getEstado()) || v.getEstado() == null).count();
         long preparados = ventas.stream().filter(v -> "PREPARADO".equals(v.getEstado())).count();
-        long enviados = ventas.stream().filter(v -> "ENVIADO".equals(v.getEstado())).count();
+        long listos = ventas.stream().filter(v -> "LISTO_PARA_RECOGER".equals(v.getEstado())).count();
+        long enCamino = ventas.stream().filter(v -> "ENVIADO".equals(v.getEstado())).count();
         long entregados = ventas.stream().filter(v -> "ENTREGADO".equals(v.getEstado())).count();
         long cancelados = ventas.stream().filter(v -> "CANCELADO".equals(v.getEstado())).count();
         
         model.addAttribute("ventas", ventas);
         model.addAttribute("nuevosCount", nuevos);
         model.addAttribute("preparadosCount", preparados);
-        model.addAttribute("enviadosCount", enviados);
+        model.addAttribute("listosCount", listos);
+        model.addAttribute("enCaminoCount", enCamino);
         model.addAttribute("entregadosCount", entregados);
         model.addAttribute("canceladosCount", cancelados);
+        
+        for (DetalleOrden v : ventas) {
+            if ("LISTO_PARA_RECOGER".equals(v.getEstado()) && v.getOrden() != null) {
+                Orden orden = v.getOrden();
+                Map<String, Object> info = new HashMap<>();
+                info.put("codigoRecogida", orden.getCodigoRecogida());
+                if (orden.getRuta() != null) {
+                    info.put("codigoRuta", orden.getRuta().getCodigoRuta());
+                    info.put("estadoRuta", orden.getRuta().getEstado());
+                    if (orden.getRuta().getRepartidor() != null) {
+                            Usuario rep = orden.getRuta().getRepartidor();
+                            info.put("repNombre", rep.getNombreCompleto());
+                            info.put("repTelefono", rep.getTelefono());
+                            info.put("repVehiculo", rep.getTipoVehiculo());
+                            info.put("repPlaca", rep.getPlacaVehiculo());
+                            info.put("repRating", rep.getCalificacionPromedio() != null ? rep.getCalificacionPromedio() : 0.0);
+                            info.put("repLat", rep.getLatitud());
+                            info.put("repLng", rep.getLongitud());
+                            
+                            Double fLat = campesino.getLatitud();
+                            Double fLng = campesino.getLongitud();
+                            if (fLat == null || fLng == null) { fLat = 5.9317; fLng = -73.6147; }
+                        info.put("fincaLat", fLat);
+                            info.put("fincaLng", fLng);
+                    }
+                }
+                try {
+                    v.setRepartidorInfoJson(new ObjectMapper().writeValueAsString(info));
+                } catch (Exception e) {
+                    v.setRepartidorInfoJson(null);
+                }
+            }
+        }
         
         return "campesino_pedidos";
     }
@@ -295,15 +339,133 @@ public class CampesinoController {
     @PostMapping("/pedidos/{id}/estado")
     public String actualizarEstadoPedido(@PathVariable Long id, @RequestParam String estado, Authentication auth) {
         DetalleOrden detalle = detalleRepo.findById(id).orElseThrow();
-        Usuario campesino = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
         
         // Verificar que el detalle pertenezca a un producto de este campesino
         if (detalle.getProducto() != null && detalle.getProducto().getUsuario().getId().equals(campesino.getId())) {
             detalle.setEstado(estado);
             detalleRepo.save(detalle);
+
+            // Si el campesino acepta (PREPARADO), mover orden a cola de agrupacion
+            if ("PREPARADO".equals(estado) && detalle.getOrden() != null) {
+                Orden orden = detalle.getOrden();
+                if (OrdenEstadoService.PENDIENTE_CAMPESINO.equals(orden.getEstado())
+                        || "PENDIENTE".equals(orden.getEstado())) {
+                    orden.setEstado(OrdenEstadoService.ESPERANDO_AGRUPACION);
+                    ordenRepo.save(orden);
+                }
+            }
+            
+            // Si marca como LISTO_PARA_RECOGER, generar PIN y propagar a toda la orden
+            if ("LISTO_PARA_RECOGER".equals(estado) && detalle.getOrden() != null) {
+                Orden orden = ordenRepo.findById(detalle.getOrden().getId()).orElse(null);
+                if (orden != null) {
+                    String pin = orden.getCodigoRecogida();
+                    if (pin == null || pin.isEmpty()) {
+                        pin = String.valueOf(1000 + (int)(Math.random() * 899999));
+                        orden.setCodigoRecogida(pin);
+                        orden.setIntentosRecogida(0);
+                        orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
+                        ordenRepo.saveAndFlush(orden);
+                        System.out.println("[PIN] Generado PIN recogida: " + pin + " para orden #" + orden.getId());
+                    } else {
+                        System.out.println("[PIN] PIN ya existe: " + pin + " para orden #" + orden.getId());
+                    }
+                    // Marcar todos los detalles de esta orden como LISTO_PARA_RECOGER
+                    if (orden.getDetalles() != null) {
+                        for (DetalleOrden d : orden.getDetalles()) {
+                            if (!"LISTO_PARA_RECOGER".equals(d.getEstado())) {
+                                d.setEstado("LISTO_PARA_RECOGER");
+                                detalleRepo.save(d);
+                            }
+                        }
+                    }
+                    detalleRepo.flush();
+                }
+            }
         }
         
         return "redirect:/campesino/productos/pedidos";
+    }
+
+    @GetMapping("/pedidos/estado-ajax/{id}")
+    @ResponseBody
+    public Map<String, Object> estadoPedidoAjax(@PathVariable Long id, Authentication auth) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            DetalleOrden detalle = detalleRepo.findById(id).orElse(null);
+            Usuario campesino = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
+            if (detalle != null && detalle.getProducto() != null && detalle.getProducto().getUsuario().getId().equals(campesino.getId())) {
+                res.put("estado", detalle.getEstado());
+            } else {
+                res.put("error", "No autorizado");
+            }
+        } catch (Exception e) {
+            res.put("error", e.getMessage());
+        }
+        return res;
+    }
+
+    // -------------------------------------------------------
+    // INFORMACION DEL REPARTIDOR — Página independiente
+    // -------------------------------------------------------
+    @GetMapping("/repartidor/{detalleId}")
+    public String verRepartidor(@PathVariable Long detalleId, Model model, Authentication auth) {
+        DetalleOrden detalle = detalleRepo.findById(detalleId).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
+
+        if (detalle.getProducto() == null || !detalle.getProducto().getUsuario().getId().equals(campesino.getId())) {
+            return "redirect:/campesino/productos/pedidos";
+        }
+
+        Orden orden = detalle.getOrden();
+        if (orden == null || orden.getRuta() == null || orden.getRuta().getRepartidor() == null) {
+            return "redirect:/campesino/productos/pedidos";
+        }
+
+        Usuario rep = orden.getRuta().getRepartidor();
+
+        model.addAttribute("detalle", detalle);
+        model.addAttribute("codigoRecogida", orden.getCodigoRecogida());
+        model.addAttribute("codigoRuta", orden.getRuta().getCodigoRuta());
+        model.addAttribute("estadoRuta", orden.getRuta().getEstado());
+        model.addAttribute("repNombre", rep.getNombreCompleto());
+        model.addAttribute("repTelefono", rep.getTelefono());
+        model.addAttribute("repVehiculo", rep.getTipoVehiculo());
+        model.addAttribute("repPlaca", rep.getPlacaVehiculo());
+        model.addAttribute("repRating", rep.getCalificacionPromedio() != null ? rep.getCalificacionPromedio() : 0.0);
+        model.addAttribute("repLat", rep.getLatitud());
+        model.addAttribute("repLng", rep.getLongitud());
+        model.addAttribute("fincaLat", orden.getLatitudOrigen());
+        model.addAttribute("fincaLng", orden.getLongitudOrigen());
+        model.addAttribute("fincaNombre", campesino.getNombreFinca() != null ? campesino.getNombreFinca() : "Mi Finca");
+
+        // Distancia Haversine
+        if (rep.getLatitud() != null && rep.getLongitud() != null
+                && orden.getLatitudOrigen() != null && orden.getLongitudOrigen() != null) {
+            double d = haversine(rep.getLatitud(), rep.getLongitud(),
+                    orden.getLatitudOrigen(), orden.getLongitudOrigen());
+            model.addAttribute("distanciaKm", Math.round(d * 10.0) / 10.0);
+            // ETA: ~40 km/h en promedio para moto en zona rural
+            double etaMin = Math.round((d / 40.0) * 60.0);
+            model.addAttribute("etaMinutos", (int) etaMin);
+        } else {
+            model.addAttribute("distanciaKm", null);
+            model.addAttribute("etaMinutos", null);
+        }
+
+        return "campesino_repartidor_info";
+    }
+
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371.0;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     // -------------------------------------------------------
@@ -313,7 +475,7 @@ public class CampesinoController {
     public String verLogistica(@PathVariable Long idDetalle, Model model, Authentication auth) {
         DetalleOrden detalle = detalleRepo.findById(idDetalle).orElseThrow();
         Orden orden = detalle.getOrden();
-        Usuario campesino = usuarioRepo.findByEmail(auth.getName()).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(auth.getName()).orElseThrow();
 
         // Prioridad 1: Ubicación exacta de la finca donde se registró el producto
         // Prioridad 2: Ubicación del campesino (perfil)
@@ -374,10 +536,10 @@ public class CampesinoController {
     @GetMapping("/informe")
     public String superInforme(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
         // 1. Obtener todas las ventas del campesino
-        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino, campesino.getId());
 
         // 2. Agrupar por producto (nombre, cantidad total, ingresos totales, precio promedio)
         Map<String, Map<String, Object>> porProducto = new LinkedHashMap<>();
@@ -479,7 +641,7 @@ public class CampesinoController {
     @GetMapping("/reputacion")
     public String verReputacion(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         
         List<Producto> productos = productoRepo.findByUsuario(campesino);
         
@@ -555,7 +717,7 @@ public class CampesinoController {
     @GetMapping("/inventario")
     public String verInventario(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         
         if (!"APROBADO".equals(campesino.getEstadoVerificacion())) {
             return "redirect:/campesino/verificacion";
@@ -598,7 +760,7 @@ public class CampesinoController {
         Map<String, Object> response = new HashMap<>();
         try {
             String email = auth.getName();
-            Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+            Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
             Producto producto = productoRepo.findById(id).orElseThrow();
             
             // Seguridad: verificar que el producto pertenece a este campesino
@@ -635,7 +797,7 @@ public class CampesinoController {
     @GetMapping("/perfil")
     public String verPerfil(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         
         List<Producto> productos = productoRepo.findByUsuario(campesino);
         
@@ -655,7 +817,7 @@ public class CampesinoController {
             Authentication auth) throws IOException {
             
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
         
         campesino.setDescripcionFinca(descripcionFinca);
         campesino.setNombreFinca(nombreFinca);
@@ -697,14 +859,25 @@ public class CampesinoController {
     }
 
     // -------------------------------------------------------
+    // MI PERFIL / MI FINCA — Edición web (consume API REST)
+    // -------------------------------------------------------
+    @GetMapping("/mi-finca")
+    public String miFinca(Model model, Authentication auth) {
+        String email = auth.getName();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
+        model.addAttribute("usuario", campesino);
+        return "campesino_mi_finca";
+    }
+
+    // -------------------------------------------------------
     // AGROWALLET — HISTORIAL FINANCIERO
     // -------------------------------------------------------
     @GetMapping("/finanzas")
     public String verFinanzas(Model model, Authentication auth) {
         String email = auth.getName();
-        Usuario campesino = usuarioRepo.findByEmail(email).orElseThrow();
+        Usuario campesino = usuarioRepo.findFirstByEmail(email).orElseThrow();
 
-        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino);
+        List<DetalleOrden> ventas = detalleRepo.findVentasByCampesino(campesino, campesino.getId());
 
         // --- CÁLCULOS FINANCIEROS ---
         double ingresosBrutos = 0;
@@ -840,6 +1013,23 @@ public class CampesinoController {
         }
 
         return "campesino_finanzas";
+    }
+
+    // Backfill: poblar campesinoId en registros existentes (ejecutar UNA vez)
+    @Transactional
+    @GetMapping("/admin/backfill-campesino-id")
+    @ResponseBody
+    public String backfillCampesinoId() {
+        List<DetalleOrden> todos = detalleRepo.findAll();
+        int fixed = 0;
+        for (DetalleOrden d : todos) {
+            if (d.getCampesinoId() == null && d.getProducto() != null && d.getProducto().getUsuario() != null) {
+                d.setCampesinoId(d.getProducto().getUsuario().getId());
+                detalleRepo.save(d);
+                fixed++;
+            }
+        }
+        return "Backfill completado: " + fixed + " registros actualizados";
     }
 
 }

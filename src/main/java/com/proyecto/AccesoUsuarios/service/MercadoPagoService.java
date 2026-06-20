@@ -18,8 +18,9 @@ import java.util.List;
 @Service
 public class MercadoPagoService {
 
-    // Token simulado entregado para el sandbox
-    private String accessToken = "TEST-858847077141020-041322-81b6fc80e7d9503c2a5b2b4616aaaffb-741531223";
+    private String accessToken = System.getenv("MERCADOPAGO_ACCESS_TOKEN") != null
+            ? System.getenv("MERCADOPAGO_ACCESS_TOKEN")
+            : System.getProperty("MERCADOPAGO_ACCESS_TOKEN", "");
 
     @PostConstruct
     public void init() {

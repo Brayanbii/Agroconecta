@@ -1,0 +1,57 @@
+# Maven build output
+target/
+
+# Git
+.git/
+.gitattributes
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+.project
+.classpath
+.factorypath
+.sts4-cache
+.springBeans
+
+# Android apps (no necesarias para el backend)
+AgroConecta/
+AgroconectaGo/
+
+# Python microservicio (independiente)
+agro_servicio_python/
+
+# Scripts y documentación
+scripts_utiles/
+*.md
+*.txt
+TODO.md
+compile_log.txt
+cookies.txt
+output_sipsa.txt
+append_loc.txt
+THYMELEAF_ERROR.txt
+
+# Imágenes subidas por usuarios (se montan como volumen en producción)
+images/
+
+# Node
+node_modules/
+
+# Gradle (solo apps Android)
+*.gradle
+gradle/
+gradlew
+gradlew.bat
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gemini / misc
+.gemini/
+.local/

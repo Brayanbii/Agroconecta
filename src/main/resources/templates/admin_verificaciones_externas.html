@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Verificaciones Externas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .verify-card { transition: all 0.3s ease; }
+        .verify-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body class="bg-[#f8fafc] flex h-screen overflow-hidden text-gray-800 font-sans antialiased">
+
+<div class="flex h-screen overflow-hidden w-full">
+
+    <div th:replace="fragments/admin_sidebar :: sidebar('externas')"></div>
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <div class="px-6 md:px-10 pb-10 w-full">
+            <header class="h-24 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">AgroConecta Admin</p>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Verificaciones Externas</h1>
+                </div>
+                <span class="text-xs bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-lg">
+                    <i class="fas fa-shield-alt mr-1"></i>Herramientas de verificacion
+                </span>
+            </header>
+
+            <p class="text-gray-500 text-sm mt-2 mb-8">Consulta bases de datos oficiales del gobierno colombiano para validar la identidad, antecedentes y estado del vehiculo de los repartidores.</p>
+
+            <!-- SECCION 1: IDENTIDAD Y ANTECEDENTES -->
+            <h2 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><i class="fas fa-user-shield text-blue-600 text-sm"></i></span>
+                Verificacion de Identidad y Antecedentes
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <!-- 1. Antecedentes Policia -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-blue-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-building-shield text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Antecedentes Judiciales</h3>
+                            <p class="text-xs text-gray-400">Policia Nacional de Colombia</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Antecedentes judiciales</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Numero de cedula</p>
+                    </div>
+                    <a href="https://antecedentes.policia.gov.co:7005/WebJudicial/" target="_blank"
+                       class="block w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar Antecedentes
+                    </a>
+                </div>
+
+                <!-- 2. Procuraduria -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-indigo-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-gavel text-indigo-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Antecedentes Disciplinarios</h3>
+                            <p class="text-xs text-gray-400">Procuraduria General de la Nacion</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Sanciones disciplinarias</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Antecedentes fiscales y penales</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Numero de cedula</p>
+                    </div>
+                    <a href="https://www.procuraduria.gov.co/Pages/consulta-certificados.aspx" target="_blank"
+                       class="block w-full py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar Procuraduria
+                    </a>
+                </div>
+
+                <!-- 3. RNMC -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-purple-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-file-pen text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Medidas Correctivas</h3>
+                            <p class="text-xs text-gray-400">RNMC - Registro Nacional</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Multas del Codigo de Policia</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Medidas correctivas</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Numero de cedula</p>
+                    </div>
+                    <a href="https://srvcnpc.policia.gov.co/PSC/frm_cnp_consulta.aspx" target="_blank"
+                       class="block w-full py-2.5 bg-purple-500 hover:bg-purple-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar RNMC
+                    </a>
+                </div>
+            </div>
+
+            <!-- SECCION 2: VERIFICACION DELIVERY -->
+            <h2 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center"><i class="fas fa-motorcycle text-cyan-600 text-sm"></i></span>
+                Verificacion del Vehiculo y Conductor
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <!-- 4. RUNT Conductor -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-cyan-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-id-card text-cyan-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Estado del Conductor</h3>
+                            <p class="text-xs text-gray-400">RUNT - MinTransporte</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Licencia de conduccion</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Categorias habilitadas</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Estado del conductor</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Numero de cedula</p>
+                    </div>
+                    <a href="https://portalpublico.runt.gov.co/#/consulta-ciudadano-documento/consulta/consulta-ciudadano-documento" target="_blank"
+                       class="block w-full py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar RUNT Conductor
+                    </a>
+                </div>
+
+                <!-- 5. RUNT Vehiculo -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-teal-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-car text-teal-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Vehiculo por Placa</h3>
+                            <p class="text-xs text-gray-400">RUNT - MinTransporte</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Marca, modelo, clase</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Estado del SOAT</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Revision tecnico-mecanica</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Placa del vehiculo</p>
+                    </div>
+                    <a href="https://portalpublico.runt.gov.co/#/consulta-vehiculo/consulta/consulta-ciudadana" target="_blank"
+                       class="block w-full py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar RUNT Vehiculo
+                    </a>
+                </div>
+
+                <!-- 6. SIMIT -->
+                <div class="verify-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:border-orange-300">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-ticket text-orange-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 mb-1">Multas de Transito</h3>
+                            <p class="text-xs text-gray-400">SIMIT - Federacion de Municipios</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600 mb-4">
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Comparendos pendientes</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Deudas de transito</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Estado de multas</p>
+                        <p><i class="fas fa-check-circle text-green-500 w-4"></i> Requiere: Cedula o placa</p>
+                    </div>
+                    <a href="https://www.fcm.org.co/simit/" target="_blank"
+                       class="block w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-center font-bold rounded-xl transition text-sm">
+                        <i class="fas fa-search mr-2"></i>Consultar SIMIT
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info footer -->
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 mt-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-info-circle text-amber-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-sm mb-1">Informacion importante</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            Estas herramientas consultan bases de datos oficiales del gobierno colombiano en tiempo real.
+                            Los enlaces abren los portales oficiales en una nueva pestana del navegador.
+                            La informacion obtenida debe ser verificada manualmente por el administrador.
+                            AgroConecta no almacena ni modifica los datos consultados en estas plataformas externas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

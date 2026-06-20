@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - KYC Repartidores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        #lightbox { transition: opacity 0.3s; }
+        #lightbox.active { opacity: 1; pointer-events: all; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] flex h-screen overflow-hidden text-gray-800 font-sans antialiased">
+
+<div class="flex h-screen overflow-hidden w-full">
+<div th:replace="fragments/admin_sidebar :: sidebar('delivery')"></div>
+
+<main class="flex-1 flex flex-col h-screen overflow-y-auto">
+<div class="px-6 md:px-10 pb-10 w-full">
+    <header class="h-24 flex items-center justify-between">
+        <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">AgroConecta Admin</p><h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">KYC Repartidores</h1></div>
+        <span class="text-xs bg-amber-100 text-amber-700 font-bold px-3 py-1.5 rounded-lg" th:text="${pendientesCount + ' pendientes'}">0</span>
+    </header>
+
+    <div class="space-y-8 mt-4">
+        <div th:if="${param.aprobado}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2"><i class="fas fa-check-circle"></i>Repartidor aprobado.</div>
+        <div th:if="${param.rechazado}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2"><i class="fas fa-times-circle"></i>Repartidor rechazado, se le notificara.</div>
+
+        <h2 class="text-base font-semibold text-gray-800 mb-4"><i class="fas fa-clock text-amber-500 mr-2"></i>Solicitudes Pendientes</h2>
+        <div th:if="${pendientesCount == 0}" class="bg-white rounded-xl border border-gray-200 p-12 text-center"><i class="fas fa-motorcycle text-5xl text-gray-300 mb-4 block"></i><p class="text-gray-500 font-medium">No hay solicitudes pendientes</p></div>
+
+        <th:block th:each="r : ${repartidores}">
+        <div th:if="${r.estadoVerificacion == 'EN_REVISION'}" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col md:flex-row justify-between gap-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 font-bold"><i class="fas fa-motorcycle"></i></div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg" th:text="${r.nombreCompleto}">Nombre</h3>
+                        <p class="text-sm text-gray-500" th:text="${r.email}">Email</p>
+                    </div>
+                    <span class="ml-auto bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full">EN REVISION</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                    <span><i class="fas fa-phone text-gray-400 w-4"></i> <strong th:text="${r.telefono != null ? r.telefono : 'N/A'}"></strong></span>
+                    <span><i class="fas fa-map-marker-alt text-gray-400 w-4"></i> <strong th:text="${r.municipioOrigen != null ? r.municipioOrigen : 'Sin zona'}"></strong></span>
+                    <span th:if="${r.tipoVehiculo != null}"><i class="fas fa-motorcycle text-gray-400 w-4"></i> <strong th:text="${r.tipoVehiculo}"></strong></span>
+                    <span th:if="${r.placaVehiculo != null}"><i class="fas fa-ticket text-gray-400 w-4"></i> <strong th:text="${r.placaVehiculo}"></strong></span>
+                </div>
+                <div class="flex gap-2 mt-2 flex-wrap">
+                    <span th:if="${r.marcaVehiculo != null}" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded" th:text="${r.marcaVehiculo}"></span>
+                    <span th:if="${r.modeloVehiculo != null}" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded" th:text="${r.modeloVehiculo}"></span>
+                    <span th:if="${r.anioVehiculo != null}" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded" th:text="'Ano '+${r.anioVehiculo}"></span>
+                    <span th:if="${r.colorVehiculo != null}" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded" th:text="${r.colorVehiculo}"></span>
+                    <span th:if="${r.capacidadCargaKg != null and r.capacidadCargaKg > 0}" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded" th:text="${r.capacidadCargaKg + ' kg'}"></span>
+                </div>
+            </div>
+            <div class="flex gap-2 self-end">
+                <button class="py-2.5 px-5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition btn-revisar"
+                    th:data-id="${r.id}" th:data-nombre="${r.nombreCompleto}"
+                    th:data-email="${r.email}" th:data-tel="${r.telefono != null ? r.telefono : 'N/A'}"
+                    th:data-zona="${r.municipioOrigen != null ? r.municipioOrigen : 'Sin zona'}"
+                    th:data-cedula="${r.numeroIdentidad != null ? r.numeroIdentidad : 'N/A'}"
+                    th:data-tipoveh="${r.tipoVehiculo != null ? r.tipoVehiculo : ''}"
+                    th:data-marca="${r.marcaVehiculo != null ? r.marcaVehiculo : ''}"
+                    th:data-modelo="${r.modeloVehiculo != null ? r.modeloVehiculo : ''}"
+                    th:data-placa="${r.placaVehiculo != null ? r.placaVehiculo : 'N/A'}"
+                    th:data-anio="${r.anioVehiculo != null ? '' + r.anioVehiculo : '0'}"
+                    th:data-color="${r.colorVehiculo != null ? r.colorVehiculo : 'N/A'}"
+                    th:data-carga="${r.capacidadCargaKg != null ? '' + r.capacidadCargaKg : '0'}"
+                    th:data-licencia="${r.licenciaConduccion != null ? r.licenciaConduccion : 'N/A'}"
+                    th:data-doc_licenciaf="${r.fotoLicenciaFrontalUrl != null ? r.fotoLicenciaFrontalUrl : ''}"
+                    th:data-doc_licenciat="${r.fotoLicenciaTraseraUrl != null ? r.fotoLicenciaTraseraUrl : ''}"
+                    th:data-doc_tarjeta="${r.fotoTarjetaPropiedadUrl != null ? r.fotoTarjetaPropiedadUrl : ''}"
+                    th:data-doc_soat="${r.fotoSOATUrl != null ? r.fotoSOATUrl : ''}"
+                    th:data-doc_tecno="${r.fotoTecnomecanicaUrl != null ? r.fotoTecnomecanicaUrl : ''}"
+                    th:data-doc_perfil="${r.fotoPerfil != null ? r.fotoPerfil : ''}"
+                    th:data-doc_cedula="${r.fotoCedulaUrl != null ? r.fotoCedulaUrl : ''}">
+                    <i class="fas fa-search mr-2"></i>Revisar Docs
+                </button>
+            </div>
+        </div>
+        </th:block>
+
+        <h2 class="text-base font-semibold text-gray-800 mt-12 mb-4 border-t pt-8">Historial</h2>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="text-[11px] text-gray-500 uppercase bg-transparent"><tr><th class="px-6 py-4">Repartidor</th><th class="px-6 py-4">Zona / Vehiculo</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4 text-center">Acciones</th></tr></thead>
+                <tbody>
+                    <tr th:each="r : ${repartidores}" th:if="${r.estadoVerificacion != 'EN_REVISION'}" class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 text-xs font-bold"><i class="fas fa-motorcycle"></i></div><div><span th:text="${r.nombreCompleto}"></span><br><span class="text-xs text-gray-400" th:text="${r.email}"></span></div></div></td>
+                        <td class="px-6 py-4"><span th:text="${r.municipioOrigen != null ? r.municipioOrigen : 'Sin zona'}"></span><span th:if="${r.tipoVehiculo != null}" class="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded" th:text="${r.tipoVehiculo}"></span></td>
+                        <td class="px-6 py-4">
+                            <span th:if="${r.estadoVerificacion == 'APROBADO'}" class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-green-200">Aprobado</span>
+                            <span th:if="${r.estadoVerificacion == 'RECHAZADO'}" class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-200">Rechazado</span>
+                            <span th:if="${r.estadoVerificacion == 'VETADO'}" class="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-orange-200"><i class="fas fa-ban mr-1"></i>Vetado</span>
+                            <span th:if="${r.estadoVerificacion == 'PENDIENTE_DATOS'}" class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">Pendiente</span>
+                        </td>
+                        <td class="px-6 py-4 text-center flex items-center justify-center gap-2 flex-wrap">
+                            <button class="text-blue-600 hover:text-blue-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50 transition btn-revisar"
+                                th:data-id="${r.id}" th:data-nombre="${r.nombreCompleto}"
+                                th:data-email="${r.email}" th:data-tel="${r.telefono != null ? r.telefono : 'N/A'}"
+                                th:data-zona="${r.municipioOrigen != null ? r.municipioOrigen : 'Sin zona'}"
+                                th:data-cedula="${r.numeroIdentidad != null ? r.numeroIdentidad : 'N/A'}"
+                                th:data-tipoveh="${r.tipoVehiculo != null ? r.tipoVehiculo : ''}"
+                                th:data-marca="${r.marcaVehiculo != null ? r.marcaVehiculo : ''}"
+                                th:data-modelo="${r.modeloVehiculo != null ? r.modeloVehiculo : ''}"
+                                th:data-placa="${r.placaVehiculo != null ? r.placaVehiculo : 'N/A'}"
+                                th:data-anio="${r.anioVehiculo != null ? '' + r.anioVehiculo : '0'}"
+                                th:data-color="${r.colorVehiculo != null ? r.colorVehiculo : 'N/A'}"
+                                th:data-carga="${r.capacidadCargaKg != null ? '' + r.capacidadCargaKg : '0'}"
+                                th:data-licencia="${r.licenciaConduccion != null ? r.licenciaConduccion : 'N/A'}"
+                                th:data-doc_licenciaf="${r.fotoLicenciaFrontalUrl != null ? r.fotoLicenciaFrontalUrl : ''}"
+                                th:data-doc_licenciat="${r.fotoLicenciaTraseraUrl != null ? r.fotoLicenciaTraseraUrl : ''}"
+                                th:data-doc_tarjeta="${r.fotoTarjetaPropiedadUrl != null ? r.fotoTarjetaPropiedadUrl : ''}"
+                                th:data-doc_soat="${r.fotoSOATUrl != null ? r.fotoSOATUrl : ''}"
+                                th:data-doc_tecno="${r.fotoTecnomecanicaUrl != null ? r.fotoTecnomecanicaUrl : ''}"
+                                th:data-doc_perfil="${r.fotoPerfil != null ? r.fotoPerfil : ''}"
+                                th:data-doc_cedula="${r.fotoCedulaUrl != null ? r.fotoCedulaUrl : ''}">
+                                <i class="fas fa-eye mr-1"></i>Ver
+                            </button>
+                            <form th:if="${r.estadoVerificacion == 'APROBADO'}" th:action="@{|/admin/usuarios/verificaciones-delivery/vetar/${r.id}|}" method="POST" class="inline" onsubmit="return confirmarVetar(event)"><button class="text-orange-500 hover:text-orange-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-orange-200 hover:bg-orange-50 transition"><i class="fas fa-ban mr-1"></i>Vetar</button></form>
+                            <form th:if="${r.estadoVerificacion == 'VETADO' or r.estadoVerificacion == 'RECHAZADO'}" th:action="@{|/admin/usuarios/verificaciones-delivery/reactivar/${r.id}|}" method="POST" class="inline"><button class="text-green-600 hover:text-green-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-green-200 hover:bg-green-50 transition"><i class="fas fa-undo mr-1"></i>Reactivar</button></form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</main>
+</div>
+
+<!-- ═══════════ MODAL DE REVISION ═══════════ -->
+<div id="reviewModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="cerrarReview()"></div>
+    <div class="absolute inset-4 md:inset-8 bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10">
+        <div class="bg-gray-900 px-6 py-4 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-3"><i class="fas fa-motorcycle text-cyan-400 text-xl"></i><h2 id="modalTitle" class="text-white font-extrabold text-xl">Cargando...</h2></div>
+            <button onclick="cerrarReview()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col lg:flex-row gap-6" id="modalContent"></div>
+        <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex-shrink-0 flex gap-3 justify-end">
+            <form id="formAprobar" method="POST" class="m-0"><button class="py-2.5 px-8 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition"><i class="fas fa-check mr-2"></i>Aprobar Todo</button></form>
+            <button onclick="mostrarFormRechazo()" class="py-2.5 px-8 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition"><i class="fas fa-times mr-2"></i>Rechazar Docs</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ LIGHTBOX ═══════════ -->
+<div id="lightbox" class="fixed inset-0 z-[100] hidden flex items-center justify-center" onclick="cerrarLightbox()">
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-md"></div>
+    <button onclick="cerrarLightbox()" class="absolute top-6 right-6 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-xl"><i class="fas fa-times"></i></button>
+    <img id="lightboxImg" src="" class="relative z-10 max-w-[95vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl" onclick="event.stopPropagation()" />
+</div>
+
+<script>
+    var currentUserId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-revisar').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                currentUserId = this.dataset.id;
+                document.getElementById('modalTitle').innerText = this.dataset.nombre;
+                document.getElementById('reviewModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                document.getElementById('formAprobar').action = '/admin/usuarios/verificaciones-delivery/aprobar/' + currentUserId;
+                cargarModal(this.dataset);
+            });
+        });
+    });
+
+    function cerrarReview() {
+        document.getElementById('reviewModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function cargarModal(d) {
+        var docs = [
+            {label:'Licencia Frente', url:d.doc_licenciaf},
+            {label:'Licencia Trasera', url:d.doc_licenciat},
+            {label:'Tarjeta Propiedad', url:d.doc_tarjeta},
+            {label:'SOAT', url:d.doc_soat},
+            {label:'Tecnomecanica', url:d.doc_tecno},
+            {label:'Foto Perfil', url:d.doc_perfil},
+            {label:'Cedula', url:d.doc_cedula}
+        ];
+
+        var html = '<div class="lg:w-1/3 space-y-4">';
+
+        html += '<div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">';
+        html += '<h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Datos Personales</h4>';
+        html += '<div class="space-y-2 text-sm">';
+        html += '<p><i class="fas fa-user text-gray-400 w-5"></i> <strong>' + (d.nombre || '') + '</strong></p>';
+        html += '<p><i class="fas fa-envelope text-gray-400 w-5"></i> ' + (d.email || '') + '</p>';
+        html += '<p><i class="fas fa-phone text-gray-400 w-5"></i> ' + (d.tel || 'N/A') + '</p>';
+        html += '<p><i class="fas fa-id-card text-gray-400 w-5"></i> ' + (d.cedula || 'N/A') + '</p>';
+        html += '<p><i class="fas fa-map-marker-alt text-gray-400 w-5"></i> ' + (d.zona || 'Sin zona') + '</p>';
+        html += '</div></div>';
+
+        html += '<div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">';
+        html += '<h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vehiculo</h4>';
+        html += '<div class="space-y-2 text-sm">';
+        html += '<p><i class="fas fa-motorcycle text-gray-400 w-5"></i> <strong>' + (d.tipoveh || 'No especificado') + '</strong></p>';
+        html += '<p><i class="fas fa-ticket text-gray-400 w-5"></i> Placa: <strong>' + (d.placa || 'N/A') + '</strong></p>';
+        html += '<p><i class="fas fa-industry text-gray-400 w-5"></i> ' + (d.marca || '') + ' ' + (d.modelo || '') + '</p>';
+        html += '<p><i class="fas fa-calendar text-gray-400 w-5"></i> Ano: ' + (d.anio || 'N/A') + '</p>';
+        html += '<p><i class="fas fa-palette text-gray-400 w-5"></i> Color: ' + (d.color || 'N/A') + '</p>';
+        html += '<p><i class="fas fa-weight-hanging text-gray-400 w-5"></i> Carga: ' + (d.carga || '0') + ' kg</p>';
+        html += '<p><i class="fas fa-id-badge text-gray-400 w-5"></i> Licencia: ' + (d.licencia || 'N/A') + '</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="flex-1 flex flex-col">';
+        html += '<div class="flex-1">';
+        html += '<h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Documentos (Click para zoom)</h4>';
+        html += '<div class="grid grid-cols-2 md:grid-cols-3 gap-3">';
+        for (var i = 0; i < docs.length; i++) {
+            var doc = docs[i];
+            html += '<div class="bg-gray-100 rounded-xl border border-gray-200 overflow-hidden">';
+            html += '<p class="text-[10px] font-bold text-gray-500 px-3 py-2 bg-gray-200">' + doc.label + '</p>';
+            if (doc.url && doc.url !== '') {
+                html += '<div class="h-52 flex items-center justify-center cursor-pointer" onclick="abrirLightbox(\'/images/' + doc.url + '\')"><img src="/images/' + doc.url + '" class="w-full h-full object-cover hover:scale-105 transition" onerror="this.parentElement.innerHTML=\'<span class=text-gray-400>No disponible</span>\'" /></div>';
+            } else {
+                html += '<div class="h-52 flex items-center justify-center"><span class="text-red-400 text-xs font-bold"><i class="fas fa-exclamation-triangle mr-1"></i>Falta por subir</span></div>';
+            }
+            html += '</div>';
+        }
+        html += '</div></div>';
+
+        html += '<div class="mt-4 pt-3 border-t border-gray-200 text-center">';
+        html += '<button onclick="abrirVerificacionesExternas()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-400 text-blue-700 font-bold rounded-xl transition text-sm shadow-sm">';
+        html += '<i class="fas fa-shield-alt"></i> Verificaciones Externas';
+        html += '<span class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full">6</span>';
+        html += '</button>';
+        html += '<p class="text-[9px] text-gray-400 mt-1">Policia · Procuraduria · RNMC · RUNT · SIMIT</p>';
+        html += '</div></div>';
+
+        document.getElementById('modalContent').innerHTML = html;
+    }
+
+    function mostrarFormRechazo() {
+        var docsList = [
+            {id:'licencia_frontal', label:'Licencia Frontal'},
+            {id:'licencia_trasera', label:'Licencia Trasera'},
+            {id:'tarjeta_propiedad', label:'Tarjeta Propiedad'},
+            {id:'soat', label:'SOAT'},
+            {id:'perfil', label:'Foto Perfil'},
+            {id:'tecnomecanica', label:'Tecnomecanica'}
+        ];
+        var rows = '';
+        docsList.forEach(function(doc) {
+            rows += '<div class="flex items-start gap-3 py-2 border-b border-gray-100">';
+            rows += '<input type="checkbox" id="chk_'+doc.id+'" value="'+doc.id+'" class="doc-reject mt-1">';
+            rows += '<div class="flex-1">';
+            rows += '<label for="chk_'+doc.id+'" class="text-sm font-medium cursor-pointer">'+doc.label+'</label>';
+            rows += '<input type="text" id="motivo_'+doc.id+'" class="w-full border border-gray-300 rounded-lg p-2 text-xs mt-1 motivo-input" placeholder="Motivo del rechazo para '+doc.label+'..." disabled>';
+            rows += '</div></div>';
+        });
+
+        Swal.fire({
+            title: 'Rechazar por documento',
+            html: '<div class="text-left">'+
+                '<p class="text-sm text-gray-500 mb-3">Selecciona cada documento a rechazar y escribe el motivo:</p>'+
+                '<div class="max-h-80 overflow-y-auto">'+rows+'</div></div>',
+            showCancelButton: true, confirmButtonText: 'Enviar rechazos', cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ef4444', cancelButtonColor: '#e5e7eb',
+            width: '42rem',
+            didOpen: function() {
+                // Enable/disable motivo inputs based on checkbox
+                document.querySelectorAll('.doc-reject').forEach(function(cb) {
+                    cb.addEventListener('change', function() {
+                        document.getElementById('motivo_'+this.value).disabled = !this.checked;
+                        if (!this.checked) document.getElementById('motivo_'+this.value).value = '';
+                    });
+                });
+            },
+            preConfirm: function() {
+                var rechazos = {};
+                document.querySelectorAll('.doc-reject:checked').forEach(function(cb) {
+                    var motivo = document.getElementById('motivo_'+cb.value).value.trim();
+                    if (!motivo) motivo = 'Documento no valido';
+                    rechazos[cb.value] = motivo;
+                });
+                if (Object.keys(rechazos).length === 0) { Swal.showValidationMessage('Selecciona al menos un documento'); return false; }
+                return JSON.stringify(rechazos);
+            }
+        }).then(function(r) {
+            if (r.isConfirmed) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/usuarios/verificaciones-delivery/rechazar/' + currentUserId;
+                var i = document.createElement('input'); i.type='hidden'; i.name='rechazos'; i.value=r.value; form.appendChild(i);
+                document.body.appendChild(form); form.submit();
+            }
+        });
+    }
+
+    function abrirLightbox(src) {
+        document.getElementById('lightboxImg').src = src;
+        var lb = document.getElementById('lightbox');
+        lb.classList.remove('hidden'); lb.classList.add('active');
+    }
+    function cerrarLightbox() {
+        var lb = document.getElementById('lightbox');
+        lb.classList.add('hidden'); lb.classList.remove('active');
+    }
+    document.addEventListener('keydown', function(e) { if(e.key==='Escape'){cerrarLightbox();cerrarReview();} });
+    function confirmarVetar(ev){ev.preventDefault();Swal.fire({title:'Vetar repartidor?',text:'Bloqueara su acceso.',icon:'warning',showCancelButton:true,confirmButtonText:'Si, vetar',confirmButtonColor:'#f97316'}).then(function(r){if(r.isConfirmed)ev.target.closest('form').submit();});return false;}
+
+    function abrirVerificacionesExternas() {
+        var iden = [
+            { icon:'building-shield',color:'#2563eb',bg:'#eff6ff',border:'#bfdbfe',
+              title:'Antecedentes Judiciales',sub:'Policia Nacional de Colombia',
+              desc:'Antecedentes judiciales registrados en el sistema de la Policia Nacional.',
+              dato:'Cedula',url:'https://antecedentes.policia.gov.co:7005/WebJudicial/' },
+            { icon:'scale-balanced',color:'#4f46e5',bg:'#eef2ff',border:'#c7d2fe',
+              title:'Antecedentes Disciplinarios',sub:'Procuraduria General de la Nacion',
+              desc:'Sanciones disciplinarias, antecedentes fiscales, penales y contractuales.',
+              dato:'Cedula',url:'https://www.procuraduria.gov.co/Pages/consulta-certificados.aspx' },
+            { icon:'file-lines',color:'#9333ea',bg:'#faf5ff',border:'#e9d5ff',
+              title:'Medidas Correctivas',sub:'RNMC - Registro Nacional de Medidas Correctivas',
+              desc:'Multas y medidas correctivas del Codigo Nacional de Policia.',
+              dato:'Cedula',url:'https://srvcnpc.policia.gov.co/PSC/frm_cnp_consulta.aspx' }
+        ];
+        var vehic = [
+            { icon:'id-card',color:'#0891b2',bg:'#ecfeff',border:'#a5f3fc',
+              title:'Estado del Conductor',sub:'RUNT - MinTransporte',
+              desc:'Licencia de conduccion, categorias habilitadas y estado del conductor.',
+              dato:'Cedula',url:'https://portalpublico.runt.gov.co/#/consulta-ciudadano-documento/consulta/consulta-ciudadano-documento' },
+            { icon:'car-side',color:'#0d9488',bg:'#f0fdfa',border:'#99f6e4',
+              title:'Vehiculo por Placa',sub:'RUNT - MinTransporte',
+              desc:'Marca, modelo, clase, estado del SOAT y revision tecnico-mecanica.',
+              dato:'Placa',url:'https://portalpublico.runt.gov.co/#/consulta-vehiculo/consulta/consulta-ciudadana' },
+            { icon:'ticket-simple',color:'#ea580c',bg:'#fff7ed',border:'#fed7aa',
+              title:'Multas de Transito',sub:'SIMIT - Federacion Colombiana de Municipios',
+              desc:'Comparendos pendientes, deudas y estado de multas de transito.',
+              dato:'Cedula o Placa',url:'https://www.fcm.org.co/simit/' }
+        ];
+
+        function cardRow(l){ return '<div style="display:flex;align-items:center;gap:16px;padding:16px;margin-bottom:10px;border-radius:16px;background:'+l.bg+';border:1.5px solid '+l.border+';transition:all 0.2s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 8px 24px '+l.color+'20\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'none\'">'
+            +'<div style="width:48px;height:48px;border-radius:14px;background:'+l.color+';display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 16px '+l.color+'50">'
+            +'<i class="fas fa-'+l.icon+'" style="color:white;font-size:20px"></i></div>'
+            +'<div style="flex:1;min-width:0">'
+            +'<p style="font-weight:800;font-size:14px;margin:0 0 2px 0;color:#0f172a">'+l.title+'</p>'
+            +'<p style="font-size:11px;font-weight:600;color:'+l.color+';margin:0 0 4px 0">'+l.sub+'</p>'
+            +'<p style="font-size:11px;color:#64748b;margin:0 0 6px 0;line-height:1.4">'+l.desc+'</p>'
+            +'<span style="display:inline-flex;align-items:center;gap:4px;background:white;border:1px solid #e2e8f0;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;color:#64748b"><i class="fas fa-key" style="font-size:8px"></i> '+l.dato+'</span></div>'
+            +'<a href="'+l.url+'" target="_blank" style="padding:10px 18px;background:'+l.color+';color:white;border-radius:12px;font-weight:700;font-size:12px;text-decoration:none;white-space:nowrap;box-shadow:0 4px 12px '+l.color+'40;transition:all 0.2s;display:flex;align-items:center;gap:6px;flex-shrink:0" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"><i class="fas fa-external-link-alt"></i>Consultar</a>'
+            +'</div>'; }
+
+        var html = '';
+        html += '<div style="text-align:left;margin-bottom:16px"><span style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#2563eb;padding:6px 14px;border-radius:20px;font-weight:700;font-size:12px"><i class="fas fa-user-shield"></i> Identidad y Antecedentes</span></div>';
+        iden.forEach(function(l){ html += cardRow(l); });
+        html += '<div style="text-align:left;margin:20px 0 16px"><span style="display:inline-flex;align-items:center;gap:6px;background:#ecfeff;color:#0891b2;padding:6px 14px;border-radius:20px;font-weight:700;font-size:12px"><i class="fas fa-motorcycle"></i> Conductor y Vehiculo</span></div>';
+        vehic.forEach(function(l){ html += cardRow(l); });
+
+        Swal.fire({
+            title: '<i class="fas fa-shield-alt" style="color:#2563eb"></i> Verificaciones Externas',
+            html: '<p style="font-size:13px;color:#64748b;margin:0 0 16px 0;line-height:1.5">Consulta bases de datos oficiales del gobierno colombiano para validar la identidad, antecedentes y estado del vehiculo del repartidor. Todos los enlaces abren en nueva pestana.</p>'
+                + '<div style="max-height:440px;overflow-y:auto;padding-right:4px">'+html+'</div>'
+                + '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:flex-start;gap:8px">'
+                + '<i class="fas fa-info-circle" style="color:#94a3b8;margin-top:1px;font-size:12px"></i>'
+                + '<p style="font-size:10px;color:#94a3b8;margin:0;line-height:1.5">AgroConecta no almacena, modifica ni comparte los datos consultados en estas plataformas externas. Las consultas se realizan directamente en los portales oficiales del gobierno colombiano. El administrador es responsable de verificar manualmente la informacion obtenida.</p></div>',
+            width: '50rem',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl' }
+        });
+    }
+</script>
+</body>
+</html>

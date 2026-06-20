@@ -1,18 +1,20 @@
 package com.proyecto.AccesoUsuarios.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.proyecto.AccesoUsuarios.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Método original (lo dejamos por si acaso)
     Optional<Usuario> findByUserName(String username);
     
-    // NUEVO MÉTODO: Buscar por Email
-    Optional<Usuario> findByEmail(String email);
+    List<Usuario> findAllByEmail(String email);
 
-    // NUEVO MÉTODO: Buscar por Teléfono
+    Optional<Usuario> findFirstByEmail(String email);
+
+    Optional<Usuario> findByEmailAndRol(String email, String rol);
+
     Optional<Usuario> findByTelefono(String telefono);
 
 }

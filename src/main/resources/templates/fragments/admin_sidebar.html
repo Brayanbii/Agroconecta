@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar(activeTab)" class="w-[280px] bg-white border-r border-gray-100 flex-shrink-0 hidden md:flex flex-col z-20 shadow-xl shadow-gray-200/30">
+    <div class="h-24 flex items-center px-8">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-green-400 to-green-600 text-white w-10 h-10 rounded-xl shadow-lg shadow-green-500/40 flex items-center justify-center">
+                <i class="fas fa-leaf text-xl"></i>
+            </div>
+            <span class="text-2xl font-extrabold text-gray-800 tracking-tight">Agro<span class="text-green-600">Conecta</span></span>
+        </div>
+    </div>
+
+    <nav class="flex-1 py-6 space-y-2 px-6 overflow-y-auto">
+        <p class="px-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 mt-2">Plataforma Administrativa</p>
+
+        <a href="/admin/dashboard" class="nav-link flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group"
+            th:classappend="${activeTab == 'dashboard' ? 'bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100' : 'text-gray-500 hover:bg-green-50 hover:text-green-700'}">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                th:classappend="${activeTab == 'dashboard' ? 'bg-green-200/50' : 'bg-gray-100 group-hover:bg-green-100'}">
+                <i class="fas fa-chart-pie" th:classappend="${activeTab == 'dashboard' ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}"></i>
+            </div>
+            Dashboard
+        </a>
+
+        <a href="/admin/usuarios" class="nav-link flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group"
+            th:classappend="${activeTab == 'usuarios' ? 'bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100' : 'text-gray-500 hover:bg-green-50 hover:text-green-700'}">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                th:classappend="${activeTab == 'usuarios' ? 'bg-green-200/50' : 'bg-gray-100 group-hover:bg-green-100'}">
+                <i class="fas fa-users" th:classappend="${activeTab == 'usuarios' ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}"></i>
+            </div>
+            Usuarios
+        </a>
+
+        <a href="/admin/usuarios/verificaciones" class="nav-link flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group"
+            th:classappend="${activeTab == 'verificaciones' ? 'bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100' : 'text-gray-500 hover:bg-green-50 hover:text-green-700'}">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                th:classappend="${activeTab == 'verificaciones' ? 'bg-green-200/50' : 'bg-gray-100 group-hover:bg-green-100'}">
+                <i class="fas fa-id-card-clip" th:classappend="${activeTab == 'verificaciones' ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}"></i>
+            </div>
+            KYC Campesinos
+        </a>
+
+        <a href="/admin/usuarios/verificaciones-delivery" class="nav-link flex items-center gap-4 px-4 py-3.5 text-sm font-bold rounded-xl transition-all duration-300 group"
+            th:classappend="${activeTab == 'delivery' ? 'bg-green-50 text-green-700 shadow-sm ring-1 ring-green-100' : 'text-gray-500 hover:bg-green-50 hover:text-green-700'}">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                th:classappend="${activeTab == 'delivery' ? 'bg-green-200/50' : 'bg-gray-100 group-hover:bg-green-100'}">
+                <i class="fas fa-motorcycle" th:classappend="${activeTab == 'delivery' ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}"></i>
+            </div>
+            KYC Repartidores
+        </a>
+    </nav>
+
+    <div class="p-6">
+        <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-extrabold shadow-sm">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-800 truncate">Admin</p>
+                    <p class="text-xs text-gray-500 font-medium truncate">admin@agro.co</p>
+                </div>
+            </div>
+            <form action="/logout" method="post" class="m-0">
+                <button type="submit" title="Cerrar Sesion" class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all duration-300 flex items-center justify-center shadow-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+</body>
+</html>

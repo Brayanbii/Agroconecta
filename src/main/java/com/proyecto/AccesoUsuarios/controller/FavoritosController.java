@@ -13,8 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/favoritos")
@@ -38,7 +41,7 @@ public class FavoritosController {
             return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
         }
         
-        Usuario cliente = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario cliente = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         if (cliente == null) return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
         
         Usuario campesino = usuarioRepo.findById(id).orElse(null);
@@ -67,7 +70,7 @@ public class FavoritosController {
             return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
         }
         
-        Usuario cliente = usuarioRepo.findByEmail(auth.getName()).orElse(null);
+        Usuario cliente = usuarioRepo.findFirstByEmail(auth.getName()).orElse(null);
         if (cliente == null) return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
         
         Producto producto = productoRepo.findById(id).orElse(null);

@@ -37,7 +37,7 @@ public class Usuario {
     @NotEmpty(message = "El nombre completo es obligatorio")
     private String nombreCompleto;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @NotEmpty(message = "El correo es obligatorio")
     @Email(message = "Debe ser un correo válido")
     private String email;
@@ -74,10 +74,48 @@ public class Usuario {
     @Column(length = 1000)
     private String descripcionFinca;
 
+    // --- CAMPOS EXCLUSIVOS PARA REPARTIDORES (Delivery) ---
+    private String tipoVehiculo;         // MOTO, CAMIONETA, CAMION, MOTOCARGUERO
+    private String placaVehiculo;
+    private String marcaVehiculo;
+    private String modeloVehiculo;
+    private Integer anioVehiculo;
+    private Double capacidadCargaKg;     // kg que puede cargar
+    private String licenciaConduccion;   // B1, B2, C1, C2
+    private String colorVehiculo;
+    
+    // Documentos del repartidor (URLs de imagenes subidas)
+    @Column(length = 500)
+    private String fotoLicenciaFrontalUrl;
+    @Column(length = 500)
+    private String fotoLicenciaTraseraUrl;
+    @Column(length = 500)
+    private String fotoTarjetaPropiedadUrl;
+    @Column(length = 500)
+    private String fotoSOATUrl;
+    @Column(length = 500)
+    private String fotoTecnomecanicaUrl;
+
+    // Rechazo de documentos (JSON con los tipos de doc rechazados y motivo)
+    @Column(length = 1000)
+    private String motivoRechazo;
+
     // Coordenadas geográficas y ubicación (ubicación por defecto o finca del campesino)
     private Double latitud;
     private Double longitud;
     private String municipioOrigen;
+
+    // Tracking GPS repartidor
+    private java.time.LocalDateTime fechaUltimaUbicacion;
+    private Boolean disponible; // true = online, puede recibir viajes
+
+    // Reputacion del campesino (para auto-aceptar pedidos)
+    private Integer totalEntregas = 0;       // Total de ventas entregadas exitosamente
+    private Integer totalRechazos = 0;       // Total de pedidos rechazados
+    @Column(columnDefinition = "numeric(3,2) default 0.0")
+    private Double calificacionPromedio = 0.0; // Promedio de estrellas
+    private Boolean autoAceptar = false;     // Acepta pedidos automaticamente
+    private Boolean autoAceptarDisponible = false; // Desbloqueado al llegar a 30 entregas
 
     // --- RELACIONES PARA BORRADO EN CASCADA ---
 

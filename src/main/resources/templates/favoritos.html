@@ -164,10 +164,6 @@
                         </div>
                         
                         <div class="flex gap-2">
-                            <!-- Botón Vista Rápida -->
-                            <a th:href="@{/tienda/producto/{id}(id=${p.id})}" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 hover:text-gray-800 transition-all active:scale-95" title="Ver detalles">
-                                <i class="far fa-eye"></i>
-                            </a>
                             <!-- Botón Añadir al Carrito -->
                             <button type="button" th:data-id="${p.id}" th:data-nombre="${p.nombre}" th:data-stock="${p.stock}" onclick="añadirCarritoDesdeFavoritos(event, this)" class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 hover:bg-green-700 hover:scale-110 transition-all active:scale-95" th:disabled="${p.stock <= 0}" title="Añadir al carrito">
                                 <i th:class="${p.stock > 0} ? 'fas fa-plus text-sm' : 'fas fa-times-circle text-sm'"></i>
@@ -198,20 +194,8 @@
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-900 text-white pt-16 pb-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="flex justify-center items-center gap-2 mb-6">
-                <div class="bg-green-600 text-white p-1.5 rounded-lg">
-                    <i class="fas fa-leaf text-lg"></i>
-                </div>
-                <span class="text-2xl font-extrabold tracking-tight">AgroConecta</span>
-            </div>
-            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
-                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
-            </p>
-        </div>
-    </footer>
+    <!-- FOOTER INSTITUCIONAL -->
+    <div th:replace="fragments/footer :: footer"></div>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -101,9 +101,19 @@ public class PythonService {
         if (actualizando) return; // Ya hay otro hilo ejecutando
         actualizando = true;
         try {
-            // Asumiendo entorno de desarrollo/ejecución donde "python" está en el PATH
-            String scriptPath = "src/main/resources/python/sipsa_etl.py";
-            ProcessBuilder pb = new ProcessBuilder("python", scriptPath);
+            // Prioridad: producción (Render/Docker) → dev local
+            String[] paths = {"/app/sipsa_etl.py", "sipsa_etl.py", "src/main/resources/python/sipsa_etl.py"};
+            String scriptPath = null;
+            for (String p : paths) {
+                if (new java.io.File(p).exists()) {
+                    scriptPath = p;
+                    break;
+                }
+            }
+            if (scriptPath == null) {
+                scriptPath = paths[0]; // intentar con el primero aunque no exista
+            }
+            ProcessBuilder pb = new ProcessBuilder("python3", scriptPath);
             pb.redirectErrorStream(true);
             Process p = pb.start();
 

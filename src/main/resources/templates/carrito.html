@@ -294,20 +294,8 @@
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-gray-900 text-white pt-16 pb-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="flex justify-center items-center gap-2 mb-6">
-                <div class="bg-green-600 text-white p-1.5 rounded-lg">
-                    <i class="fas fa-leaf text-lg"></i>
-                </div>
-                <span class="text-2xl font-extrabold tracking-tight">AgroConecta</span>
-            </div>
-            <p class="text-gray-500 text-sm font-medium flex justify-center items-center gap-1">
-                &copy; 2025 AgroConecta. Hecho con <span class="text-red-500 animate-pulse">❤️</span> en 🇨🇴.
-            </p>
-        </div>
-    </footer>
+    <!-- FOOTER INSTITUCIONAL -->
+    <div th:replace="fragments/footer :: footer"></div>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

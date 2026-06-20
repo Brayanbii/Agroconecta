@@ -157,4 +157,63 @@ public class AdminUserController {
         usuarioRepo.save(campesino);
         return "redirect:/admin/usuarios/verificaciones?aprobado=true";
     }
+
+    // --- ECOSISTEMA DE VERIFICACIÓN DE REPARTIDORES (DELIVERY) ---
+
+    @GetMapping("/verificaciones-delivery")
+    public String listarRepartidores(Model model) {
+        List<Usuario> repartidores = usuarioRepo.findAll().stream()
+            .filter(u -> "REPARTIDOR".equals(u.getRol()))
+            .toList();
+
+        long pendientesCount = repartidores.stream()
+            .filter(u -> "EN_REVISION".equals(u.getEstadoVerificacion()))
+            .count();
+
+        model.addAttribute("repartidores", repartidores);
+        model.addAttribute("pendientesCount", pendientesCount);
+        return "admin_verificaciones_delivery";
+    }
+
+    @PostMapping("/verificaciones-delivery/aprobar/{id}")
+    public String aprobarRepartidor(@PathVariable Long id) {
+        Usuario repartidor = usuarioRepo.findById(id).orElseThrow();
+        repartidor.setEstadoVerificacion("APROBADO");
+        repartidor.setMotivoRechazo(null);
+        usuarioRepo.save(repartidor);
+        return "redirect:/admin/usuarios/verificaciones-delivery?aprobado=true";
+    }
+
+    @PostMapping("/verificaciones-delivery/rechazar/{id}")
+    public String rechazarRepartidor(@PathVariable Long id,
+            @RequestParam(defaultValue = "") String rechazos) {
+        Usuario repartidor = usuarioRepo.findById(id).orElseThrow();
+        repartidor.setEstadoVerificacion("RECHAZADO");
+        // rechazos es un JSON: {"licencia_frontal":"Foto borrosa","soat":"Vencido"}
+        repartidor.setMotivoRechazo(rechazos.isEmpty() ? null : rechazos);
+        usuarioRepo.save(repartidor);
+        return "redirect:/admin/usuarios/verificaciones-delivery?rechazado=true";
+    }
+
+    @PostMapping("/verificaciones-delivery/vetar/{id}")
+    public String vetarRepartidor(@PathVariable Long id) {
+        Usuario repartidor = usuarioRepo.findById(id).orElseThrow();
+        repartidor.setEstadoVerificacion("VETADO");
+        usuarioRepo.save(repartidor);
+        return "redirect:/admin/usuarios/verificaciones-delivery?vetado=true";
+    }
+
+    @PostMapping("/verificaciones-delivery/reactivar/{id}")
+    public String reactivarRepartidor(@PathVariable Long id) {
+        Usuario repartidor = usuarioRepo.findById(id).orElseThrow();
+        repartidor.setEstadoVerificacion("APROBADO");
+        usuarioRepo.save(repartidor);
+        return "redirect:/admin/usuarios/verificaciones-delivery?aprobado=true";
+    }
+
+    // --- VERIFICACIONES EXTERNAS ---
+    @GetMapping("/verificaciones-externas")
+    public String verificacionesExternas(Model model) {
+        return "admin_verificaciones_externas";
+    }
 }
