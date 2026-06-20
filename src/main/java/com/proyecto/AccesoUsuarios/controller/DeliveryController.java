@@ -9,13 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.proyecto.AccesoUsuarios.service.UploadFileService;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/delivery")
@@ -27,7 +23,8 @@ public class DeliveryController {
     @Autowired
     private AuthUsuarioService authUsuarioService;
 
-    private static final String UPLOAD_DIR = "images/";
+    @Autowired
+    private UploadFileService uploadService;
 
     @PutMapping("/perfil")
     public ResponseEntity<Map<String, Object>> actualizarPerfil(
@@ -85,30 +82,22 @@ public class DeliveryController {
         }
 
         try {
-            File dir = new File(UPLOAD_DIR);
-            if (!dir.exists()) dir.mkdirs();
-
-            String ext = archivo.getOriginalFilename() != null &&
-                archivo.getOriginalFilename().contains(".") ?
-                archivo.getOriginalFilename().substring(archivo.getOriginalFilename().lastIndexOf(".")) : ".jpg";
-            String nombreArchivo = "delivery_" + tipo + "_" + UUID.randomUUID().toString().substring(0, 8) + ext;
-            Path ruta = Paths.get(UPLOAD_DIR + nombreArchivo);
-            Files.write(ruta, archivo.getBytes());
+            String fileId = uploadService.saveImage(archivo);
 
             switch (tipo) {
-                case "licencia_frontal": usuario.setFotoLicenciaFrontalUrl(nombreArchivo); break;
-                case "licencia_trasera": usuario.setFotoLicenciaTraseraUrl(nombreArchivo); break;
-                case "tarjeta_propiedad": usuario.setFotoTarjetaPropiedadUrl(nombreArchivo); break;
-                case "soat": usuario.setFotoSOATUrl(nombreArchivo); break;
-                case "tecnomecanica": usuario.setFotoTecnomecanicaUrl(nombreArchivo); break;
-                case "perfil": usuario.setFotoPerfil(nombreArchivo); break;
-                case "cedula": usuario.setFotoCedulaUrl(nombreArchivo); break;
+                case "licencia_frontal": usuario.setFotoLicenciaFrontalUrl(fileId); break;
+                case "licencia_trasera": usuario.setFotoLicenciaTraseraUrl(fileId); break;
+                case "tarjeta_propiedad": usuario.setFotoTarjetaPropiedadUrl(fileId); break;
+                case "soat": usuario.setFotoSOATUrl(fileId); break;
+                case "tecnomecanica": usuario.setFotoTecnomecanicaUrl(fileId); break;
+                case "perfil": usuario.setFotoPerfil(fileId); break;
+                case "cedula": usuario.setFotoCedulaUrl(fileId); break;
                 default:
                     return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tipo de documento no valido"));
             }
 
             usuarioRepo.save(usuario);
-            return ResponseEntity.ok(Map.of("success", true, "url", nombreArchivo, "message", "Documento subido"));
+            return ResponseEntity.ok(Map.of("success", true, "url", fileId, "message", "Documento subido"));
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al subir: " + e.getMessage()));
