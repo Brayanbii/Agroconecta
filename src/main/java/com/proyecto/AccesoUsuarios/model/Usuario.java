@@ -134,13 +134,7 @@ public class Usuario {
     @ToString.Exclude
     private List<Direccion> direcciones;
 
-    // Favoritos del usuario
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "usuario_favoritos",
-        joinColumns = @JoinColumn(name = "usuario_id"),
-        inverseJoinColumns = @JoinColumn(name = "producto_id")
-    )
+    @Transient
     @ToString.Exclude
     private List<Producto> productosFavoritos;
 }
