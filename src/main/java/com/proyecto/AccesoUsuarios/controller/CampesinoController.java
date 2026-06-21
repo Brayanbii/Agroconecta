@@ -14,6 +14,7 @@ import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.service.UploadFileService;
 import com.proyecto.AccesoUsuarios.service.OrdenEstadoService;
+import com.proyecto.AccesoUsuarios.service.RutaAgrupacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -52,6 +53,9 @@ public class CampesinoController {
 
     @Autowired
     private PythonService pythonService;
+
+    @Autowired
+    private RutaAgrupacionService agrupacionService;
     
     @Autowired
     private FavoritoCampesinoRepository favoritoCampesinoRepo;
@@ -353,6 +357,7 @@ public class CampesinoController {
                         || "PENDIENTE".equals(orden.getEstado())) {
                     orden.setEstado(OrdenEstadoService.ESPERANDO_AGRUPACION);
                     ordenRepo.save(orden);
+                    new Thread(() -> agrupacionService.agruparPedidos(), "agrupar-trigger").start();
                 }
             }
             

@@ -12,6 +12,7 @@ import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.repository.DetalleOrdenRepository;
 import com.proyecto.AccesoUsuarios.service.OrdenEstadoService;
+import com.proyecto.AccesoUsuarios.service.RutaAgrupacionService;
 import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.FavoritoCampesinoRepository;
 import com.proyecto.AccesoUsuarios.repository.ResenaRepository;
@@ -78,6 +79,9 @@ public class UsuarioController {
 
     @Autowired
     private com.proyecto.AccesoUsuarios.service.NotificationService notificationService;
+
+    @Autowired
+    private RutaAgrupacionService agrupacionService;
 
     @Autowired
     private com.proyecto.AccesoUsuarios.repository.NotificacionRepository notificacionRepo;
@@ -884,6 +888,7 @@ public class UsuarioController {
 
             orden.setEstado(OrdenEstadoService.ESPERANDO_AGRUPACION);
             ordenRepo.save(orden);
+            new Thread(() -> agrupacionService.agruparPedidos(), "agrupar-trigger").start();
 
             // Incrementar contador de entregas
             campesino.setTotalEntregas(campesino.getTotalEntregas() != null ? campesino.getTotalEntregas() + 1 : 1);
