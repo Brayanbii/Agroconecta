@@ -355,42 +355,12 @@ public class CampesinoController {
             detalle.setEstado(estado);
             detalleRepo.save(detalle);
 
-            // PREPARADO = crear ruta individual al instante con datos reales
+            // PREPARADO = entregado directo
             if ("PREPARADO".equals(estado) && detalle.getOrden() != null) {
                 Orden orden = ordenRepo.findById(detalle.getOrden().getId()).orElse(null);
                 if (orden != null) {
-                    Ruta ruta = new Ruta();
-                    ruta.setCodigoRuta("RUTA-" + java.time.LocalDateTime.now().getYear() + "-"
-                            + String.format("%03d", rutaRepo.count() + 1));
-                    ruta.setZonaOrigen(orden.getMunicipioOrigen() != null ? orden.getMunicipioOrigen() : "Colombia");
-                    ruta.setZonaDestino(orden.getDireccionEnvio() != null ? orden.getDireccionEnvio() : "Colombia");
-                    ruta.setEstado("LISTA_PARA_SALIR");
-                    ruta.setFechaCreacion(java.time.LocalDateTime.now());
-                    ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
-                    ruta.setLatitudCentroOrigen(orden.getLatitudOrigen());
-                    ruta.setLongitudCentroOrigen(orden.getLongitudOrigen());
-                    ruta.setLatitudCentroDestino(orden.getLatitudEnvio());
-                    ruta.setLongitudCentroDestino(orden.getLongitudEnvio());
-                    ruta.setPesoTotalKg(orden.getPesoTotalKg() != null ? orden.getPesoTotalKg() : 1.0);
-                    ruta.setPedidosCount(1);
-                    ruta.setPagoTotalEstimado(orden.getTotal() != null ? orden.getTotal() : (orden.getSubtotalProductos() != null ? orden.getSubtotalProductos() : 0.0));
-                    ruta = rutaRepo.save(ruta);
-
-                    orden.setRuta(ruta);
-                    orden.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
-
-                    String pin = String.format("%06d", 100000 + (int)(Math.random() * 899999));
-                    orden.setCodigoRecogida(pin);
-                    orden.setIntentosRecogida(0);
-                    orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
-
-                    String pinEntrega = String.format("%06d", 100000 + (int)(Math.random() * 899999));
-                    orden.setCodigoEntrega(pinEntrega);
-                    orden.setIntentosEntrega(0);
-                    orden.setFechaGeneracionEntrega(java.time.LocalDateTime.now());
-
+                    orden.setEstado(OrdenEstadoService.ENTREGADO);
                     ordenRepo.save(orden);
-                    System.out.println("[RUTA] " + ruta.getCodigoRuta() + " | Origen: " + ruta.getZonaOrigen() + " | Destino: " + ruta.getZonaDestino() + " | Total: $" + ruta.getPagoTotalEstimado() + " | PIN-R: " + pin + " | PIN-E: " + pinEntrega);
                 }
             }
         }

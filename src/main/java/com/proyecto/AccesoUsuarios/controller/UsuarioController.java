@@ -890,50 +890,16 @@ public class UsuarioController {
                 response.put("success", false); response.put("error", "No autorizado"); return response;
             }
 
-            // Crear ruta individual al instante con datos reales del pedido
-            Ruta ruta = new Ruta();
-            ruta.setCodigoRuta("RUTA-" + java.time.LocalDateTime.now().getYear() + "-"
-                    + String.format("%03d", rutaRepo.count() + 1));
-            ruta.setZonaOrigen(orden.getMunicipioOrigen() != null ? orden.getMunicipioOrigen() : "Colombia");
-            ruta.setZonaDestino(orden.getDireccionEnvio() != null ? orden.getDireccionEnvio() : "Colombia");
-            ruta.setEstado("LISTA_PARA_SALIR");
-            ruta.setFechaCreacion(java.time.LocalDateTime.now());
-            ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
-            ruta.setLatitudCentroOrigen(orden.getLatitudOrigen());
-            ruta.setLongitudCentroOrigen(orden.getLongitudOrigen());
-            ruta.setLatitudCentroDestino(orden.getLatitudEnvio());
-            ruta.setLongitudCentroDestino(orden.getLongitudEnvio());
-            ruta.setPesoTotalKg(orden.getPesoTotalKg() != null ? orden.getPesoTotalKg() : 1.0);
-            ruta.setPedidosCount(1);
-            ruta.setPagoTotalEstimado(orden.getTotal() != null ? orden.getTotal() : (orden.getSubtotalProductos() != null ? orden.getSubtotalProductos() : 0.0));
-            ruta = rutaRepo.save(ruta);
-
-            orden.setRuta(ruta);
-            orden.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
-
-            String pin = String.format("%06d", 100000 + (int)(Math.random() * 899999));
-            orden.setCodigoRecogida(pin);
-            orden.setIntentosRecogida(0);
-            orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
-
-            String pinEntrega = String.format("%06d", 100000 + (int)(Math.random() * 899999));
-            orden.setCodigoEntrega(pinEntrega);
-            orden.setIntentosEntrega(0);
-            orden.setFechaGeneracionEntrega(java.time.LocalDateTime.now());
-
+            // Campesino acepta = entregado directo
+            orden.setEstado(OrdenEstadoService.ENTREGADO);
             ordenRepo.save(orden);
-
             campesino.setTotalEntregas(campesino.getTotalEntregas() != null ? campesino.getTotalEntregas() + 1 : 1);
-            if (campesino.getTotalEntregas() >= 30) campesino.setAutoAceptarDisponible(true);
             repo.save(campesino);
             notificationService.notificarClienteEnCamino(orden);
 
             response.put("success", true);
-            response.put("message", "Ruta " + ruta.getCodigoRuta() + " creada");
-            response.put("nuevoEstado", OrdenEstadoService.AGRUPADO_EN_RUTA);
-            response.put("codigoRuta", ruta.getCodigoRuta());
-            response.put("pinRecogida", pin);
-            response.put("pinEntrega", pinEntrega);
+            response.put("message", "Pedido entregado");
+            response.put("nuevoEstado", OrdenEstadoService.ENTREGADO);
         } catch (Exception e) {
             response.put("success", false); response.put("error", e.getMessage());
         }
