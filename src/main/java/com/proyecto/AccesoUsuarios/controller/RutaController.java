@@ -87,6 +87,12 @@ public class RutaController {
      * Si no hay GPS, usa la ciudad registrada del repartidor como filtro.
      * Radio por defecto: 200km.
      */
+    @PostMapping("/agrupar-ahora")
+    public ResponseEntity<Map<String, Object>> agruparAhora() {
+        agrupacionService.agruparPedidos();
+        return ResponseEntity.ok(Map.of("success", true, "message", "Robot agrupador ejecutado"));
+    }
+
     @GetMapping("/disponibles")
     public ResponseEntity<Map<String, Object>> rutasDisponibles(
             @RequestParam(required = false) Double lat,
