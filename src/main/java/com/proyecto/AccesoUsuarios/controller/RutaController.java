@@ -162,6 +162,8 @@ public class RutaController {
         if (r.getPedidos() != null && !r.getPedidos().isEmpty()) {
             Orden primeraOrden = r.getPedidos().get(0);
             map.put("direccionEntrega", primeraOrden.getDireccionEnvio());
+            map.put("codigoRecogida", primeraOrden.getCodigoRecogida());
+            map.put("codigoEntrega", primeraOrden.getCodigoEntrega());
 
             // Coordenadas: buscar en TODAS las ordenes, no solo la primera
             if (!coordValida((Double) map.get("latitudOrigen"))) {

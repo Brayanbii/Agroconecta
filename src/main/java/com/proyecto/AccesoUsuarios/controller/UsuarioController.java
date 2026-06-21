@@ -890,29 +890,33 @@ public class UsuarioController {
                 response.put("success", false); response.put("error", "No autorizado"); return response;
             }
 
-            // Crear ruta individual al instante (sin zona, sin filtros, sin condiciones)
+            // Crear ruta individual al instante con datos reales del pedido
             Ruta ruta = new Ruta();
             ruta.setCodigoRuta("RUTA-" + java.time.LocalDateTime.now().getYear() + "-"
                     + String.format("%03d", rutaRepo.count() + 1));
-            ruta.setZonaOrigen("Colombia");
-            ruta.setZonaDestino("Colombia");
+            ruta.setZonaOrigen(orden.getMunicipioOrigen() != null ? orden.getMunicipioOrigen() : "Colombia");
+            ruta.setZonaDestino(orden.getDireccionEnvio() != null ? orden.getDireccionEnvio() : "Colombia");
             ruta.setEstado("LISTA_PARA_SALIR");
             ruta.setFechaCreacion(java.time.LocalDateTime.now());
             ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
-            ruta.setPesoTotalKg(1.0);
+            ruta.setLatitudCentroOrigen(orden.getLatitudOrigen());
+            ruta.setLongitudCentroOrigen(orden.getLongitudOrigen());
+            ruta.setLatitudCentroDestino(orden.getLatitudEnvio());
+            ruta.setLongitudCentroDestino(orden.getLongitudEnvio());
+            ruta.setPesoTotalKg(orden.getPesoTotalKg() != null ? orden.getPesoTotalKg() : 1.0);
             ruta.setPedidosCount(1);
-            ruta.setPagoTotalEstimado(orden.getTotal() != null ? orden.getTotal() : 0.0);
+            ruta.setPagoTotalEstimado(orden.getTotal() != null ? orden.getTotal() : (orden.getSubtotalProductos() != null ? orden.getSubtotalProductos() : 0.0));
             ruta = rutaRepo.save(ruta);
 
             orden.setRuta(ruta);
             orden.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
 
-            String pin = String.valueOf(100000 + (int)(Math.random() * 899999));
+            String pin = String.format("%06d", 100000 + (int)(Math.random() * 899999));
             orden.setCodigoRecogida(pin);
             orden.setIntentosRecogida(0);
             orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
 
-            String pinEntrega = String.valueOf(100000 + (int)(Math.random() * 899999));
+            String pinEntrega = String.format("%06d", 100000 + (int)(Math.random() * 899999));
             orden.setCodigoEntrega(pinEntrega);
             orden.setIntentosEntrega(0);
             orden.setFechaGeneracionEntrega(java.time.LocalDateTime.now());
