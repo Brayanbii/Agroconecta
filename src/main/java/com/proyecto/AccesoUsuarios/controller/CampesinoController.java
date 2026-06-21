@@ -13,6 +13,8 @@ import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.OrdenRepository;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.service.UploadFileService;
+import com.proyecto.AccesoUsuarios.model.Ruta;
+import com.proyecto.AccesoUsuarios.repository.RutaRepository;
 import com.proyecto.AccesoUsuarios.service.OrdenEstadoService;
 import com.proyecto.AccesoUsuarios.service.RutaAgrupacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public class CampesinoController {
 
     @Autowired
     private PythonService pythonService;
+
+    @Autowired
+    private RutaRepository rutaRepo;
 
     @Autowired
     private RutaAgrupacionService agrupacionService;
@@ -350,42 +355,52 @@ public class CampesinoController {
             detalle.setEstado(estado);
             detalleRepo.save(detalle);
 
-            // Si el campesino acepta (PREPARADO), mover orden a cola de agrupacion
+            // Si el campesino acepta (PREPARADO), crear ruta individual al instante
             if ("PREPARADO".equals(estado) && detalle.getOrden() != null) {
-                Orden orden = detalle.getOrden();
-                if (OrdenEstadoService.PENDIENTE_CAMPESINO.equals(orden.getEstado())
-                        || "PENDIENTE".equals(orden.getEstado())) {
-                    orden.setEstado(OrdenEstadoService.ESPERANDO_AGRUPACION);
-                    ordenRepo.save(orden);
-                    new Thread(() -> agrupacionService.agruparPedidos(), "agrupar-trigger").start();
-                }
-            }
-            
-            // Si marca como LISTO_PARA_RECOGER, generar PIN y propagar a toda la orden
-            if ("LISTO_PARA_RECOGER".equals(estado) && detalle.getOrden() != null) {
                 Orden orden = ordenRepo.findById(detalle.getOrden().getId()).orElse(null);
-                if (orden != null) {
-                    String pin = orden.getCodigoRecogida();
-                    if (pin == null || pin.isEmpty()) {
-                        pin = String.valueOf(1000 + (int)(Math.random() * 899999));
-                        orden.setCodigoRecogida(pin);
-                        orden.setIntentosRecogida(0);
-                        orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
-                        ordenRepo.saveAndFlush(orden);
-                        System.out.println("[PIN] Generado PIN recogida: " + pin + " para orden #" + orden.getId());
-                    } else {
-                        System.out.println("[PIN] PIN ya existe: " + pin + " para orden #" + orden.getId());
-                    }
-                    // Marcar todos los detalles de esta orden como LISTO_PARA_RECOGER
-                    if (orden.getDetalles() != null) {
-                        for (DetalleOrden d : orden.getDetalles()) {
-                            if (!"LISTO_PARA_RECOGER".equals(d.getEstado())) {
-                                d.setEstado("LISTO_PARA_RECOGER");
-                                detalleRepo.save(d);
-                            }
-                        }
-                    }
-                    detalleRepo.flush();
+                if (orden != null && (OrdenEstadoService.PENDIENTE_CAMPESINO.equals(orden.getEstado())
+                        || "PENDIENTE".equals(orden.getEstado()))) {
+                    
+                    // Crear ruta individual para este pedido
+                    Ruta ruta = new Ruta();
+                    ruta.setCodigoRuta("RUTA-" + java.time.LocalDateTime.now().getYear() + "-"
+                            + String.format("%03d", rutaRepo.count() + 1));
+                    String zona = detalle.getProducto() != null && detalle.getProducto().getMunicipioOrigen() != null
+                            ? detalle.getProducto().getMunicipioOrigen() : "Barbosa";
+                    ruta.setZonaOrigen(zona);
+                    ruta.setZonaDestino(orden.getDireccionEnvio() != null ? orden.getDireccionEnvio() : "Destino");
+                    ruta.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
+                    ruta.setFechaCreacion(java.time.LocalDateTime.now());
+                    ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
+                    ruta.setLatitudCentroOrigen(orden.getLatitudOrigen());
+                    ruta.setLongitudCentroOrigen(orden.getLongitudOrigen());
+                    ruta.setLatitudCentroDestino(orden.getLatitudEnvio());
+                    ruta.setLongitudCentroDestino(orden.getLongitudEnvio());
+                    ruta.setPesoTotalKg(orden.getPesoTotalKg() != null ? orden.getPesoTotalKg() : 1.0);
+                    ruta.setPedidosCount(1);
+                    ruta.setPagoTotalEstimado(orden.getTotal());
+                    ruta = rutaRepo.save(ruta);
+                    
+                    // Asignar ruta a la orden
+                    orden.setRuta(ruta);
+                    orden.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
+                    
+                    // Generar PIN recogida
+                    String pin = String.valueOf(1000 + (int)(Math.random() * 899999));
+                    orden.setCodigoRecogida(pin);
+                    orden.setIntentosRecogida(0);
+                    orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
+                    
+                    // Generar PIN entrega
+                    String pinEntrega = String.valueOf(1000 + (int)(Math.random() * 899999));
+                    orden.setCodigoEntrega(pinEntrega);
+                    orden.setIntentosEntrega(0);
+                    orden.setFechaGeneracionEntrega(java.time.LocalDateTime.now());
+                    
+                    ordenRepo.save(orden);
+                    
+                    System.out.println("[RUTA] Ruta " + ruta.getCodigoRuta() + " creada para orden #" + orden.getId()
+                            + " | PIN recogida: " + pin + " | PIN entrega: " + pinEntrega);
                 }
             }
         }

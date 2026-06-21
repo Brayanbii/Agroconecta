@@ -101,11 +101,13 @@ public class RutaController {
             Authentication auth) {
 
         Map<String, Object> resp = new HashMap<>();
-        // Buscar rutas LISTA_PARA_SALIR + FORMANDOSE
+        // Buscar rutas LISTA_PARA_SALIR + FORMANDOSE + AGRUPADO_EN_RUTA
         List<Ruta> rutasListas = rutaRepo.findByEstadoOrderByFechaCreacionAsc("LISTA_PARA_SALIR");
         List<Ruta> rutasFormando = rutaRepo.findByEstadoOrderByFechaCreacionAsc("FORMANDOSE");
+        List<Ruta> rutasAgrupadas = rutaRepo.findByEstadoOrderByFechaCreacionAsc("AGRUPADO_EN_RUTA");
         List<Ruta> todas = new ArrayList<>(rutasListas);
         todas.addAll(rutasFormando);
+        todas.addAll(rutasAgrupadas);
 
         // Ciudad del repartidor como fallback
         String ciudadRepartidor = null;
