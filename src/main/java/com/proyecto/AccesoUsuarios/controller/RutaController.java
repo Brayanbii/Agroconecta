@@ -94,79 +94,32 @@ public class RutaController {
     }
 
     @GetMapping("/disponibles")
-    public ResponseEntity<Map<String, Object>> rutasDisponibles(
-            @RequestParam(required = false) Double lat,
-            @RequestParam(required = false) Double lng,
-            @RequestParam(defaultValue = "200") Double radioKm,
-            Authentication auth) {
+    public ResponseEntity<Map<String, Object>> rutasDisponibles(Authentication auth) {
 
         Map<String, Object> resp = new HashMap<>();
-        // Buscar rutas LISTA_PARA_SALIR + FORMANDOSE + AGRUPADO_EN_RUTA
-        List<Ruta> rutasListas = rutaRepo.findByEstadoOrderByFechaCreacionAsc("LISTA_PARA_SALIR");
-        List<Ruta> rutasFormando = rutaRepo.findByEstadoOrderByFechaCreacionAsc("FORMANDOSE");
-        List<Ruta> rutasAgrupadas = rutaRepo.findByEstadoOrderByFechaCreacionAsc("AGRUPADO_EN_RUTA");
-        List<Ruta> todas = new ArrayList<>(rutasListas);
-        todas.addAll(rutasFormando);
-        todas.addAll(rutasAgrupadas);
-
-        // Ciudad del repartidor como fallback
-        String ciudadRepartidor = null;
-        if (lat == null || lng == null) {
-            try {
-                Usuario rep = authUsuarioService.getAuthenticatedUser(auth);
-                if (rep != null && rep.getMunicipioOrigen() != null && !rep.getMunicipioOrigen().isBlank()) {
-                    ciudadRepartidor = rep.getMunicipioOrigen().trim().toLowerCase();
-                }
-            } catch (Exception ignored) {}
-        }
+        List<Ruta> todas = rutaRepo.findByEstadoOrderByFechaCreacionAsc("AGRUPADO_EN_RUTA");
+        todas.addAll(rutaRepo.findByEstadoOrderByFechaCreacionAsc("FORMANDOSE"));
+        todas.addAll(rutaRepo.findByEstadoOrderByFechaCreacionAsc("LISTA_PARA_SALIR"));
 
         List<Map<String, Object>> data = new ArrayList<>();
         for (Ruta r : todas) {
-            double distanciaKm = 0;
-            boolean incluir = true;
-
-            if (lat != null && lng != null &&
-                r.getLatitudCentroOrigen() != null && r.getLongitudCentroOrigen() != null) {
-                distanciaKm = envioService.calcularDistanciaKm(lat, lng,
-                    r.getLatitudCentroOrigen(), r.getLongitudCentroOrigen());
-                incluir = distanciaKm <= radioKm;
-            } else if (ciudadRepartidor != null && r.getZonaOrigen() != null) {
-                // Filtrar por ciudad del repartidor
-                String zonaRuta = r.getZonaOrigen().toLowerCase();
-                incluir = zonaRuta.contains(ciudadRepartidor) || ciudadRepartidor.contains(zonaRuta);
-            }
-            // Si no hay GPS ni ciudad, incluir = true (todas)
-
-            if (incluir) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", r.getId());
-                map.put("codigoRuta", r.getCodigoRuta());
-                map.put("zonaOrigen", r.getZonaOrigen());
-                map.put("zonaDestino", r.getZonaDestino());
-                map.put("pedidosCount", r.getPedidosCount());
-                map.put("pesoTotalKg", r.getPesoTotalKg());
-                map.put("pagoTotalEstimado", r.getPagoTotalEstimado());
-                map.put("forzarSalida", r.getForzarSalida());
-                map.put("fechaLimite", r.getFechaLimite() != null ? r.getFechaLimite().toString() : null);
-                map.put("distanciaKm", Math.round(distanciaKm * 10.0) / 10.0);
-                map.put("tipoVehiculoRequerido", r.getTipoVehiculoRequerido());
-                map.put("capacidadMaximaKg", r.getCapacidadMaximaKg());
-                map.put("pesoMinimoSalidaKg", r.getPesoMinimoSalidaKg());
-                map.put("estado", r.getEstado());
-                data.add(map);
-            }
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", r.getId());
+            map.put("codigoRuta", r.getCodigoRuta());
+            map.put("zonaOrigen", r.getZonaOrigen());
+            map.put("zonaDestino", r.getZonaDestino());
+            map.put("pedidosCount", r.getPedidosCount());
+            map.put("pesoTotalKg", r.getPesoTotalKg());
+            map.put("pagoTotalEstimado", r.getPagoTotalEstimado());
+            map.put("distanciaKm", 0.0);
+            map.put("tipoVehiculoRequerido", r.getTipoVehiculoRequerido());
+            map.put("estado", r.getEstado());
+            data.add(map);
         }
-
-        data.sort((a, b) -> {
-            double da = ((Number) a.getOrDefault("distanciaKm", 999)).doubleValue();
-            double db = ((Number) b.getOrDefault("distanciaKm", 999)).doubleValue();
-            return Double.compare(da, db);
-        });
 
         resp.put("success", true);
         resp.put("rutas", data);
-        resp.put("radioKm", radioKm);
-        resp.put("filtroCiudad", ciudadRepartidor);
+        resp.put("radioKm", 9999);
         return ResponseEntity.ok(resp);
     }
 

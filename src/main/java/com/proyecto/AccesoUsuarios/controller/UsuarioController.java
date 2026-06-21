@@ -890,59 +890,43 @@ public class UsuarioController {
                 response.put("success", false); response.put("error", "No autorizado"); return response;
             }
 
-            // Crear ruta individual al instante (sin agrupacion, sin esperas)
+            // Crear ruta individual al instante (sin zona, sin filtros, sin condiciones)
             Ruta ruta = new Ruta();
             ruta.setCodigoRuta("RUTA-" + java.time.LocalDateTime.now().getYear() + "-"
                     + String.format("%03d", rutaRepo.count() + 1));
-            String zona = orden.getDetalles() != null && !orden.getDetalles().isEmpty()
-                    && orden.getDetalles().get(0).getProducto() != null
-                    && orden.getDetalles().get(0).getProducto().getMunicipioOrigen() != null
-                    ? orden.getDetalles().get(0).getProducto().getMunicipioOrigen() : "Barbosa";
-            ruta.setZonaOrigen(zona);
-            ruta.setZonaDestino(orden.getDireccionEnvio() != null ? orden.getDireccionEnvio() : "Destino");
+            ruta.setZonaOrigen("Colombia");
+            ruta.setZonaDestino("Colombia");
             ruta.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
             ruta.setFechaCreacion(java.time.LocalDateTime.now());
             ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
-            ruta.setLatitudCentroOrigen(orden.getLatitudOrigen());
-            ruta.setLongitudCentroOrigen(orden.getLongitudOrigen());
-            ruta.setLatitudCentroDestino(orden.getLatitudEnvio());
-            ruta.setLongitudCentroDestino(orden.getLongitudEnvio());
-            ruta.setPesoTotalKg(orden.getPesoTotalKg() != null ? orden.getPesoTotalKg() : 1.0);
+            ruta.setPesoTotalKg(1.0);
             ruta.setPedidosCount(1);
-            ruta.setPagoTotalEstimado(orden.getTotal());
+            ruta.setPagoTotalEstimado(orden.getTotal() != null ? orden.getTotal() : 0.0);
             ruta = rutaRepo.save(ruta);
-            
+
             orden.setRuta(ruta);
             orden.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
-            
-            // PIN recogida
-            String pin = String.valueOf(1000 + (int)(Math.random() * 899999));
+
+            String pin = String.valueOf(100000 + (int)(Math.random() * 899999));
             orden.setCodigoRecogida(pin);
             orden.setIntentosRecogida(0);
             orden.setFechaGeneracionRecogida(java.time.LocalDateTime.now());
-            
-            // PIN entrega
-            String pinEntrega = String.valueOf(1000 + (int)(Math.random() * 899999));
+
+            String pinEntrega = String.valueOf(100000 + (int)(Math.random() * 899999));
             orden.setCodigoEntrega(pinEntrega);
             orden.setIntentosEntrega(0);
             orden.setFechaGeneracionEntrega(java.time.LocalDateTime.now());
-            
+
             ordenRepo.save(orden);
 
-            // Incrementar contador de entregas
             campesino.setTotalEntregas(campesino.getTotalEntregas() != null ? campesino.getTotalEntregas() + 1 : 1);
-            if (campesino.getTotalEntregas() >= 30) {
-                campesino.setAutoAceptarDisponible(true);
-            }
+            if (campesino.getTotalEntregas() >= 30) campesino.setAutoAceptarDisponible(true);
             repo.save(campesino);
-
             notificationService.notificarClienteEnCamino(orden);
 
             response.put("success", true);
-            response.put("message", "Pedido aceptado. Ruta " + ruta.getCodigoRuta() + " creada.");
+            response.put("message", "Ruta " + ruta.getCodigoRuta() + " creada");
             response.put("nuevoEstado", OrdenEstadoService.AGRUPADO_EN_RUTA);
-            response.put("totalEntregas", campesino.getTotalEntregas());
-            response.put("autoAceptarDisponible", campesino.getAutoAceptarDisponible());
             response.put("codigoRuta", ruta.getCodigoRuta());
             response.put("pinRecogida", pin);
             response.put("pinEntrega", pinEntrega);
