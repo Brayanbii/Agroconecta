@@ -355,12 +355,18 @@ public class CampesinoController {
             detalle.setEstado(estado);
             detalleRepo.save(detalle);
 
-            // PREPARADO = entregado directo
+            // PREPARADO = ENTREGADO directo para TODA la orden
             if ("PREPARADO".equals(estado) && detalle.getOrden() != null) {
                 Orden orden = ordenRepo.findById(detalle.getOrden().getId()).orElse(null);
                 if (orden != null) {
                     orden.setEstado(OrdenEstadoService.ENTREGADO);
                     ordenRepo.save(orden);
+                    if (orden.getDetalles() != null) {
+                        for (DetalleOrden d : orden.getDetalles()) {
+                            d.setEstado("ENTREGADO");
+                            detalleRepo.save(d);
+                        }
+                    }
                 }
             }
         }

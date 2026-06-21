@@ -890,8 +890,13 @@ public class UsuarioController {
                 response.put("success", false); response.put("error", "No autorizado"); return response;
             }
 
-            // Campesino acepta = entregado directo
+            // Campesino acepta = ENTREGADO directo para TODA la orden
             orden.setEstado(OrdenEstadoService.ENTREGADO);
+            if (orden.getDetalles() != null) {
+                for (DetalleOrden d : orden.getDetalles()) {
+                    d.setEstado("ENTREGADO");
+                }
+            }
             ordenRepo.save(orden);
             campesino.setTotalEntregas(campesino.getTotalEntregas() != null ? campesino.getTotalEntregas() + 1 : 1);
             repo.save(campesino);
