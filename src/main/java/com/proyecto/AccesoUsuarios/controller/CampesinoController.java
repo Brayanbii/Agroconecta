@@ -364,7 +364,7 @@ public class CampesinoController {
                             + String.format("%03d", rutaRepo.count() + 1));
                     ruta.setZonaOrigen("Colombia");
                     ruta.setZonaDestino("Colombia");
-                    ruta.setEstado(OrdenEstadoService.AGRUPADO_EN_RUTA);
+                    ruta.setEstado("LISTA_PARA_SALIR");
                     ruta.setFechaCreacion(java.time.LocalDateTime.now());
                     ruta.setFechaLimite(java.time.LocalDateTime.now().plusHours(24));
                     ruta.setPesoTotalKg(1.0);
