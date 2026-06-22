@@ -29,15 +29,12 @@ RUN ./mvnw package -DskipTests -B -q
 # =============================================
 FROM eclipse-temurin:17-jre-alpine
 
-# curl, tzdata, Python 3 + pip (para script SIPSA DANE con zeep)
-RUN apk add --no-cache curl tzdata python3 py3-pip
+# curl, tzdata (SIN Python - ahorra ~80 MB RAM)
+RUN apk add --no-cache curl tzdata
 
 # Zona horaria Colombia
 RUN cp /usr/share/zoneinfo/America/Bogota /etc/localtime && \
     echo "America/Bogota" > /etc/timezone
-
-# Instalar dependencia Python para SIPSA (SOAP client DANE)
-RUN pip3 install --no-cache-dir --break-system-packages zeep
 
 # Usuario no-root por seguridad
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -46,9 +43,6 @@ WORKDIR /app
 
 # Copiar JAR compilado desde la etapa de build
 COPY --from=build /build/target/*.jar app.jar
-
-# Copiar script SIPSA ETL (consulta precios DANE vía SOAP con zeep)
-COPY src/main/resources/python/sipsa_etl.py /app/sipsa_etl.py
 
 # Copiar certificado CA de Aiven desde los recursos del proyecto
 COPY src/main/resources/certs/aiven-ca.pem /tmp/aiven-ca.pem
@@ -74,21 +68,16 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
     CMD pgrep -f "app.jar" || exit 1
 
-# Opciones JVM optimizadas para contenedores
-# -XX:MaxRAMPercentage=75.0  → usa hasta el 75% de la RAM del contenedor
-# G1GC                         → garbage collector moderno, baja latencia
-# JVM optimizada para 512 MB (Render free)
-# Heap 160m + ~100m metaspace + ~40m code cache + ~50m nativos + ~50m OS = ~400m
+# JVM ultra-ajustada para 512 MB - JAVA_OPTS primero para que no sobre-escriba
 ENTRYPOINT ["sh", "-c", "java \
+    $JAVA_OPTS \
     -XX:+UseSerialGC \
-    -Xmx160m \
-    -Xmn40m \
+    -Xmx128m \
+    -Xmn32m \
     -Xss192k \
-    -XX:MaxDirectMemorySize=32m \
-    -XX:+UseStringDeduplication \
+    -XX:MaxDirectMemorySize=16m \
     -XX:+DisableExplicitGC \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF-8 \
     -Duser.timezone=America/Bogota \
-    $JAVA_OPTS \
     -jar app.jar"]
