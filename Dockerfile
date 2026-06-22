@@ -77,15 +77,16 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
 # Opciones JVM optimizadas para contenedores
 # -XX:MaxRAMPercentage=75.0  → usa hasta el 75% de la RAM del contenedor
 # G1GC                         → garbage collector moderno, baja latencia
-# JAVA_OPTS                    → variable para overrides en Render dashboard
+# JVM optimizada para 512 MB (Render free)
+# Heap 160m + ~100m metaspace + ~40m code cache + ~50m nativos + ~50m OS = ~400m
 ENTRYPOINT ["sh", "-c", "java \
     -XX:+UseSerialGC \
-    -Xmx192m \
-    -Xmn64m \
-    -Xss256k \
-    -XX:MaxMetaspaceSize=64m \
-    -XX:ReservedCodeCacheSize=32m \
-    -XX:+ExitOnOutOfMemoryError \
+    -Xmx160m \
+    -Xmn40m \
+    -Xss192k \
+    -XX:MaxDirectMemorySize=32m \
+    -XX:+UseStringDeduplication \
+    -XX:+DisableExplicitGC \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF-8 \
     -Duser.timezone=America/Bogota \
