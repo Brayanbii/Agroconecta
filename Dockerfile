@@ -80,8 +80,11 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
 # JAVA_OPTS                    → variable para overrides en Render dashboard
 ENTRYPOINT ["sh", "-c", "java \
     -XX:+UseSerialGC \
-    -Xmx256m \
-    -Xss512k \
+    -Xmx192m \
+    -Xmn64m \
+    -Xss256k \
+    -XX:MaxMetaspaceSize=64m \
+    -XX:ReservedCodeCacheSize=32m \
     -XX:+ExitOnOutOfMemoryError \
     -Djava.awt.headless=true \
     -Dfile.encoding=UTF-8 \
