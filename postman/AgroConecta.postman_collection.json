@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "AgroConecta API",
+    "description": "Colección de endpoints REST de AgroConecta\n\nBase URL: https://agroconecta-04uf.onrender.com\nDomino: https://agroconecta.farm\n\nCredenciales de prueba:\n- Admin: admin@agroconecta.com / 123\n- Campesino: pepe@finca.com / 123\n- Cliente: maria@gmail.com / 123\n- Repartidor: repartidor@agroconecta.com / 123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://agroconecta-04uf.onrender.com" },
+    { "key": "admin_email", "value": "admin@agroconecta.com" },
+    { "key": "admin_pass", "value": "123" },
+    { "key": "cliente_email", "value": "maria@gmail.com" },
+    { "key": "cliente_pass", "value": "123" },
+    { "key": "campesino_email", "value": "pepe@finca.com" },
+    { "key": "campesino_pass", "value": "123" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticación",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@agroconecta.com\",\n  \"password\": \"123\"\n}" },
+            "url": { "raw": "{{base_url}}/api/usuarios/login", "host": ["{{base_url}}"], "path": ["api", "usuarios", "login"] }
+          }
+        },
+        {
+          "name": "Login (Campesino)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"pepe@finca.com\",\n  \"password\": \"123\"\n}" },
+            "url": { "raw": "{{base_url}}/api/usuarios/login", "host": ["{{base_url}}"], "path": ["api", "usuarios", "login"] }
+          }
+        },
+        {
+          "name": "Login (Cliente)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria@gmail.com\",\n  \"password\": \"123\"\n}" },
+            "url": { "raw": "{{base_url}}/api/usuarios/login", "host": ["{{base_url}}"], "path": ["api", "usuarios", "login"] }
+          }
+        },
+        {
+          "name": "Verificar Email",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/usuarios/check-email?email=admin@agroconecta.com", "host": ["{{base_url}}"], "path": ["api", "usuarios", "check-email"], "query": [{ "key": "email", "value": "admin@agroconecta.com" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Productos",
+      "item": [
+        {
+          "name": "Listar todos los productos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/productos", "host": ["{{base_url}}"], "path": ["api", "productos"] }
+          }
+        },
+        {
+          "name": "Obtener producto por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/productos/1", "host": ["{{base_url}}"], "path": ["api", "productos", "1"] }
+          }
+        },
+        {
+          "name": "Productos de un campesino",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/productos/campesino/2", "host": ["{{base_url}}"], "path": ["api", "productos", "campesino", "2"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛒 Carrito",
+      "item": [
+        {
+          "name": "Ver carrito",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/carrito", "host": ["{{base_url}}"], "path": ["api", "carrito"] }
+          }
+        },
+        {
+          "name": "Agregar producto al carrito",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id\": 1,\n  \"cantidad\": 3\n}" },
+            "url": { "raw": "{{base_url}}/api/carrito/agregar", "host": ["{{base_url}}"], "path": ["api", "carrito", "agregar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Pedidos",
+      "item": [
+        {
+          "name": "Previsualizar envío",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"tipoEnvio\": \"ECONOMICO\",\n  \"latitud\": 5.9317,\n  \"longitud\": -73.6147\n}" },
+            "url": { "raw": "{{base_url}}/api/ordenes/preview-envio", "host": ["{{base_url}}"], "path": ["api", "ordenes", "preview-envio"] }
+          }
+        },
+        {
+          "name": "Crear pedido (sandbox)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"tipoEnvio\": \"ECONOMICO\",\n  \"direccionEnvio\": \"Calle 123, Bogotá\",\n  \"latitud\": 4.7110,\n  \"longitud\": -74.0721\n}" },
+            "url": { "raw": "{{base_url}}/api/ordenes/crear", "host": ["{{base_url}}"], "path": ["api", "ordenes", "crear"] }
+          }
+        },
+        {
+          "name": "Mis compras (cliente)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/ordenes/mis-compras", "host": ["{{base_url}}"], "path": ["api", "ordenes", "mis-compras"] }
+          }
+        },
+        {
+          "name": "Mis ventas (campesino)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/pedidos/mis-ventas", "host": ["{{base_url}}"], "path": ["api", "pedidos", "mis-ventas"] }
+          }
+        },
+        {
+          "name": "Campesino acepta orden (completa flujo)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/pedidos/orden/1/aceptar", "host": ["{{base_url}}"], "path": ["api", "pedidos", "orden", "1", "aceptar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Favoritos",
+      "item": [
+        {
+          "name": "Mis favoritos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/favoritos", "host": ["{{base_url}}"], "path": ["api", "favoritos"] }
+          }
+        },
+        {
+          "name": "Toggle favorito producto",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/api/favoritos/producto/1", "host": ["{{base_url}}"], "path": ["api", "favoritos", "producto", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Analíticas y Precios",
+      "item": [
+        {
+          "name": "Precios SIPSA",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/v1/precios", "host": ["{{base_url}}"], "path": ["api", "v1", "precios"] }
+          }
+        },
+        {
+          "name": "Catálogo de precios",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/sipsa/catalogo", "host": ["{{base_url}}"], "path": ["api", "sipsa", "catalogo"] }
+          }
+        },
+        {
+          "name": "Informe campesino",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/analiticas/informe", "host": ["{{base_url}}"], "path": ["api", "analiticas", "informe"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚚 Rutas y Delivery",
+      "item": [
+        {
+          "name": "Rutas disponibles",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/rutas/disponibles", "host": ["{{base_url}}"], "path": ["api", "rutas", "disponibles"] }
+          }
+        },
+        {
+          "name": "Ver ruta específica",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/rutas/1", "host": ["{{base_url}}"], "path": ["api", "rutas", "1"] }
+          }
+        },
+        {
+          "name": "Perfil repartidor",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/delivery/perfil", "host": ["{{base_url}}"], "path": ["api", "delivery", "perfil"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Soporte",
+      "item": [
+        {
+          "name": "Mis tickets",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/soporte/mis-tickets", "host": ["{{base_url}}"], "path": ["api", "soporte", "mis-tickets"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Reseñas",
+      "item": [
+        {
+          "name": "Reseñas de un producto",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/resenas/producto/1", "host": ["{{base_url}}"], "path": ["api", "resenas", "producto", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗺️ Direcciones",
+      "item": [
+        {
+          "name": "Mis direcciones",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/direcciones", "host": ["{{base_url}}"], "path": ["api", "direcciones"] }
+          }
+        }
+      ]
+    }
+  ]
+}
