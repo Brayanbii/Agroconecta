@@ -47,7 +47,7 @@ public class RealUserLoadTest {
         }
 
         CSV.add("Nivel,Usuarios,Peticiones,Éxitos,Fallos,Tasa,Total(s),Prom(ms),Min(ms),Max(ms)");
-        int[] niveles = {1, 3, 5, 10};
+        int[] niveles = {1, 5, 10, 20, 30};
 
         for (int n : niveles) {
             log("");
@@ -79,7 +79,7 @@ public class RealUserLoadTest {
         }
 
         for (Future<?> f : futures) {
-            try { f.get(120, TimeUnit.SECONDS); } catch (Exception ignored) {}
+            try { f.get(180, TimeUnit.SECONDS); } catch (Exception ignored) {}
         }
         pool.shutdown();
         pool.awaitTermination(10, TimeUnit.SECONDS);
