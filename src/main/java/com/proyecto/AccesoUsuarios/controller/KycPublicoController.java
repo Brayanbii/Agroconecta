@@ -62,6 +62,10 @@ public class KycPublicoController {
                     redirect.addFlashAttribute("error", "El nombre completo es obligatorio para nuevos repartidores");
                     return "redirect:/kyc-repartidor";
                 }
+                if (email == null || !email.contains("@") || email.length() < 5) {
+                    redirect.addFlashAttribute("error", "Debes ingresar un correo electrónico válido (ej: repartidor@gmail.com)");
+                    return "redirect:/kyc-repartidor";
+                }
                 rep = new Usuario();
                 rep.setUserName("rep_" + System.currentTimeMillis());
                 rep.setEmail(email);
