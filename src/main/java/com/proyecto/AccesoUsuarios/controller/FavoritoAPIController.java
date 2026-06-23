@@ -1,7 +1,9 @@
 package com.proyecto.AccesoUsuarios.controller;
 
+import com.proyecto.AccesoUsuarios.model.FavoritoProducto;
 import com.proyecto.AccesoUsuarios.model.Producto;
 import com.proyecto.AccesoUsuarios.model.Usuario;
+import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.service.AuthUsuarioService;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/favoritos")
@@ -26,6 +29,9 @@ public class FavoritoAPIController {
     private ProductoRepository productoRepo;
 
     @Autowired
+    private FavoritoProductoRepository favoritoRepo;
+
+    @Autowired
     private AuthUsuarioService authUsuarioService;
 
     @GetMapping
@@ -35,8 +41,12 @@ public class FavoritoAPIController {
         }
         Usuario usuario = authUsuarioService.getAuthenticatedUser(auth);
         if (usuario == null) return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
-        List<Producto> favs = usuario.getProductosFavoritos();
-        return ResponseEntity.ok(favs != null ? favs : List.of());
+
+        List<FavoritoProducto> favs = favoritoRepo.findByClienteOrderByFechaCreacionDesc(usuario);
+        List<Producto> productos = favs.stream()
+                .map(FavoritoProducto::getProducto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(productos != null ? productos : List.of());
     }
 
     @PostMapping("/toggle/{id}")
@@ -60,19 +70,21 @@ public class FavoritoAPIController {
             return ResponseEntity.status(404).body(response);
         }
         Producto producto = productoOpt.get();
-        List<Producto> favoritos = usuario.getProductosFavoritos();
-        boolean isFavorito = false;
-        if (favoritos != null && favoritos.contains(producto)) {
-            favoritos.remove(producto);
+
+        Optional<FavoritoProducto> existente = favoritoRepo.findByClienteAndProducto(usuario, producto);
+        boolean isFavorito;
+        if (existente.isPresent()) {
+            favoritoRepo.delete(existente.get());
+            isFavorito = false;
         } else {
-            if (favoritos == null) {
-                favoritos = new java.util.ArrayList<>();
-                usuario.setProductosFavoritos(favoritos);
-            }
-            favoritos.add(producto);
+            FavoritoProducto fav = new FavoritoProducto();
+            fav.setCliente(usuario);
+            fav.setProducto(producto);
+            fav.setFechaCreacion(java.time.LocalDateTime.now());
+            favoritoRepo.save(fav);
             isFavorito = true;
         }
-        usuarioRepo.save(usuario);
+
         response.put("success", true);
         response.put("isFavorito", isFavorito);
         response.put("message", isFavorito ? "Producto añadido a favoritos." : "Producto eliminado de favoritos.");
