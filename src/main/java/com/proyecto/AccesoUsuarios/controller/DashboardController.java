@@ -6,6 +6,7 @@ import com.proyecto.AccesoUsuarios.repository.ProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.ResenaRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.repository.FavoritoCampesinoRepository;
+import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.service.CarritoService;
 import com.proyecto.AccesoUsuarios.service.PythonService;
 import com.proyecto.AccesoUsuarios.model.Usuario;
@@ -62,6 +63,9 @@ public class DashboardController {
     
     @Autowired
     private FavoritoCampesinoRepository favoritoCampesinoRepo;
+
+    @Autowired
+    private FavoritoProductoRepository favoritoProductoRepo;
 
     // 1. PANEL ADMIN
     @GetMapping("/admin/dashboard")
@@ -352,8 +356,8 @@ public class DashboardController {
             Usuario usuario = usuarioRepo.findFirstByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
-                if (usuario.getProductosFavoritos() != null) {
-                    usuario.getProductosFavoritos().forEach(fav -> favoritosIds.add(fav.getId()));
+                if (!getFavoritosIds(usuario).isEmpty()) {
+                    getFavoritosIds(usuario).forEach(favId -> favoritosIds.add(favId));
                 }
             } else {
                 model.addAttribute("nombreCliente", "Cliente");
@@ -440,12 +444,7 @@ public class DashboardController {
                 }
                 
                 // Extraer y enviar IDs de productos favoritos para la UI
-                List<Long> favoritosIds = new java.util.ArrayList<>();
-                if (usuario.getProductosFavoritos() != null) {
-                    for (Producto pFav : usuario.getProductosFavoritos()) {
-                        favoritosIds.add(pFav.getId());
-                    }
-                }
+                List<Long> favoritosIds = getFavoritosIds(usuario);
                 model.addAttribute("favoritosIds", favoritosIds);
                 
             } else {
@@ -506,8 +505,8 @@ public class DashboardController {
             Usuario usuario = usuarioRepo.findFirstByEmail(email).orElse(null);
             if (usuario != null) {
                 model.addAttribute("nombreCliente", usuario.getNombreCompleto());
-                if (usuario.getProductosFavoritos() != null) {
-                    usuario.getProductosFavoritos().forEach(fav -> favoritosIds.add(fav.getId()));
+                if (!getFavoritosIds(usuario).isEmpty()) {
+                    getFavoritosIds(usuario).forEach(favId -> favoritosIds.add(favId));
                 }
             } else {
                 model.addAttribute("nombreCliente", "Cliente");
@@ -747,7 +746,9 @@ public class DashboardController {
             return "redirect:/login";
         }
         
-        List<Producto> favoritos = usuario.getProductosFavoritos();
+        List<Producto> favoritos = favoritoProductoRepo.findByClienteOrderByFechaCreacionDesc(usuario)
+                .stream().map(com.proyecto.AccesoUsuarios.model.FavoritoProducto::getProducto)
+                .collect(java.util.stream.Collectors.toList());
         model.addAttribute("favoritos", favoritos != null ? favoritos : new ArrayList<>());
         
         List<com.proyecto.AccesoUsuarios.model.FavoritoCampesino> campesinosFavoritos = favoritoCampesinoRepo.findByCliente(usuario);
@@ -760,6 +761,14 @@ public class DashboardController {
     }
 
     // --- Helper: FÃ³rmula de Haversine para Distancias Reales ---
+    private List<Long> getFavoritosIds(Usuario usuario) {
+        if (usuario == null) return new ArrayList<>();
+        return favoritoProductoRepo.findByClienteOrderByFechaCreacionDesc(usuario)
+                .stream()
+                .map(fav -> fav.getProducto().getId())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
         final int RADIO_TIERRA_KM = 6371;
         double dLat = Math.toRadians(lat2 - lat1);

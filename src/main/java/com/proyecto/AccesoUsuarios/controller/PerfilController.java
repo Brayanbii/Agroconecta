@@ -1,7 +1,9 @@
 package com.proyecto.AccesoUsuarios.controller;
 
 import com.proyecto.AccesoUsuarios.model.Usuario;
+import com.proyecto.AccesoUsuarios.repository.FavoritoProductoRepository;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
+import com.proyecto.AccesoUsuarios.model.Producto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -25,6 +27,9 @@ public class PerfilController {
 
     @Autowired
     private UploadFileService uploadService;
+
+    @Autowired
+    private FavoritoProductoRepository favoritoProductoRepo;
 
     @GetMapping("/{seccion}")
     public String verPerfil(@PathVariable(required = false) String seccion, Authentication auth, Model model) {
@@ -54,11 +59,10 @@ public class PerfilController {
         }
         
         if ("favoritos".equals(seccion)) {
-            // Lazy loading forces us to fetch them here or use an explicit fetch, but wait, size() initializes it
-            if (usuarioDB.getProductosFavoritos() != null) {
-                usuarioDB.getProductosFavoritos().size(); // Trigger lazy initialization
-                model.addAttribute("favoritos", usuarioDB.getProductosFavoritos());
-            }
+            List<Producto> favoritos = favoritoProductoRepo.findByClienteOrderByFechaCreacionDesc(usuarioDB)
+                    .stream().map(com.proyecto.AccesoUsuarios.model.FavoritoProducto::getProducto)
+                    .collect(java.util.stream.Collectors.toList());
+            model.addAttribute("favoritos", favoritos);
         }
         
         return "perfil";
