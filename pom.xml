@@ -103,6 +103,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
+        <!-- Selenium para pruebas automatizadas -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.33.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>htmlunit3-driver</artifactId>
+            <version>4.33.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

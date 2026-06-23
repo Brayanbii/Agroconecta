@@ -62,7 +62,8 @@ public class SecurityConfig {
                     "/impacto-social",
                     "/sobre-nosotros",
                     "/api/horeca/**",
-                    "/api/ia/**"
+                    "/api/ia/**",
+                    "/kyc-repartidor/**"
                 ).permitAll()
                 
                 // Rutas protegidas por ROL de tu plataforma web
