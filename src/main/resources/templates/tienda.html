@@ -222,7 +222,7 @@
         .img-carousel-wrap .card-dot.active { background: white; width: 18px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     </style>
 </head>
-<body class="text-gray-800 relative bg-surface-50">
+<body class="text-gray-800 relative bg-surface-50 overflow-x-hidden">
     <div class="ambient-bg"></div>
     <!-- NAVBAR (Sticky y Limpio) -->
     <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
@@ -321,7 +321,18 @@
                             <button type="submit" class="bg-gray-50 border border-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 p-2 rounded-xl transition shadow-sm" title="Cerrar Sesión">
                                 <i class="fas fa-sign-out-alt"></i>
                             </button>
-                        </form>
+                </form>
+                <!-- Buscador MÓVIL -->
+                <form th:action="@{/tienda}" method="get" class="md:hidden w-full mx-2" onsubmit="document.getElementById('products-grid')?.scrollIntoView({behavior:'smooth',block:'start'});">
+                    <div class="relative w-full">
+                        <input type="text" name="buscar" th:value="${busqueda}" autocomplete="off"
+                               placeholder="¿Qué buscas? Papa, Yuca..."
+                               class="w-full pl-10 pr-10 py-2.5 rounded-full bg-gray-100 border-transparent focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition text-sm font-medium outline-none">
+                        <button type="submit" class="absolute left-3 top-2 text-gray-400 hover:text-green-600 transition">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
                     </div>
                 </div>
             </div>
@@ -2817,6 +2828,33 @@
 
     <!-- Widget de Soporte Global -->
     <div th:replace="fragments/fragment_soporte :: widget"></div>
+
+    <!-- Barra de navegación móvil (flotante inferior) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-inset-bottom">
+        <div class="flex justify-around items-center py-2">
+            <a th:href="@{/tienda}" class="flex flex-col items-center text-green-600 text-xs font-bold">
+                <i class="fas fa-store text-lg mb-0.5"></i>
+                <span>Tienda</span>
+            </a>
+            <a th:href="@{/favoritos}" class="flex flex-col items-center text-gray-400 text-xs font-bold">
+                <i class="fas fa-heart text-lg mb-0.5"></i>
+                <span>Favoritos</span>
+            </a>
+            <a th:href="@{/carrito}" class="flex flex-col items-center text-gray-400 text-xs font-bold">
+                <i class="fas fa-shopping-cart text-lg mb-0.5"></i>
+                <span>Carrito</span>
+            </a>
+            <a th:href="@{/mis-compras}" class="flex flex-col items-center text-gray-400 text-xs font-bold">
+                <i class="fas fa-box text-lg mb-0.5"></i>
+                <span>Pedidos</span>
+            </a>
+            <a th:href="@{/perfil}" class="flex flex-col items-center text-gray-400 text-xs font-bold">
+                <i class="fas fa-user text-lg mb-0.5"></i>
+                <span>Perfil</span>
+            </a>
+        </div>
+    </nav>
+    <div class="md:hidden pb-16"></div><!-- spacer para la barra inferior -->
 
 </body>
 </html>

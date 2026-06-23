@@ -221,9 +221,18 @@
                 </div>
 
                 <!-- Mobile Menu Button -->
-                <button class="md:hidden text-gray-600 hover:text-gray-900 text-xl">
+                <button onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" class="md:hidden text-gray-600 hover:text-gray-900 text-xl relative z-50">
                     <i class="fas fa-bars"></i>
                 </button>
+            </div>
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobileMenu" class="hidden md:hidden mt-4 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 space-y-3">
+                <a href="/como-funciona" class="block px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-lg">Cómo funciona</a>
+                <a href="/tienda" class="block px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-lg">Comprar</a>
+                <a href="/tienda" class="block px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-lg">Mercado</a>
+                <hr class="border-gray-100">
+                <a th:href="@{/login}" class="block px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg">Iniciar Sesión</a>
+                <a th:href="@{/registro}" class="block px-4 py-2 text-sm font-bold text-white bg-gray-900 hover:bg-green-600 rounded-lg text-center">Registrarse</a>
             </div>
         </nav>
     </div>
