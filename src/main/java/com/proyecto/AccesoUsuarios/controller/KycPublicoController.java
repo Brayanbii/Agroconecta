@@ -4,6 +4,7 @@ import com.proyecto.AccesoUsuarios.model.Usuario;
 import com.proyecto.AccesoUsuarios.repository.UsuarioRepository;
 import com.proyecto.AccesoUsuarios.service.UploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,9 @@ public class KycPublicoController {
     @Autowired
     private UploadFileService uploadService;
 
+    @Autowired
+    private PasswordEncoder encoder;
+
     @GetMapping("/kyc-repartidor")
     public String formulario(Model model) {
         model.addAttribute("repartidores", usuarioRepo.findByRol("REPARTIDOR"));
@@ -27,7 +31,11 @@ public class KycPublicoController {
 
     @PostMapping("/kyc-repartidor/subir")
     public String subirDocumentos(
+            @RequestParam("tipo") String tipo,
             @RequestParam("email") String email,
+            @RequestParam(value = "nombreCompleto", required = false) String nombreCompleto,
+            @RequestParam(value = "telefono", required = false) String telefono,
+            @RequestParam(value = "municipioOrigen", required = false) String municipio,
             @RequestParam(value = "placaVehiculo", required = false) String placa,
             @RequestParam(value = "tipoVehiculo", required = false) String tipoVehiculo,
             @RequestParam(value = "marcaVehiculo", required = false) String marca,
@@ -43,13 +51,33 @@ public class KycPublicoController {
             @RequestParam(value = "soat", required = false) MultipartFile soat,
             @RequestParam(value = "tecnomecanica", required = false) MultipartFile tecnomecanica,
             @RequestParam(value = "fotoPerfil", required = false) MultipartFile fotoPerfil,
+            @RequestParam(value = "fotoCedulaFrontal", required = false) MultipartFile fotoCedulaFrontal,
             RedirectAttributes redirect) {
 
         try {
-            Usuario rep = usuarioRepo.findFirstByEmail(email).orElse(null);
-            if (rep == null || !"REPARTIDOR".equals(rep.getRol())) {
-                redirect.addFlashAttribute("error", "Repartidor no encontrado");
-                return "redirect:/kyc-repartidor";
+            Usuario rep;
+
+            if ("nuevo".equals(tipo)) {
+                if (nombreCompleto == null || nombreCompleto.isBlank()) {
+                    redirect.addFlashAttribute("error", "El nombre completo es obligatorio para nuevos repartidores");
+                    return "redirect:/kyc-repartidor";
+                }
+                rep = new Usuario();
+                rep.setUserName("rep_" + System.currentTimeMillis());
+                rep.setEmail(email);
+                rep.setPassword(encoder.encode("123456"));
+                rep.setRol("REPARTIDOR");
+                rep.setNombreCompleto(nombreCompleto);
+                rep.setTelefono(telefono != null ? telefono : "");
+                rep.setMunicipioOrigen(municipio != null ? municipio : "");
+                rep.setEstadoVerificacion("EN_REVISION");
+                usuarioRepo.save(rep);
+            } else {
+                rep = usuarioRepo.findFirstByEmail(email).orElse(null);
+                if (rep == null || !"REPARTIDOR".equals(rep.getRol())) {
+                    redirect.addFlashAttribute("error", "Repartidor no encontrado. Usa 'Nuevo Repartidor' para registrarlo.");
+                    return "redirect:/kyc-repartidor";
+                }
             }
 
             int docsSubidos = 0;
@@ -62,8 +90,12 @@ public class KycPublicoController {
             if (capacidad != null && capacidad > 0) rep.setCapacidadCargaKg(capacidad);
             if (licencia != null && !licencia.isBlank()) rep.setLicenciaConduccion(licencia);
             if (color != null && !color.isBlank()) rep.setColorVehiculo(color);
+            if ("nuevo".equals(tipo) && telefono != null && !telefono.isBlank()) rep.setTelefono(telefono);
 
-            if (cedula != null && !cedula.isEmpty()) {
+            if (fotoCedulaFrontal != null && !fotoCedulaFrontal.isEmpty()) {
+                rep.setFotoCedulaUrl(uploadService.saveImage(fotoCedulaFrontal));
+                docsSubidos++;
+            } else if (cedula != null && !cedula.isEmpty()) {
                 rep.setFotoCedulaUrl(uploadService.saveImage(cedula));
                 docsSubidos++;
             }
@@ -97,7 +129,7 @@ public class KycPublicoController {
 
             redirect.addFlashAttribute("exito",
                     "✅ " + docsSubidos + " documentos subidos para " + rep.getNombreCompleto()
-                    + ". Estado: EN_REVISIÓN. El admin los aprobará pronto.");
+                    + " (" + rep.getEmail() + "). Estado: EN_REVISIÓN.");
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Error al subir: " + e.getMessage());
         }

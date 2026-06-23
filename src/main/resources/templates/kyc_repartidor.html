@@ -46,13 +46,39 @@
     <!-- Formulario -->
     <form th:action="@{/kyc-repartidor/subir}" method="post" enctype="multipart/form-data" class="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-10 space-y-8">
 
-        <!-- Seleccionar repartidor -->
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-            <label class="block text-sm font-bold text-amber-900 mb-2"><i class="fas fa-user-check mr-2"></i>Seleccionar Repartidor</label>
-            <select name="email" required class="w-full px-4 py-3 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none font-medium text-gray-700">
-                <option value="">-- Elegir repartidor --</option>
-                <option th:each="r : ${repartidores}" th:value="${r.email}" th:text="${r.nombreCompleto + ' — ' + r.email}">repartidor@agroconecta.com</option>
-            </select>
+        <!-- Seleccionar o crear repartidor -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
+            <div class="flex gap-3">
+                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-3 rounded-xl border border-amber-300 hover:border-amber-400 transition flex-1 justify-center" id="lblExistente">
+                    <input type="radio" name="tipo" value="existente" checked onchange="toggleModo()" class="sr-only peer">
+                    <span class="peer-checked:text-green-700 font-bold text-sm">📋 Repartidor Existente</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-3 rounded-xl border border-amber-300 hover:border-amber-400 transition flex-1 justify-center" id="lblNuevo">
+                    <input type="radio" name="tipo" value="nuevo" onchange="toggleModo()" class="sr-only peer">
+                    <span class="peer-checked:text-green-700 font-bold text-sm">🆕 Nuevo Repartidor</span>
+                </label>
+            </div>
+
+            <!-- MODO: EXISTENTE -->
+            <div id="modoExistente">
+                <label class="block text-sm font-bold text-amber-900 mb-2"><i class="fas fa-user-check mr-2"></i>Seleccionar Repartidor</label>
+                <select name="email" class="w-full px-4 py-3 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none font-medium text-gray-700">
+                    <option value="">-- Elegir repartidor --</option>
+                    <option th:each="r : ${repartidores}" th:value="${r.email}" th:text="${r.nombreCompleto + ' — ' + r.email}">repartidor@agroconecta.com</option>
+                </select>
+            </div>
+
+            <!-- MODO: NUEVO -->
+            <div id="modoNuevo" class="hidden space-y-3">
+                <p class="text-sm font-bold text-amber-900"><i class="fas fa-user-plus mr-2"></i>Datos del nuevo repartidor</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input name="nombreCompleto" id="nuevoNombre" placeholder="Nombre completo *" class="px-4 py-2.5 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 outline-none text-sm font-medium">
+                    <input name="email" id="nuevoEmail" placeholder="Email *" type="email" class="px-4 py-2.5 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 outline-none text-sm font-medium">
+                    <input name="telefono" placeholder="Teléfono" class="px-4 py-2.5 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 outline-none text-sm">
+                    <input name="municipioOrigen" placeholder="Municipio (ej: Bogotá)" class="px-4 py-2.5 rounded-xl border border-amber-300 bg-white focus:ring-2 focus:ring-amber-400 outline-none text-sm">
+                </div>
+                <p class="text-xs text-amber-700"><i class="fas fa-info-circle mr-1"></i> Contraseña automática: <code>123456</code>. El repartidor la cambiará al iniciar sesión.</p>
+            </div>
         </div>
 
         <!-- Datos del vehículo -->
@@ -200,6 +226,18 @@
 </div>
 
 <script>
+function toggleModo() {
+    const radio = document.querySelector('input[name="tipo"]:checked');
+    const esNuevo = radio && radio.value === 'nuevo';
+    document.getElementById('modoExistente').classList.toggle('hidden', esNuevo);
+    document.getElementById('modoNuevo').classList.toggle('hidden', !esNuevo);
+    // Toggle required on new fields
+    document.getElementById('nuevoNombre').required = esNuevo;
+    document.getElementById('nuevoEmail').required = esNuevo;
+    // Cambiar colores de los radios
+    document.getElementById('lblExistente').classList.toggle('ring-2 ring-green-400 bg-green-50', !esNuevo);
+    document.getElementById('lblNuevo').classList.toggle('ring-2 ring-green-400 bg-green-50', esNuevo);
+}
 function previewFile(input, imgId) {
     const img = document.getElementById(imgId);
     const file = input.files[0];
