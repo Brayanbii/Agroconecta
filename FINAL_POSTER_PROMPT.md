@@ -1,137 +1,196 @@
-# POSTER DESIGN PROMPT — AGROCONECTA
+# POSTER DE PROMOCIÓN — AGROCONECTA
 
-## Instructions for generating a professional academic poster
+## Póster publicitario para promocionar la plataforma
 
-Use this prompt with any AI image generator (DALL-E, Midjourney, Stable Diffusion) or design tool (Canva, PowerPoint, Adobe Illustrator) to create the final project poster.
+Usa este prompt con cualquier IA generadora de imágenes (DALL-E, Midjourney) o en Canva para crear un póster de marketing que promocione el sitio web AgroConecta.
 
 ---
 
-## PROMPT FOR AI IMAGE GENERATOR
+## PROMPT PARA INTELIGENCIA ARTIFICIAL
 
 ```
-Professional academic poster for a software engineering final project.
-Title: "AgroConecta — Agricultural Connection Platform".
-Subtitle: "A web platform connecting Colombian farmers directly with consumers".
+A colorful, warm promotional poster for a Colombian agricultural 
+e-commerce website called "AgroConecta". 
 
-Design style: Clean, modern, academic. Green and earth color palette 
-(#16a34a, #15803d, #f0fdf4, #1a1a2e). White background with green accents.
+The poster should look like an advertisement you would see at a 
+farmers market, on a rural community board, or shared on WhatsApp.
 
-Layout: Vertical A0 size (841mm × 1189mm), portrait orientation.
+Style: Friendly, inviting, warm colors. Earth tones mixed with bright
+greens and yellows. Hand-drawn style illustrations, not corporate.
 
-Sections from top to bottom:
-1. Header bar: dark green (#15803d) with white text "AgroConecta" and leaf icon
-2. Student name and institution (SENA, June 2026)
-3. "The Problem" box: 3 columns — Intermediaries, Limited Access, No Price Info
-4. "Our Solution" box: Farmer → AgroConecta → Consumer diagram
-5. "5 User Roles" cards: Admin, Support, Farmer, Client, Driver
-6. "Technical Architecture" diagram: Browser → Spring Boot → MySQL + MongoDB
-7. "Technology Stack" icons: Java, Spring Boot, Docker, MySQL, MongoDB, Thymeleaf
-8. "Testing Results" graph: 4 bars showing 89%, 100%, 75%, 92%
-9. "Key Metrics" row: 69 files, 57 templates, 76 APIs, 379 tests, 10 docs
-10. Footer bar: agroconecta.farm | github.com/Brayanbii/Agroconecta | SENA 2026
+Large headline at the top: "¿Cansado de los intermediarios?"
+(translation: "Tired of middlemen?")
 
-Visual style: Flat design with rounded corners, subtle shadows, sans-serif font.
-Icons for each section. No photos, only illustrations and diagrams.
-Professional and academic, not commercial.
+Sub-headline: "Vende directo del campo a la mesa. Sin revendedores. 
+Precios justos para todos."
+
+Show a visual story in 3 simple scenes arranged horizontally:
+1. LEFT: A farmer holding a basket of fresh vegetables (potatoes, 
+   tomatoes, yuca) looking happy, with text "Tú Cultivas" 
+2. CENTER: A smartphone showing the AgroConecta logo (a green leaf) 
+   with a shopping cart icon, with text "AgroConecta Conecta" 
+3. RIGHT: A family at a dining table receiving fresh products, 
+   smiling, with text "Ellos Disfrutan"
+
+At the bottom, a large green button-style element with white text:
+"Entra ya — agroconecta.farm"
+
+Below that in smaller text: "Desde tu celular o computador. 
+Sin descargar nada. ¡Es gratis!"
+
+Include a small WhatsApp-style testimonial bubble: 
+"⭐⭐⭐⭐⭐ 'Vendí toda mi cosecha de papa en 3 días. 
+Sin salir de la finca.' — Doña María, Barbosa, Santander"
+
+Color palette: Warm earthy background (#FFF8E7 or cream), 
+green accents (#16a34a), yellow highlights (#F59E0B), 
+red touches for tomatoes (#DC2626).
+
+The overall feeling should be: hopeful, empowering, simple, 
+and welcoming. Like a colorful mural in a Colombian town.
 ```
 
 ---
 
-## MANUAL CANVA / POWERPOINT INSTRUCTIONS
+## DISEÑO MANUAL EN CANVA
 
-If generating with AI is not possible, follow these steps to build the poster manually:
+### 1. Abre Canva
+- Ve a **canva.com** → busca plantilla **"Poster"** o **"Flyer"** (tamaño A3 o Tabloide)
+- O selecciona **"Marketing Poster"** o **"Small Business Promotion"**
 
-### Template
-- Size: A0 (84.1 cm × 118.9 cm) or Tabloid (28 cm × 43 cm for printing)
-- Background: White `#FFFFFF`
-- Primary color: Green `#16a34a`
-- Secondary color: Dark green `#15803d`
-- Accent: Light green `#f0fdf4`
-- Text: Dark gray `#1a1a2e`
-- Font: Inter, Plus Jakarta Sans, or Montserrat (bold for titles, regular for body)
+### 2. Fondo
+- Color crema o beige cálido: `#FFF8E7` o `#FFF3E0`
+- O usa una foto de fondo: campo colombiano, cultivos verdes, montañas (con transparencia al 20%)
 
-### Layout (Portrait, 9 Rows)
+### 3. Título Principal (arriba, grande)
+```
+¿Cansado de los intermediarios?
+```
+- Fuente: **Montserrat Black** o **Poppins Bold**, 48-64pt
+- Color: Verde oscuro `#15803D`
+- Centrado
 
-**ROW 1 — HEADER (15% height)**
-- Full-width dark green bar `#15803d`
-- Left: Large leaf icon (Font Awesome `fa-leaf`)
-- Center: "AGROCONECTA" in white, bold, 72pt
-- Right: "Agricultural Connection Platform" in white, 28pt
-- Below header (outside bar): "Brayan Bareño · SENA · June 2026" centered, 18pt
+### 4. Subtítulo (debajo del título)
+```
+Vende directo del campo a la mesa.
+Sin revendedores. Precios justos para todos.
+```
+- Fuente: **Montserrat Medium**, 22-26pt
+- Color: Gris oscuro `#374151`
+- Centrado
 
-**ROW 2 — PROBLEM & SOLUTION (20% height)**
-- Left half: "THE PROBLEM" with 3 columns
-  - Column 1: 🏪 icon, "Intermediaries", "3-5 resellers between farmer and consumer. Farmer receives smallest share."
-  - Column 2: 📍 icon, "Limited Access", "Farmers can only sell at local markets. No urban consumer reach."
-  - Column 3: ❓ icon, "No Price Info", "Farmers don't know real market prices. Forced to accept unfair offers."
-- Right half: "OUR SOLUTION" with diagram
-  - Farmer emoji → AgroConecta logo → Consumer emoji
-  - Text: "One platform. Direct connection. Fair prices for everyone."
+### 5. Las 3 Escenas (fila horizontal con 3 columnas)
 
-**ROW 3 — USER ROLES (10% height)**
-- 5 horizontal cards with icons, role name, and one-line description:
-  - 🔧 Admin (supervision) | 💬 Support (help desk) | 🌱 Farmer (sell products) | 🛒 Client (buy products) | 🚚 Driver (delivery)
+| Columna 1 — "Tú Cultivas" | Columna 2 — "AgroConecta" | Columna 3 — "Ellos Disfrutan" |
+|---|---|---|
+| 🧑‍🌾 Ícono de campesino con canasta de vegetales | 📱 Ícono de celular con logo de hoja verde | 👨‍👩‍👧‍👦 Ícono de familia en la mesa |
+| Texto pequeño: "Publica tus productos con foto, precio y descripción" | Texto pequeño: "La plataforma conecta tu finca con compradores de toda Colombia" | Texto pequeño: "Reciben fresco, directo de tu finca, sin sobreprecios" |
 
-**ROW 4 — ARCHITECTURE (15% height)**
-- Title: "TECHNICAL ARCHITECTURE"
-- Three-layer diagram (left to right arrows):
-  - Box 1: "Browser / Mobile" (Thymeleaf + Bootstrap 5 + Tailwind CSS)
-  - Arrow → Box 2: "Spring Boot 3.5.7" (Java 17, Docker, Alpine Linux)
-  - Two arrows down → Box 3a: "MySQL (Aiven)" + Box 3b: "MongoDB Atlas"
+- Cada columna con borde redondeado, sombra suave, fondo blanco o verde clarito
 
-**ROW 5 — TECHNOLOGY STACK (10% height)**
-- Title: "TECHNOLOGY STACK"
-- Grid of 8 technology icons with labels:
-  - Java 17 | Spring Boot | Docker | MySQL | MongoDB | Thymeleaf | Bootstrap | Git
+### 6. Testimonio (bocadillo estilo WhatsApp)
 
-**ROW 6 — TESTING RESULTS (15% height)**
-- Title: "TESTING & VALIDATION — 379 EXECUTIONS"
-- 4 horizontal bars (like a bar chart):
-  - Postman API: 89.3% (25/28 passed) — green bar at 89%
-  - Selenium UI: 100% (10/10 passed) — full green bar
-  - Integration: 75% (15/20 passed) — green bar at 75%
-  - Load Testing: 92% (295/321 passed) — green bar at 92%
-- Total: "91% OVERALL SUCCESS RATE"
+```
+┌──────────────────────────────────────────────┐
+│ ⭐⭐⭐⭐⭐                                       │
+│ "Vendí toda mi cosecha de papa en 3 días.     │
+│  Sin salir de la finca."                      │
+│  — Doña María, Barbosa, Santander             │
+└──────────────────────────────────────────────┘
+```
+- Fondo verde clarito `#ECFDF5`, borde verde, texto en gris oscuro
+- Ícono pequeño de WhatsApp al lado
 
-**ROW 7 — KEY METRICS (8% height)**
-- 5 large numbers in a row:
-  - "69" below: "Java files"
-  - "57" below: "Templates"
-  - "76" below: "API endpoints"
-  - "379" below: "Tests"
-  - "10" below: "Documents"
+### 7. Botón de Llamada a la Acción (abajo, grande)
 
-**ROW 8 — DATABASE (10% height)**
-- Title: "DATABASE DESIGN"
-- Left: MySQL table list (13 tables: usuario, producto, orden, detalle_orden, ruta, direccion, resena, favorito_producto, favorito_campesino, ticket_soporte, mensaje_soporte, notificacion, contacto_horeca)
-- Right: MongoDB GridFS (fs.files + fs.chunks for image storage)
+```
+┌─────────────────────────────────────┐
+│   🌱  Entra ya — agroconecta.farm  │
+└─────────────────────────────────────┘
+```
+- Fondo: Verde `#16A34A`
+- Texto: Blanco, negrita, 28-32pt
+- Bordes redondeados (20px)
+- Sombra verde
 
-**ROW 9 — FOOTER (7% height)**
-- Full-width dark green bar `#15803d`
-- Left: "agroconecta.farm" (white)
-- Center: "github.com/Brayanbii/Agroconecta" (white)
-- Right: "SENA — 2026" (white)
+### 8. Texto final pequeño (debajo del botón)
+
+```
+Desde tu celular o computador. Sin descargar nada. ¡Es GRATIS!
+```
+
+### 9. Pie de página
+```
+AgroConecta © 2026  |  agroconecta.farm  |  Del campo a tu mesa 🌱
+```
+- Fuente pequeña (10-12pt), color gris
 
 ---
 
-## CANVA QUICK START
+## VERSIÓN PARA CELULAR (WHATSAPP / INSTAGRAM)
 
-1. Go to canva.com → Search "Academic Poster A0"
-2. Select a clean template (white background)
-3. Replace colors with the green palette
-4. Use "Elements" → "Charts" for the testing results bar chart
-5. Use "Elements" → "Shapes" for boxes and diagrams
-6. Use "Text" for titles (Inter or Montserrat font)
-7. Export as PDF (Print quality)
+Para una versión cuadrada (1080×1080px) apta para compartir en WhatsApp, Instagram o Facebook:
+
+**Mismo diseño pero en una sola columna vertical:**
+
+1. Título: "¿Cansado de los intermediarios?"
+2. Las 3 escenas en vertical (una debajo de otra)
+3. Testimonio
+4. Botón "Entra ya — agroconecta.farm"
+5. "Desde tu celular. Sin descargar nada. ¡Gratis!"
+
+**Prompt para IA (versión cuadrada):**
+```
+Square promotional post for Instagram/WhatsApp promoting a Colombian 
+agricultural platform "AgroConecta" (agroconecta.farm).
+
+Vertical layout with:
+- Top: "¿Cansado de los intermediarios?" in bold dark green
+- Middle: 3 vertical scenes showing farmer → phone app → happy family
+- Testimonial bubble: "Vendí toda mi cosecha en 3 días" with 5 stars
+- Bottom: Large green button "Entra ya — agroconecta.farm"
+- Footer: "Desde tu celular. ¡Es GRATIS!"
+
+Warm Colombian rural aesthetic. Hand-drawn feel. Earth tones + greens.
+1:1 square format. Mural/folk art style. Happy, hopeful, empowering.
+```
 
 ---
 
-## TIPS FOR A GOOD POSTER
+## FRASES ALTERNATIVAS PARA EL TÍTULO
 
-- **Less text, more visuals.** The poster should be readable from 2 meters away
-- **Use the green color consistently.** Headers, icons, and chart bars should all use the same green
-- **Big numbers are eye-catching.** The metrics row (69, 57, 76, 379, 10) draws attention
-- **The architecture diagram is the centerpiece.** Make it the largest visual element
-- **Include the QR code.** Generate a QR code for `agroconecta.farm` and place it in the footer
-- **Print in high quality.** A0 size needs 300 DPI. Use a professional printing service
-- **Test readability.** Print a small version (A4) first. Can you read everything from 1 meter away?
+Elige la que más te guste o crea variaciones:
+
+| Título | Tono |
+|---|---|
+| "¿Cansado de los intermediarios?" | Directo, pregunta |
+| "Tu cosecha vale más. Véndela directo." | Empoderador |
+| "Del campo a la mesa. Sin escalas." | Corto, impactante |
+| "El mercado campesino, ahora en tu celular" | Cercano, moderno |
+| "Conectamos tu finca con Colombia entera" | Ambicioso, aspiracional |
+| "Precios justos. Del productor al consumidor." | Claro, directo |
+
+---
+
+## ELEMENTOS VISUALES RECOMENDADOS
+
+Para un póster atractivo, incluye estos elementos:
+
+- 🌱 **Hojas verdes** como decoración en las esquinas
+- 🥔 **Vegetales colombianos dibujados:** papa, yuca, plátano, tomate, cebolla, zanahoria, aguacate, café
+- 📱 **Un celular** mostrando la pantalla de la tienda con productos
+- 🧑‍🌾 **Un campesino o campesina** sonriendo (ícono o ilustración sencilla)
+- 💚 **Corazones o estrellas** como detalles decorativos
+- ☀️ **Un sol** o paisaje de montañas colombianas al fondo (sutil)
+- 🛒 **Un carrito de compras** como ícono pequeño
+
+---
+
+## CONSEJOS FINALES
+
+- **Menos texto, más impacto visual.** La gente debe entender de qué se trata en 5 segundos
+- **El botón de llamado a la acción debe ser LO MÁS GRANDE.** Es lo que quieres que la gente haga
+- **Usa el testimonio real.** Si tienes fotos de campesinos reales que hayan usado la plataforma, úsalas
+- **Imprime en papel mate, no brillante.** Se ve más profesional y se puede pegar en paredes
+- **Incluye un código QR** que lleve directo a `agroconecta.farm`. Genera uno gratis en qr-code-generator.com
+- **Prueba el diseño en el celular.** La mayoría de la gente lo verá en WhatsApp, no impreso
